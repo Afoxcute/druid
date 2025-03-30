@@ -34,6 +34,7 @@ export const usePasskey = (identifier: string) => {
       
       const user = "payu";
       const {
+        keyId,
         keyIdBase64,
         contractId: cid,
         signedTx,
