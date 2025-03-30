@@ -5,6 +5,7 @@ import { useKeyStore } from "~/hooks/stores/useKeyStore";
 import { ClientTRPCErrorHandler } from "~/lib/utils";
 import toast from "react-hot-toast";
 import { account } from "~/lib/client-helpers";
+import base64url from "base64url";
 
 export const usePasskey = (identifier: string) => {
   const [loading, setLoading] = useState(false);
@@ -32,21 +33,30 @@ export const usePasskey = (identifier: string) => {
         throw new Error("Email or phone is required to create a passkey");
       }
       
-      const user = "payu";
+      const user = "payu"; // App name or user context
+      
+      // Call the createWallet method with proper parameters
+      const result = await account.createWallet(user, identifier);
+      
+      // Destructure all properties correctly
       const {
-        keyId,
+        keyId: keyIdBuffer,
         keyIdBase64,
         contractId: cid,
-        signedTx,
-      } = await account.createWallet(user, identifier);
-
-      // Use tRPC mutation to send the transaction to the Stellar network
-      const result = await sendTransaction({
+        signedTx
+      } = result;
+      
+      // Convert keyId to base64url for storage if needed
+      const keyIdBase64Url = base64url(keyIdBuffer);
+      
+      // Send the transaction to the Stellar network
+      const txResult = await sendTransaction({
         xdr: signedTx.toXDR(),
       });
-      if (result?.success) {
+      
+      if (txResult?.success) {
         // Store keyId and contractId in Zustand store
-        setKeyId(keyIdBase64);
+        setKeyId(keyIdBase64); // Use the base64 version
         setContractId(cid);
 
         // Determine if the identifier is an email or phone
@@ -57,16 +67,15 @@ export const usePasskey = (identifier: string) => {
           signerId: keyIdBase64,
           [isEmail ? 'email' : 'phone']: identifier,
         });
+        
         return cid;
       }
-      throw new Error("Failed to create Stellar passkey");
+      
+      throw new Error("Failed to create Stellar passkey wallet");
     } catch (err) {
-      toast.error(
-        (err as Error)?.message ?? "Failed to create Stellar passkey",
-      );
-      throw new Error(
-        (err as Error)?.message ?? "Failed to create Stellar passkey",
-      );
+      const errorMessage = (err as Error)?.message ?? "Failed to create Stellar passkey";
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -75,8 +84,24 @@ export const usePasskey = (identifier: string) => {
   const connect = async (): Promise<string> => {
     try {
       setLoading(true);
-      const { keyIdBase64, contractId: cid } = await account.connectWallet();
+      
+      // Connect to an existing wallet
+      const result = await account.connectWallet({
+        keyId: keyId || undefined, // Convert null to undefined
+        getContractId: async (keyId) => {
+          // Fetch the contract ID from your local storage or API
+          // This is a simple approach for demo purposes
+          const contractId = localStorage.getItem("contractId");
+          if (!contractId) {
+            throw new Error("Contract ID not found");
+          }
+          return contractId;
+        },
+      });
+      
+      const { keyIdBase64, contractId: cid } = result;
 
+      // Store in state management
       setKeyId(keyIdBase64);
       setContractId(cid);
 
@@ -85,7 +110,8 @@ export const usePasskey = (identifier: string) => {
       toast.success(`Successfully connected with passkey`);
       return cid;
     } catch (err) {
-      toast.error((err as Error)?.message ?? "Failed to connect with passkey");
+      const errorMessage = (err as Error)?.message ?? "Failed to connect with passkey";
+      toast.error(errorMessage);
       throw err;
     } finally {
       setLoading(false);
@@ -93,7 +119,7 @@ export const usePasskey = (identifier: string) => {
   };
 
   const sign = async (xdr: string): Promise<string> => {
-    console.log("will sign,", keyId);
+    console.log("will sign with keyId:", keyId);
     const signedXDR = await account.sign(xdr, { keyId: String(keyId) });
     console.log("signed xdr", typeof signedXDR, signedXDR);
     return signedXDR.toXDR();
