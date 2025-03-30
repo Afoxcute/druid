@@ -855,7 +855,7 @@
     fflate "^0.7.3"
     string.prototype.codepointat "^0.2.1"
 
-"@simplewebauthn/browser@^13.0.0":
+"@simplewebauthn/browser@^13.1.0":
   version "13.1.0"
   resolved "https://registry.yarnpkg.com/@simplewebauthn/browser/-/browser-13.1.0.tgz#48b0618fe703894add31dcb4755beddcc0798ab0"
   integrity sha512-WuHZ/PYvyPJ9nxSzgHtOEjogBhwJfC8xzYkPC+rR/+8chl/ft4ngjiK8kSU5HtRJfczupyOh33b25TjYbvwAcg==
@@ -3639,25 +3639,25 @@ parse-css-color@^0.2.1:
     color-name "^1.1.4"
     hex-rgb "^4.1.0"
 
-passkey-kit-sdk@0.6.5:
-  version "0.6.5"
-  resolved "https://registry.yarnpkg.com/passkey-kit-sdk/-/passkey-kit-sdk-0.6.5.tgz#c3aa720b1dc03f0e6f4cd28b19c01a4bb00f3ace"
-  integrity sha512-MxbtPPUmX+ycgw3rpXWizEps7foVMzVlR7hZrRpZmsuox1fHXycw3Ge18SZU3Cmt0xjgaPjCI1d2vnMbdEeDVQ==
+passkey-kit-sdk@0.6.6:
+  version "0.6.6"
+  resolved "https://registry.yarnpkg.com/passkey-kit-sdk/-/passkey-kit-sdk-0.6.6.tgz#6ad6c2079a5b8e77821bd9db590e76b7da95d399"
+  integrity sha512-SxDcuh1T8pEldsQyql47ddjMdwVImIgeoVmG4vbUq6Q747N8eDr7jLmosXUc9vImkIwJAGAdSDTwI2GrBoRYXw==
   dependencies:
     "@stellar/stellar-sdk" "13.1.0"
     buffer "6.0.3"
 
-passkey-kit@0.10.10:
-  version "0.10.10"
-  resolved "https://registry.yarnpkg.com/passkey-kit/-/passkey-kit-0.10.10.tgz#85a9f231e9c8021fb11306c914b48304580ce2e5"
-  integrity sha512-KlzytjHAyUtMKMPMfVN/HXGxsvqde80COGtUMj1j871bEKwFjXokmhXAOxDVvW1dfalvP1TDX8jcIJ20hnwrFA==
+passkey-kit@^0.10.13:
+  version "0.10.19"
+  resolved "https://registry.yarnpkg.com/passkey-kit/-/passkey-kit-0.10.19.tgz#1aa2a0c65af2cd3d7e3d1080275e064b76d175eb"
+  integrity sha512-bHCDQwj1zdoqBd1CRKTe31F/99RpBzjoAk5Yd/riK+MAc/rExy3OJza7ZSYqzS1Y2P5na57F2e2ZSz7yAI2q9g==
   dependencies:
-    "@simplewebauthn/browser" "^13.0.0"
+    "@simplewebauthn/browser" "^13.1.0"
     "@stellar/stellar-sdk" "^13.1.0"
     base64url "^3.0.1"
     buffer "^6.0.3"
-    passkey-kit-sdk "0.6.5"
-    sac-sdk "0.3.5"
+    passkey-kit-sdk "0.6.6"
+    sac-sdk "0.3.6"
 
 path-exists@^4.0.0:
   version "4.0.0"
@@ -4049,10 +4049,10 @@ run-parallel@^1.1.9:
   dependencies:
     queue-microtask "^1.2.2"
 
-sac-sdk@0.3.5:
-  version "0.3.5"
-  resolved "https://registry.yarnpkg.com/sac-sdk/-/sac-sdk-0.3.5.tgz#5a590d8d2c717194b15eb4229a886bd11349cdf5"
-  integrity sha512-legs0C7+EcSNCYKOxF4NoG4JCAOMN9vhoL6SFFmhVbZeCP6XXzhiM2sn0JLeIaAoXCVeptQ/lp9uYhJQGjTYdw==
+sac-sdk@0.3.6:
+  version "0.3.6"
+  resolved "https://registry.yarnpkg.com/sac-sdk/-/sac-sdk-0.3.6.tgz#abb152111747fc2e340b0b0d084280ba2589d43a"
+  integrity sha512-VNPzvSdQT4FeYBouzDoZHFZs7rEm5ShjCVpyu2f0gK5aMbyhowfX/H+D0YRpaza/30ucf+SQwURdtZWABa2V/g==
   dependencies:
     "@stellar/stellar-sdk" "13.1.0"
     buffer "6.0.3"
