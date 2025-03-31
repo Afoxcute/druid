@@ -41,7 +41,7 @@ export const account = new PasskeyKit({
 export const server = new PasskeyServer({
     rpcUrl: env.NEXT_PUBLIC_RPC_URL,
     launchtubeUrl: "https://testnet.launchtube.xyz", // Hardcoded for client
-    launchtubeJwt: "JWT-placeholder",                // Hardcoded for client
+    launchtubeJwt: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4N2QyYmQ0ZGM0N2NhNDMxNTdkMmIxZTA5YWJhMDEyMjIzNTk4YzAzYzgxMjJjYjZmMTBlZDE2ZDY1Y2YzMTlmIiwiZXhwIjoxNzUwNDEyNzYwLCJjcmVkaXRzIjoxMDAwMDAwMDAwLCJpYXQiOjE3NDMxNTUxNjB9.Jrk_thIbYjBerDV6A8q3ikjBnG3e-PwD1HNG39DgPX8",                // Hardcoded for client
     mercuryUrl: "https://api.mercurydata.app",       // Hardcoded for client
     mercuryJwt: "JWT-placeholder",                   // Hardcoded for client
 });
