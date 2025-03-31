@@ -10,10 +10,9 @@ import { useContractStore } from "~/hooks/stores/useContractStore";
 import { useKeyStore } from "~/hooks/stores/useKeyStore";
 import { ClientTRPCErrorHandler } from "~/lib/utils";
 import toast from "react-hot-toast";
+import { fundPubkey, fundSigner } from "~/server/services/stellar/PasskeyServer"
 import {
   account,
-  fundPubkey,
-  fundSigner,
   native,
 } from "~/lib/client-helpers";
 import {   account as server } from "~/server/services/stellar/PasskeyServer"
