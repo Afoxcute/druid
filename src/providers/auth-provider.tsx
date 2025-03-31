@@ -63,20 +63,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (isEmail) {
         console.log('Fetching user by email:', identifier);
         try {
-          // For tRPC query procedures, we need to use GET requests
-          const response = await fetch(
-            `/api/trpc/users.getUserByEmail?input=${encodeURIComponent(JSON.stringify({ email: identifier }))}`
-          );
+          // Format the URL based on tRPC client configuration
+          const url = `/api/trpc/users.getUserByEmail?batch=1&input=${encodeURIComponent(JSON.stringify({
+            "0": { json: { email: identifier } }
+          }))}`;
+          
+          console.log('Request URL:', url);
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'x-trpc-source': 'nextjs-react',
+            },
+          });
           
           if (!response.ok) {
-            console.error('Error fetching user data: HTTP error!', response.status);
+            console.error('HTTP error from users.getUserByEmail:', response.status);
             console.error('Response:', await response.text());
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           
           const json = await response.json();
           console.log('User data response:', json);
-          userData = json.result.data;
+          
+          // Format is a batch response array
+          if (Array.isArray(json) && json[0]?.result?.data) {
+            userData = json[0].result.data;
+          } else {
+            console.error('Unexpected response format:', json);
+            throw new Error('Invalid response format from server');
+          }
         } catch (error) {
           console.error('Fetch error:', error);
           throw error;
@@ -84,20 +99,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } else {
         console.log('Fetching user by phone:', identifier);
         try {
-          // For tRPC query procedures, we need to use GET requests
-          const response = await fetch(
-            `/api/trpc/users.getUserByPhone?input=${encodeURIComponent(JSON.stringify({ phone: identifier }))}`
-          );
+          // Format the URL based on tRPC client configuration
+          const url = `/api/trpc/users.getUserByPhone?batch=1&input=${encodeURIComponent(JSON.stringify({
+            "0": { json: { phone: identifier } }
+          }))}`;
+          
+          console.log('Request URL:', url);
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'x-trpc-source': 'nextjs-react',
+            },
+          });
           
           if (!response.ok) {
-            console.error('Error fetching user data: HTTP error!', response.status);
+            console.error('HTTP error from users.getUserByPhone:', response.status);
             console.error('Response:', await response.text());
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           
           const json = await response.json();
           console.log('User data response:', json);
-          userData = json.result.data;
+          
+          // Format is a batch response array
+          if (Array.isArray(json) && json[0]?.result?.data) {
+            userData = json[0].result.data;
+          } else {
+            console.error('Unexpected response format:', json);
+            throw new Error('Invalid response format from server');
+          }
         } catch (error) {
           console.error('Fetch error:', error);
           throw error;
@@ -136,14 +166,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
           
           console.log('Signer payload:', saveSigner);
           
-          // For tRPC mutation procedures, we need to use POST requests
+          // For tRPC mutation procedures - exact format used by the tRPC client
           const response = await fetch('/api/trpc/stellar.saveSigner', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'x-trpc-source': 'nextjs-react',
             },
             body: JSON.stringify({
-              json: saveSigner
+              batch: [
+                {
+                  json: saveSigner
+                }
+              ]
             }),
           });
           
@@ -151,6 +186,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
             console.error('Error saving signer:', response.status);
             console.error('Response:', await response.text());
           } else {
+            const json = await response.json();
+            console.log('Signer save response:', json);
             console.log('Signer saved successfully');
           }
           

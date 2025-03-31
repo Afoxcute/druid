@@ -54,16 +54,6 @@ export default function SignIn() {
     },
   });
 
-  const getUserByEmail = api.users.getUserByEmail.useQuery(
-    { email: identifier },
-    { enabled: false }
-  );
-
-  const getUserByPhone = api.users.getUserByPhone.useQuery(
-    { phone: identifier },
-    { enabled: false }
-  );
-
   const handleContinue = async () => {
     setIsLoading(true);
     try {
