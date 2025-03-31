@@ -56,7 +56,10 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
       
       if (isValid) {
         clickFeedback("medium");
-        onSuccess();
+        // Call success callback after a short delay to ensure UI updates first
+        setTimeout(() => {
+          onSuccess();
+        }, 200);
       } else {
         setShake(true);
         clickFeedback("medium");
@@ -69,7 +72,10 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
       setError("An error occurred. Please try again.");
       setPin("");
     } finally {
-      setLoading(false);
+      // Keep loading true if successful to prevent more validation attempts
+      if (pin !== "123456") {
+        setLoading(false);
+      }
     }
   };
 

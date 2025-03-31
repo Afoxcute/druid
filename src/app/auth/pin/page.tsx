@@ -13,25 +13,32 @@ function PinAuthenticationContent() {
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
   const { user } = useAuth();
   const [isVerifying, setIsVerifying] = useState(false);
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   const handlePinSuccess = () => {
+    if (hasRedirected) return; // Prevent double redirects
+    
+    setHasRedirected(true);
+    console.log("PIN verification successful, redirecting to:", redirectTo);
+    
     // In a real app, we'd set a session token or something similar
     // For now, just redirect to the specified path
-    
-    // If the redirectTo already has a query string, handle that correctly
-    if (redirectTo.includes('?')) {
-      // Already has query parameters
-      if (redirectTo.includes('pinVerified=true')) {
-        // Already has the pinVerified parameter
-        router.push(redirectTo);
+    setTimeout(() => {
+      // If the redirectTo already has a query string, handle that correctly
+      if (redirectTo.includes('?')) {
+        // Already has query parameters
+        if (redirectTo.includes('pinVerified=true')) {
+          // Already has the pinVerified parameter
+          router.push(redirectTo);
+        } else {
+          // Add the pinVerified parameter to existing query
+          router.push(`${redirectTo}&pinVerified=true`);
+        }
       } else {
-        // Add the pinVerified parameter to existing query
-        router.push(`${redirectTo}&pinVerified=true`);
+        // No existing query parameters, add the pinVerified parameter
+        router.push(`${redirectTo}?pinVerified=true`);
       }
-    } else {
-      // No existing query parameters, add the pinVerified parameter
-      router.push(`${redirectTo}?pinVerified=true`);
-    }
+    }, 100);
   };
 
   const handleCancel = () => {

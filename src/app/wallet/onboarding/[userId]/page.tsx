@@ -178,7 +178,7 @@ export default function OnboardingMobile() {
       <Card className="flex flex-grow flex-col">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-bold">
-            Welcome to Freelii
+            Welcome to Druid
           </CardTitle>
           <CardDescription className="text-center">
             Let&#39;s secure your account
@@ -249,7 +249,7 @@ export default function OnboardingMobile() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-center text-xs text-gray-500">
-            By continuing, you agree to Freelii&#39;s Terms of Service and
+            By continuing, you agree to Druid&#39;s Terms of Service and
             Privacy Policy
           </p>
         </CardFooter>
