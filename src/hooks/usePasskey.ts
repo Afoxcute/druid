@@ -16,7 +16,7 @@ import {
   fundSigner,
   native,
 } from "~/lib/client-helpers";
-import { server } from "~/server/services/stellar/PasskeyServer";
+import { account as server } from "~/server/services/stellar/PasskeyServer";
 export const usePasskey = (identifier: string) => {
   const [loading, setLoading] = useState(false);
   const setContractId = useContractStore((state) => state.setContractId);

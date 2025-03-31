@@ -3,8 +3,7 @@ import { z } from "zod";
 import { Sep10 } from "~/server/services/stellar/Sep10";
 import { Sep31 } from "~/server/services/stellar/Sep31";
 import { handleHorizonServerError } from "~/lib/utils";
-import { server } from "~/server/services/stellar/PasskeyServer";
-import { account } from "~/lib/client-helpers";
+import { account } from "~/server/services/stellar/PasskeyServer";
 import { Sep6 } from "~/server/services/stellar/Sep6";
 import { TRPCError } from "@trpc/server/unstable-core-do-not-import";
 import { Sep12 } from "~/server/services/stellar/Sep12";
@@ -122,7 +121,7 @@ export const stellarRouter = createTRPCRouter({
     .input(z.object({ xdr: z.string() }))
     .mutation(async ({ input }) => {
       try {
-        const result = (await server.send(input.xdr)) as never;        return {
+        const result = (await account.send(input.xdr)) as never;        return {
           success: true,
           result,
         };

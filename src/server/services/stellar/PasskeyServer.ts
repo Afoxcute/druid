@@ -9,7 +9,7 @@ import { env } from "~/env";
 //   mercuryJwt: env.MERCURY_JWT,
 // });
 
-export const server = new PasskeyServer({
+export const account = new PasskeyServer({
   rpcUrl: env.RPC_URL,
   launchtubeUrl: env.LAUNCHTUBE_URL,
   launchtubeJwt: env.LAUNCHETUBE_JWT,
