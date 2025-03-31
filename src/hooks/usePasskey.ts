@@ -64,7 +64,7 @@ export const usePasskey = (identifier: string) => {
       });
       
       toast.success("Successfully created passkey wallet");
-      return cid;
+        return cid;
     } catch (err) {
       toast.error((err as Error)?.message ?? "Failed to create Stellar passkey");
       throw err;

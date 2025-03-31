@@ -16,6 +16,8 @@ interface User {
   firstName?: string | null;
   lastName?: string | null;
   passkeyCAddress?: string | null;
+  passkeyKey?: string | null;
+  hashedPin?: string | null;
   name?: string | null;
 }
 

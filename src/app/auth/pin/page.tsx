@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "~/components/ui/card";
 import PinEntry from "~/app/wallet/_components/pin";
@@ -14,6 +14,20 @@ function PinAuthenticationContent() {
   const { user } = useAuth();
   const [isVerifying, setIsVerifying] = useState(false);
   const [hasRedirected, setHasRedirected] = useState(false);
+  const [needsSetup, setNeedsSetup] = useState(false);
+
+  // Check if user needs to set up a PIN instead of verifying
+  useEffect(() => {
+    if (user && user.hashedPin === null) {
+      console.log("User has no PIN set, redirecting to PIN setup");
+      setNeedsSetup(true);
+      
+      // Redirect to PIN setup
+      setTimeout(() => {
+        router.replace(`/wallet/onboarding/${user.id}`);
+      }, 300);
+    }
+  }, [user, router]);
 
   const handlePinSuccess = () => {
     if (hasRedirected) return; // Prevent double redirects
@@ -49,6 +63,18 @@ function PinAuthenticationContent() {
   if (!user && !isVerifying) {
     router.push("/auth/signin");
     return null;
+  }
+  
+  // Show loading or redirection message if user needs to set up PIN
+  if (needsSetup) {
+    return (
+      <div className="w-full max-w-md text-center">
+        <div className="flex flex-col items-center justify-center p-8">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mb-4"></div>
+          <p>You need to set up a PIN first. Redirecting to PIN setup...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -66,16 +66,26 @@ function DashboardContent() {
       return;
     }
     
-    // In a real app, this would check a session value or token
-    // For demo purposes, we'll just set a timer to simulate PIN verification
+    // Check if user has a PIN set
     const timer = setTimeout(() => {
-      // For demo purposes ALWAYS auto-verify to stop the redirect loop
-      setIsPinVerified(true);
-      setIsVerifying(false);
+      if (user) {
+        console.log("Checking if user has PIN set:", user);
+        
+        // Check if hashedPin is null (no PIN set)
+        if (user.hashedPin === null) {
+          console.log("User has no PIN set, redirecting to PIN setup");
+          router.replace("/wallet/onboarding/" + user.id);
+          return;
+        }
+        
+        // PIN is set, proceed with verification
+        setIsPinVerified(true);
+        setIsVerifying(false);
+      }
     }, 1000);
     
     return () => clearTimeout(timer);
-  }, [pinVerified]);
+  }, [pinVerified, user, router]);
   
   // If the user isn't loaded yet, show a loading state
   if (!user) {
@@ -158,16 +168,7 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => {
-                if (user?.id) {
-                  // Navigate directly to the send money page
-                  router.push(`/wallet/${user.id}/send`);
-                } else {
-                  console.log("User ID not available");
-                  // Redirect to sign in if user is not properly authenticated
-                  router.push("/auth/signin");
-                }
-              }}
+              onClick={() => router.push("/send")}
             >
               <ArrowUpRight className="mr-2 h-4 w-4" />
               Send
@@ -175,16 +176,7 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => {
-                if (user?.id) {
-                  // Navigate directly to the receive page
-                  router.push(`/wallet/${user.id}/receive`);
-                } else {
-                  console.log("User ID not available");
-                  // Redirect to sign in if user is not properly authenticated
-                  router.push("/auth/signin");
-                }
-              }}
+              onClick={() => router.push("/receive")}
             >
               <ArrowDownToLine className="mr-2 h-4 w-4" />
               Receive
