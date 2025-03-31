@@ -33,21 +33,24 @@ export const usePasskey = (identifier: string) => {
       }
       
       const user = "payu";
+      
+      // Correctly capture all returned properties from createWallet
       const {
-        keyId,
-        keyIdBase64,
-        contractId: cid,
-        signedTx,
+        keyId,           // Buffer version of the key ID
+        keyIdBase64,     // Base64 string version of the key ID
+        contractId: cid, // The contract ID
+        signedTx         // The signed transaction
       } = await account.createWallet(user, identifier);
 
       // Use tRPC mutation to send the transaction to the Stellar network
       const result = await sendTransaction({
         xdr: signedTx.toXDR(),
       });
+      
       if (result?.success) {
         // Store keyId and contractId in Zustand store
-        setKeyId(keyIdBase64);
-        setContractId(cid);
+        setKeyId(keyIdBase64);  // Store the Base64 version of the key ID
+        setContractId(cid);    // Store the contract ID
 
         // Determine if the identifier is an email or phone
         const isEmail = identifier.includes('@');
@@ -57,8 +60,10 @@ export const usePasskey = (identifier: string) => {
           signerId: keyIdBase64,
           [isEmail ? 'email' : 'phone']: identifier,
         });
+        
         return cid;
       }
+      
       throw new Error("Failed to create Stellar passkey");
     } catch (err) {
       toast.error(
