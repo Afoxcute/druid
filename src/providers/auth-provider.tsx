@@ -8,7 +8,6 @@ import {
   ReactNode,
 } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { api } from "~/trpc/react";
 
 interface User {
   id: number;
@@ -60,64 +59,93 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const isEmail = identifier.includes('@');
       let userData;
       
-      console.log(`Attempting to login with ${isEmail ? 'email' : 'phone'}: ${identifier}`);
-      console.log(`Passkey address: ${passkeyCAddress}`);
-      
-      try {
-        // Create properly encoded fetch requests
-        const encodedIdentifier = encodeURIComponent(identifier);
-        const endpoint = isEmail 
-          ? `/api/trpc/users.getUserByEmail?batch=1&input={"0":{"email":"${encodedIdentifier}"}}`
-          : `/api/trpc/users.getUserByPhone?batch=1&input={"0":{"phone":"${encodedIdentifier}"}}`;
-        
-        console.log("Fetching from endpoint:", endpoint);
-        const response = await fetch(endpoint);
+      // Fetch user data
+      if (isEmail) {
+        const response = await fetch(
+          `/api/trpc/users.getUserByEmail?input=${encodeURIComponent(JSON.stringify({ email: identifier }))}`
+        );
         
         if (!response.ok) {
+          console.error('Error fetching user data: HTTP error!', response.status);
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const data = await response.json();
-        console.log("API response:", data);
+        const json = await response.json();
+        userData = json.result.data;
+      } else {
+        const response = await fetch(
+          `/api/trpc/users.getUserByPhone?input=${encodeURIComponent(JSON.stringify({ phone: identifier }))}`
+        );
         
-        if (data[0]?.result?.data) {
-          userData = data[0].result.data;
-        } else {
-          console.error("Unexpected API response format:", data);
-          throw new Error("Invalid API response format");
+        if (!response.ok) {
+          console.error('Error fetching user data: HTTP error!', response.status);
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        throw new Error("Failed to fetch user data");
+        
+        const json = await response.json();
+        userData = json.result.data;
       }
       
       if (!userData) {
-        console.error("User not found for identifier:", identifier);
         throw new Error("User not found");
       }
       
-      // Verify that the passkey address matches
-      console.log("Database passkey address:", userData.passkeyCAddress);
-      console.log("Provided passkey address:", passkeyCAddress);
-      
-      if (userData.passkeyCAddress !== passkeyCAddress) {
-        console.error("Passkey mismatch", {
-          stored: userData.passkeyCAddress,
-          provided: passkeyCAddress
-        });
+      // Verify the passkey address if one exists
+      if (userData.passkeyCAddress && userData.passkeyCAddress !== passkeyCAddress) {
         throw new Error("Invalid passkey");
       }
       
-      // Create a name field from firstName and lastName
+      // Update passkey address if not already set
+      if (!userData.passkeyCAddress) {
+        try {
+          // Create signer object with proper type definition
+          const saveSigner: {
+            contractId: string;
+            signerId: string;
+            email?: string;
+            phone?: string;
+          } = {
+            contractId: passkeyCAddress,
+            signerId: userData.id.toString(),
+          };
+          
+          if (isEmail) {
+            saveSigner.email = identifier;
+          } else {
+            saveSigner.phone = identifier;
+          }
+          
+          const response = await fetch('/api/trpc/stellar.saveSigner', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              json: saveSigner
+            }),
+          });
+          
+          if (!response.ok) {
+            console.error('Error saving signer:', response.status);
+          }
+          
+          // Update the local user data
+          userData.passkeyCAddress = passkeyCAddress;
+        } catch (error) {
+          console.error('Error saving signer:', error);
+          // Continue anyway - user can still log in
+        }
+      }
+      
+      // Create a display name
       if (userData.firstName) {
         userData.name = userData.firstName + (userData.lastName ? ` ${userData.lastName}` : '');
       }
       
       setUser(userData);
       localStorage.setItem("auth_user", JSON.stringify(userData));
-      console.log("Login successful for user:", userData.id);
-    } catch (error: any) {
-      console.error("Login error:", error.message, error.stack);
+    } catch (error) {
+      console.error("Login error:", error);
       throw error;
     } finally {
       setIsLoading(false);

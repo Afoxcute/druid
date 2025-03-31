@@ -86,22 +86,28 @@ export default function SignIn() {
 
       setIdentifier(identifier);
 
-      // Connect with passkey
-      const contractId = await connect();
-      if (contractId) {
-        // If contractId is returned, call the login function from AuthProvider
-        try {
-          await login(identifier, contractId);
-          // Authentication successful, redirect to dashboard
-          router.push("/dashboard");
-        } catch (error) {
-          toast.error("Authentication failed. Please try again.");
-          console.error(error);
+      try {
+        // Connect with passkey
+        const contractId = await connect();
+        if (!contractId) {
+          toast.error("Failed to connect with passkey. Please try again.");
+          return;
         }
+        
+        // If contractId is returned, call the login function from AuthProvider
+        await login(identifier, contractId);
+        
+        // Authentication successful, redirect to dashboard
+        toast.success("Authentication successful");
+        router.push("/dashboard");
+      } catch (error: any) {
+        console.error("Authentication error:", error);
+        // Show more specific error message if available
+        toast.error(error.message || "Authentication failed. Please try again.");
       }
-    } catch (error) {
-      toast.error("Authentication failed. Please try again.");
-      console.error(error);
+    } catch (error: any) {
+      console.error("Form validation error:", error);
+      toast.error(error.message || "Please check your input and try again.");
     } finally {
       setIsLoading(false);
     }
