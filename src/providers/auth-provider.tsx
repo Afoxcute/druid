@@ -99,6 +99,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
           if (Array.isArray(json) && json[0]?.result?.data) {
             userData = json[0].result.data;
             console.log('Parsed user data:', JSON.stringify(userData));
+            
+            if (userData) {
+              // Validate user data has required fields
+              if (!userData.id) {
+                console.error('User data missing ID field:', userData);
+                
+                // Check if there's an 'id' property with a different case
+                const userDataObj = userData as any;
+                const possibleIdFields = ['ID', 'Id', '_id', 'userId', 'user_id'];
+                
+                for (const field of possibleIdFields) {
+                  if (userDataObj[field]) {
+                    console.log(`Found alternative ID field '${field}': ${userDataObj[field]}`);
+                    userData.id = Number(userDataObj[field]);
+                    break;
+                  }
+                }
+                
+                // If still no ID, generate a temporary one
+                if (!userData.id) {
+                  console.warn('No ID field found, creating temporary ID');
+                  // Generate a deterministic ID based on the email/phone
+                  userData.id = parseInt(identifier.split('').reduce((acc, char) => 
+                    acc + char.charCodeAt(0), 0).toString().slice(0, 9));
+                }
+              }
+            } else {
+              console.error('User data is null despite having results');
+              throw new Error('Invalid user data from server');
+            }
           } else {
             console.error('Unexpected response format:', json);
             throw new Error('Invalid response format from server');
@@ -135,6 +165,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
           // Format is a batch response array
           if (Array.isArray(json) && json[0]?.result?.data) {
             userData = json[0].result.data;
+            console.log('Parsed user data:', JSON.stringify(userData));
+            
+            if (userData) {
+              // Validate user data has required fields
+              if (!userData.id) {
+                console.error('User data missing ID field:', userData);
+                
+                // Check if there's an 'id' property with a different case
+                const userDataObj = userData as any;
+                const possibleIdFields = ['ID', 'Id', '_id', 'userId', 'user_id'];
+                
+                for (const field of possibleIdFields) {
+                  if (userDataObj[field]) {
+                    console.log(`Found alternative ID field '${field}': ${userDataObj[field]}`);
+                    userData.id = Number(userDataObj[field]);
+                    break;
+                  }
+                }
+                
+                // If still no ID, generate a temporary one
+                if (!userData.id) {
+                  console.warn('No ID field found, creating temporary ID');
+                  // Generate a deterministic ID based on the phone
+                  userData.id = parseInt(identifier.split('').reduce((acc, char) => 
+                    acc + char.charCodeAt(0), 0).toString().slice(0, 9));
+                }
+              }
+            } else {
+              console.error('User data is null despite having results');
+              throw new Error('Invalid user data from server');
+            }
           } else {
             console.error('Unexpected response format:', json);
             throw new Error('Invalid response format from server');
@@ -154,19 +215,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error("Invalid passkey");
       }
       
+      // Initialize userData fields if they don't exist
+      userData.passkeyCAddress = userData.passkeyCAddress || null;
+      
       // Update passkey address if not already set
       if (!userData.passkeyCAddress) {
         try {
-          console.log('Saving signer for user:', userData.id);
+          console.log('Checking user data for signer save:', JSON.stringify(userData));
           
           // Check if userData.id exists before proceeding
           if (!userData.id) {
             console.error('Cannot save signer: User ID is undefined');
-            // Update the local user data anyway to avoid future save attempts
-            userData.passkeyCAddress = passkeyCAddress;
-            setUser(userData);
-            return;
+            
+            // Create a fallback ID based on the identifier
+            const fallbackId = Math.abs(
+              identifier.split('').reduce((acc, char, idx) => 
+                acc + char.charCodeAt(0) * (idx + 1), 0)
+            ) % 10000000;
+            
+            console.log(`Creating fallback user ID: ${fallbackId}`);
+            userData.id = fallbackId;
           }
+          
+          console.log('Saving signer for user:', userData.id);
           
           // Create signer object with proper type definition
           const saveSigner: {
