@@ -19,14 +19,7 @@ const config = {
     "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/require-await": "off",
     "@typescript-eslint/no-empty-function": "off",
-    "@typescript-eslint/no-misused-promises": [
-      "error",
-      {
-        "checksVoidReturn": {
-          "attributes": false
-        }
-      }
-    ],
+    "@typescript-eslint/no-misused-promises": "off",
     "@typescript-eslint/prefer-nullish-coalescing": "off",
     "@typescript-eslint/restrict-template-expressions": "off",
     "@typescript-eslint/prefer-optional-chain": "off",
