@@ -62,56 +62,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Fetch user data
       if (isEmail) {
         console.log('Fetching user by email:', identifier);
-        const response = await fetch(
-          `/api/trpc/users.getUserByEmail`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              json: {
-                email: identifier
-              }
-            }),
+        try {
+          // For tRPC query procedures, we need to use GET requests
+          const response = await fetch(
+            `/api/trpc/users.getUserByEmail?input=${encodeURIComponent(JSON.stringify({ email: identifier }))}`
+          );
+          
+          if (!response.ok) {
+            console.error('Error fetching user data: HTTP error!', response.status);
+            console.error('Response:', await response.text());
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
-        );
-        
-        if (!response.ok) {
-          console.error('Error fetching user data: HTTP error!', response.status);
-          console.error('Response:', await response.text());
-          throw new Error(`HTTP error! status: ${response.status}`);
+          
+          const json = await response.json();
+          console.log('User data response:', json);
+          userData = json.result.data;
+        } catch (error) {
+          console.error('Fetch error:', error);
+          throw error;
         }
-        
-        const json = await response.json();
-        console.log('User data response:', json);
-        userData = json.result.data;
       } else {
         console.log('Fetching user by phone:', identifier);
-        const response = await fetch(
-          `/api/trpc/users.getUserByPhone`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              json: {
-                phone: identifier
-              }
-            }),
+        try {
+          // For tRPC query procedures, we need to use GET requests
+          const response = await fetch(
+            `/api/trpc/users.getUserByPhone?input=${encodeURIComponent(JSON.stringify({ phone: identifier }))}`
+          );
+          
+          if (!response.ok) {
+            console.error('Error fetching user data: HTTP error!', response.status);
+            console.error('Response:', await response.text());
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
-        );
-        
-        if (!response.ok) {
-          console.error('Error fetching user data: HTTP error!', response.status);
-          console.error('Response:', await response.text());
-          throw new Error(`HTTP error! status: ${response.status}`);
+          
+          const json = await response.json();
+          console.log('User data response:', json);
+          userData = json.result.data;
+        } catch (error) {
+          console.error('Fetch error:', error);
+          throw error;
         }
-        
-        const json = await response.json();
-        console.log('User data response:', json);
-        userData = json.result.data;
       }
       
       if (!userData) {
@@ -146,6 +136,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           
           console.log('Signer payload:', saveSigner);
           
+          // For tRPC mutation procedures, we need to use POST requests
           const response = await fetch('/api/trpc/stellar.saveSigner', {
             method: 'POST',
             headers: {
