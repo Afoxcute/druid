@@ -48,51 +48,14 @@ function DashboardContent() {
   const [balance] = useState("1,234.56"); // Mock balance
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isPinVerified, setIsPinVerified] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(true);
-  const [redirected, setRedirected] = useState(false);
+  
+  // DEVELOPMENT MODE: Force PIN verification to be true
+  // This completely bypasses the PIN verification flow for testing
+  const [isPinVerified, setIsPinVerified] = useState(true);
+  const [isVerifying, setIsVerifying] = useState(false);
   
   // Check if user is coming from bank connection flow
   const bankConnected = searchParams.get("bankConnected") === "true";
-  
-  // Check if the pin was already verified in this session
-  const pinVerified = searchParams.get("pinVerified") === "true";
-  
-  useEffect(() => {
-    // First check if there's a stored verification status in localStorage
-    const storedVerification = localStorage.getItem("pin_verified");
-    
-    // If coming from PIN verification page with success
-    if (pinVerified) {
-      console.log("PIN verified via query parameter, setting verification status");
-      setIsPinVerified(true);
-      setIsVerifying(false);
-      // Store verification in localStorage
-      localStorage.setItem("pin_verified", "true");
-      return;
-    }
-    
-    // If already verified in localStorage, accept that
-    if (storedVerification === "true") {
-      console.log("PIN already verified via localStorage");
-      setIsPinVerified(true);
-      setIsVerifying(false);
-      return;
-    }
-    
-    // Otherwise, verification is needed
-    console.log("PIN verification needed");
-    setIsPinVerified(false);
-    setIsVerifying(false);
-  }, [pinVerified]);
-  
-  // Handle logout to clear verification
-  const handleLogout = () => {
-    console.log("Logging out and clearing PIN verification");
-    localStorage.removeItem("pin_verified");
-    logout();
-    router.push("/auth/signin");
-  };
   
   // If the user isn't loaded yet, show a loading state
   if (!user) {
@@ -102,35 +65,17 @@ function DashboardContent() {
     </div>;
   }
   
-  // Show verifying message while checking
-  if (isVerifying) {
-    return <div className="flex flex-col items-center justify-center p-8">
-      <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mb-4"></div>
-      <p>Verifying security...</p>
-    </div>;
-  }
-  
-  // If PIN isn't verified, redirect to PIN page - only redirect once
-  if (!isPinVerified && !redirected) {
-    console.log("PIN not verified, redirecting to verification page");
-    setRedirected(true);
-    
-    // Redirect to PIN verification
-    router.replace("/auth/pin?redirectTo=/dashboard%3FpinVerified%3Dtrue");
-    
-    return <div className="flex flex-col items-center justify-center p-8">
-      <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mb-4"></div>
-      <p>Redirecting to security verification...</p>
-    </div>;
-  }
-  
   return (
     <div className="container mx-auto max-w-md space-y-6 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">
           Welcome, {user.firstName || "User"}
         </h1>
-        <Button variant="ghost" onClick={handleLogout}>
+        <Button variant="ghost" onClick={() => {
+          localStorage.removeItem("pin_verified");
+          logout();
+          router.push("/auth/signin");
+        }}>
           Logout
         </Button>
       </div>
