@@ -54,12 +54,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (identifier: string, passkeyCAddress: string) => {
     setIsLoading(true);
+    
     try {
-      // Determine if identifier is email or phone
-      const isEmail = identifier.includes('@');
-      let userData;
+      console.log('Starting login process for:', identifier);
       
-      // Fetch user data
+      if (!identifier) {
+        throw new Error("Email or phone is required");
+      }
+      
+      if (!passkeyCAddress) {
+        throw new Error("Passkey address is required");
+      }
+      
+      const isEmail = identifier.includes("@");
+      let userData: User | null = null;
+      
+      // Get user by identifier (email or phone)
       if (isEmail) {
         console.log('Fetching user by email:', identifier);
         try {
@@ -88,6 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           // Format is a batch response array
           if (Array.isArray(json) && json[0]?.result?.data) {
             userData = json[0].result.data;
+            console.log('Parsed user data:', JSON.stringify(userData));
           } else {
             console.error('Unexpected response format:', json);
             throw new Error('Invalid response format from server');
@@ -147,6 +158,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!userData.passkeyCAddress) {
         try {
           console.log('Saving signer for user:', userData.id);
+          
+          // Check if userData.id exists before proceeding
+          if (!userData.id) {
+            console.error('Cannot save signer: User ID is undefined');
+            // Update the local user data anyway to avoid future save attempts
+            userData.passkeyCAddress = passkeyCAddress;
+            setUser(userData);
+            return;
+          }
+          
           // Create signer object with proper type definition
           const saveSigner: {
             contractId: string;
@@ -196,6 +217,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         } catch (error) {
           console.error('Error saving signer:', error);
           // Continue anyway - user can still log in
+          
+          // Ensure the passkey address is still set in the local user data
+          userData.passkeyCAddress = passkeyCAddress;
         }
       }
       
@@ -204,8 +228,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
         userData.name = userData.firstName + (userData.lastName ? ` ${userData.lastName}` : '');
       }
       
-      setUser(userData);
+      // Final steps - update state and localStorage
+      console.log('Login successful, updating user state with:', userData);
+
+      // Validate userData has required fields
+      if (!userData.id) {
+        console.error('Warning: User data is missing ID');
+      }
+
+      // Store in local storage
       localStorage.setItem("auth_user", JSON.stringify(userData));
+
+      // Update state
+      setUser(userData);
     } catch (error) {
       console.error("Login error:", error);
       throw error;
