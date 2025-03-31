@@ -8,7 +8,6 @@ import {
   ReactNode,
 } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { api } from "~/trpc/react";
 
 interface User {
   id: number;
@@ -60,21 +59,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const isEmail = identifier.includes('@');
       let userData;
       
-      // Create temporary async functions to fetch user data
-      async function fetchByEmail() {
-        return await fetch(`/api/trpc/users.getUserByEmail?batch=1&input={"0":{"email":"${identifier}"}}`).then(res => res.json());
-      }
-      
-      async function fetchByPhone() {
-        return await fetch(`/api/trpc/users.getUserByPhone?batch=1&input={"0":{"phone":"${identifier}"}}`).then(res => res.json());
-      }
-      
       if (isEmail) {
-        const response = await fetchByEmail();
-        userData = response[0].result.data;
+        // Fetch user by email with proper error handling
+        const response = await fetch(`/api/trpc/users.getUserByEmail?batch=1&input={"0":{"email":"${identifier}"}}`);
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data || !data[0] || !data[0].result || !data[0].result.data) {
+          throw new Error("User not found");
+        }
+        
+        userData = data[0].result.data;
       } else {
-        const response = await fetchByPhone();
-        userData = response[0].result.data;
+        // Fetch user by phone with proper error handling
+        const response = await fetch(`/api/trpc/users.getUserByPhone?batch=1&input={"0":{"phone":"${identifier}"}}`);
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data || !data[0] || !data[0].result || !data[0].result.data) {
+          throw new Error("User not found");
+        }
+        
+        userData = data[0].result.data;
       }
       
       if (!userData) {
@@ -86,13 +100,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error("Invalid passkey");
       }
       
-      // Create a name field from firstName and lastName
-      if (userData.firstName) {
-        userData.name = userData.firstName + (userData.lastName ? ` ${userData.lastName}` : '');
-      }
+      // Create a user object with the name property
+      const userWithName: User = {
+        ...userData,
+        name: userData.firstName 
+          ? userData.firstName + (userData.lastName ? ` ${userData.lastName}` : '')
+          : null
+      };
       
-      setUser(userData);
-      localStorage.setItem("auth_user", JSON.stringify(userData));
+      setUser(userWithName);
+      localStorage.setItem("auth_user", JSON.stringify(userWithName));
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
