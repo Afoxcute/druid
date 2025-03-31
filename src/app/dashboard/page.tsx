@@ -67,20 +67,45 @@ function DashboardContent() {
     }
     
     // Check if user has a PIN set
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       if (user) {
         console.log("Checking if user has PIN set:", user);
         
-        // Check if hashedPin is null (no PIN set)
-        if (user.hashedPin === null) {
-          console.log("User has no PIN set, redirecting to PIN setup");
-          router.replace("/wallet/onboarding/" + user.id);
-          return;
+        // Force reload user data from localStorage to get the latest changes
+        try {
+          const userData = localStorage.getItem("auth_user");
+          if (userData) {
+            const refreshedUser = JSON.parse(userData);
+            console.log("Refreshed user data:", refreshedUser);
+            
+            // Check if hashedPin is null (no PIN set)
+            if (refreshedUser.hashedPin === null) {
+              console.log("User has no PIN set, redirecting to PIN setup");
+              router.replace("/wallet/onboarding/" + user.id);
+              return;
+            }
+            
+            // If redirected from PIN page, check for passkey setup
+            // Allow "skipped_setup" as a valid passkey state
+            if (pinVerified && 
+                (!refreshedUser.passkeyCAddress || 
+                refreshedUser.passkeyCAddress === null) && 
+                refreshedUser.passkeyCAddress !== "skipped_setup") {
+              console.log("User has no passkey set, redirecting to passkey setup");
+              router.replace(`/wallet/onboarding/${user.id}/passkey`);
+              return;
+            }
+            
+            // PIN and passkey verification passed
+            setIsPinVerified(true);
+            setIsVerifying(false);
+          }
+        } catch (err) {
+          console.error("Error refreshing user data:", err);
+          // PIN is set, proceed with verification
+          setIsPinVerified(true);
+          setIsVerifying(false);
         }
-        
-        // PIN is set, proceed with verification
-        setIsPinVerified(true);
-        setIsVerifying(false);
       }
     }, 1000);
     

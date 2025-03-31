@@ -18,14 +18,46 @@ function PinAuthenticationContent() {
 
   // Check if user needs to set up a PIN instead of verifying
   useEffect(() => {
-    if (user && user.hashedPin === null) {
-      console.log("User has no PIN set, redirecting to PIN setup");
-      setNeedsSetup(true);
-      
-      // Redirect to PIN setup
-      setTimeout(() => {
-        router.replace(`/wallet/onboarding/${user.id}`);
-      }, 300);
+    if (user) {
+      // Check localStorage for the freshest user data
+      try {
+        const userData = localStorage.getItem("auth_user");
+        if (userData) {
+          const freshUser = JSON.parse(userData);
+          console.log("Fresh user data from localStorage:", freshUser);
+          
+          if (freshUser.hashedPin === null) {
+            console.log("User has no PIN set, redirecting to PIN setup");
+            setNeedsSetup(true);
+            
+            // Redirect to PIN setup
+            setTimeout(() => {
+              router.replace(`/wallet/onboarding/${user.id}`);
+            }, 300);
+          }
+        } else if (user.hashedPin === null) {
+          // Fallback to context user object
+          console.log("User has no PIN set (fallback check), redirecting to PIN setup");
+          setNeedsSetup(true);
+          
+          // Redirect to PIN setup
+          setTimeout(() => {
+            router.replace(`/wallet/onboarding/${user.id}`);
+          }, 300);
+        }
+      } catch (err) {
+        console.error("Error checking localStorage:", err);
+        // Fallback to context user object
+        if (user.hashedPin === null) {
+          console.log("User has no PIN set (after error), redirecting to PIN setup");
+          setNeedsSetup(true);
+          
+          // Redirect to PIN setup
+          setTimeout(() => {
+            router.replace(`/wallet/onboarding/${user.id}`);
+          }, 300);
+        }
+      }
     }
   }, [user, router]);
 

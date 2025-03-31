@@ -59,35 +59,44 @@ export default function OnboardingMobile() {
     } else if (confirmPin.length === 6 && step === "confirm-pin") {
       // Compare pins
       if (pin === confirmPin) {
-        // Simulate setting PIN on the server
+        // Use the actual persistPin API
         setIsLoading(true);
-        
-        // In a real app, you would make an API call to save the PIN
         console.log("Setting PIN for user:", userId);
         
-        setTimeout(() => {
-          setIsLoading(false);
-          setStep("passkey");
-          
-          // In a real app, you'd also update the local user data here
-          try {
-            const userData = localStorage.getItem("auth_user");
-            if (userData) {
-              const user = JSON.parse(userData);
-              user.hashedPin = "hashed_" + pin; // Mock hashing for demo
-              localStorage.setItem("auth_user", JSON.stringify(user));
+        persistPin.mutate(
+          {
+            userId: Number(userId),
+            pin: pin,
+          },
+          {
+            onSuccess: () => {
+              // Update the local user data
+              try {
+                const userData = localStorage.getItem("auth_user");
+                if (userData) {
+                  const user = JSON.parse(userData);
+                  user.hashedPin = "hashed_" + pin; // Mock hashing for demo
+                  localStorage.setItem("auth_user", JSON.stringify(user));
+                  console.log("Updated local user data with hashedPin");
+                }
+              } catch (err) {
+                console.error("Failed to update local user data:", err);
+              }
               
-              // Also attempt to update the user record on the server
-              // This is mocked for the demo - would be a real API call
-              console.log("Updated local user data with hashedPin");
-              
-              // Show a toast or notification if you have a toast library
-              // toast.success("PIN set successfully!");
+              // Show success toast
+              toast.success("PIN set successfully!");
+              setIsLoading(false);
+              setStep("passkey");
+            },
+            onError: (error) => {
+              console.error("Failed to save PIN:", error);
+              setIsLoading(false);
+              setError("Failed to save PIN. Please try again.");
+              setShake(true);
+              clickFeedback("error");
             }
-          } catch (err) {
-            console.error("Failed to update local user data:", err);
           }
-        }, 1000);
+        );
       } else {
         // PINs don't match
         setShake(true);
@@ -96,7 +105,7 @@ export default function OnboardingMobile() {
         setError("PINs don't match. Please try again.");
       }
     }
-  }, [pin, confirmPin, step, userId, clickFeedback]);
+  }, [pin, confirmPin, step, userId, clickFeedback, persistPin]);
 
   const handlePinInput = (value: string) => {
     if (step === "create-pin") {
@@ -259,11 +268,31 @@ export default function OnboardingMobile() {
               </Link>
               
               <div className="mt-4">
-                <Link href="/dashboard">
-                  <Button variant="outline" className="w-full">
-                    Skip for now and go to Dashboard
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => {
+                    // Mark that user consciously skipped passkey setup
+                    try {
+                      const userData = localStorage.getItem("auth_user");
+                      if (userData) {
+                        const user = JSON.parse(userData);
+                        // Add a temporary placeholder value to avoid future redirects
+                        user.passkeyCAddress = "skipped_setup"; 
+                        localStorage.setItem("auth_user", JSON.stringify(user));
+                        console.log("Updated user data: passkey setup skipped");
+                        toast.success("PIN setup complete. You can set up passkey later.");
+                      }
+                    } catch (err) {
+                      console.error("Failed to update local user data:", err);
+                    }
+                    
+                    // Navigate to dashboard
+                    window.location.href = "/dashboard?pinVerified=true";
+                  }}
+                >
+                  Skip for now and go to Dashboard
+                </Button>
               </div>
             </div>
           )}

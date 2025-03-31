@@ -1,77 +1,149 @@
 "use client";
-import { Shield, Fingerprint, ScanFace, LockKeyhole } from "lucide-react";
+
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import { usePasskey } from "~/hooks/usePasskey";
-import toast from "react-hot-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Fingerprint, Key, Lock } from "lucide-react";
+import { useAuth } from "~/providers/auth-provider";
+import { toast } from "react-hot-toast";
 
-export default function CreateAccount() {
-  const { create } = usePasskey("passkey");
+export default function PasskeySetup() {
+  const router = useRouter();
+  const { userId } = useParams();
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  
+  useEffect(() => {
+    // Verify this is the correct user
+    if (user && user.id !== Number(userId)) {
+      console.error("User ID mismatch");
+      router.replace("/auth/signin");
+    }
+  }, [user, userId, router]);
 
-  const handleCreatePasskey = () => {
-    create()
-      .then((res) => {
-        toast.success(`passkey created: ${res}`);
-      })
-      .catch((err) => {
-        toast.error((err as Error)?.message ?? "An error occurred");
-      });
-    // Implement passkey creation logic here
-    console.log("Creating passkey...");
+  const handleCreatePasskey = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate passkey creation
+      console.log("Creating passkey for user:", userId);
+      
+      // Generate a placeholder passkey address
+      const passkeyCAddress = "stellar:" + Math.random().toString(36).substring(2, 15);
+      
+      // Update localStorage
+      const userData = localStorage.getItem("auth_user");
+      if (userData) {
+        const updatedUser = JSON.parse(userData);
+        updatedUser.passkeyCAddress = passkeyCAddress;
+        localStorage.setItem("auth_user", JSON.stringify(updatedUser));
+        
+        // In a real app, you would also save this to the server
+        
+        toast.success("Passkey setup complete!");
+        // Navigate to dashboard with pin verified
+        setTimeout(() => {
+          router.replace("/dashboard?pinVerified=true");
+        }, 1000);
+      }
+    } catch (error) {
+      console.error("Error creating passkey:", error);
+      toast.error("Failed to create passkey. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  const handleSkipSetup = () => {
+    try {
+      // Mark user as having skipped passkey setup
+      const userData = localStorage.getItem("auth_user");
+      if (userData) {
+        const user = JSON.parse(userData);
+        user.passkeyCAddress = "skipped_setup";
+        localStorage.setItem("auth_user", JSON.stringify(user));
+        console.log("Updated user data: passkey setup skipped");
+        toast.success("Passkey setup skipped. You can set up later.");
+      }
+    } catch (err) {
+      console.error("Failed to update local user data:", err);
+    }
+    
+    // Navigate to dashboard
+    router.replace("/dashboard?pinVerified=true");
+  };
+
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin h-6 w-6 border-t-2 border-blue-500 rounded-full"></div>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-center text-2xl font-bold">
-          Secure Your Druid Account
-        </CardTitle>
-        <p className="text-center text-gray-600">
-          Set up a passkey for maximum security
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex justify-center space-x-4">
-          <Fingerprint className="h-12 w-12 text-blue-600" />
-          <ScanFace className="h-12 w-12 text-green-600" />
-          <LockKeyhole className="h-12 w-12 text-purple-600" />
-        </div>
-        <div className="space-y-4">
-          <div className="flex items-center space-x-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
-            <Shield className="h-8 w-8 flex-shrink-0 text-blue-600" />
-            <div>
-              <p className="text-sm text-gray-600">
-                Passkeys use your device&#39;s biometric features or PIN for
-                superior protection.
-              </p>
+    <div className="container max-w-md mx-auto p-4 flex flex-col min-h-screen justify-center">
+      <Card>
+        <CardHeader className="space-y-1 flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <Fingerprint className="h-10 w-10 text-blue-600" />
+          </div>
+          <CardTitle className="text-2xl">Set Up Passkey</CardTitle>
+          <p className="text-gray-500 text-sm">
+            Enhance your security with a passkey for faster and more secure logins
+          </p>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          <div className="space-y-6">
+            <div className="flex items-start space-x-3">
+              <div className="mt-0.5">
+                <Key className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <h3 className="font-medium">Enhanced Security</h3>
+                <p className="text-sm text-gray-500">Protect your account with biometric authentication</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-3">
+              <div className="mt-0.5">
+                <Lock className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <h3 className="font-medium">Faster Login</h3>
+                <p className="text-sm text-gray-500">Sign in quickly without typing passwords</p>
+              </div>
             </div>
           </div>
-          <div className="space-y-2">
-            <h3 className="font-semibold">Set up your secure passkey:</h3>
-            <ol className="list-inside list-decimal space-y-2 text-gray-600">
-              <li>Tap the button below</li>
-              <li>Use your device&#39;s biometrics or PIN</li>
-              <li>Follow on-screen instructions</li>
-            </ol>
+          
+          <div className="space-y-3 pt-4">
+            <Button 
+              className="w-full" 
+              onClick={handleCreatePasskey}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-b-transparent"></div>
+                  Setting up...
+                </>
+              ) : (
+                "Set Up Passkey"
+              )}
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={handleSkipSetup}
+              disabled={isLoading}
+            >
+              Skip for now
+            </Button>
           </div>
-        </div>
-      </CardContent>
-      <CardFooter className="flex flex-col gap-4">
-        <Button
-          className="w-full bg-green-600 hover:bg-green-700"
-          size="lg"
-          onClick={handleCreatePasskey}
-        >
-          <LockKeyhole className="mr-2 h-5 w-5" />
-          Create Secure Passkey
-        </Button>
-      </CardFooter>
+        </CardContent>
+      </Card>
     </div>
   );
 }
