@@ -48,12 +48,34 @@ function DashboardContent() {
   const [balance] = useState("1,234.56"); // Mock balance
   const router = useRouter();
   const searchParams = useSearchParams();
-  
-  // In development mode, always consider PIN verified
-  const [isPinVerified] = useState(true);
+  const [isPinVerified, setIsPinVerified] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(true);
+  const [redirected, setRedirected] = useState(false);
   
   // Check if user is coming from bank connection flow
   const bankConnected = searchParams.get("bankConnected") === "true";
+  
+  // Check if the pin was already verified in this session
+  const pinVerified = searchParams.get("pinVerified") === "true";
+  
+  useEffect(() => {
+    // If coming from the PIN verification page with success
+    if (pinVerified) {
+      setIsPinVerified(true);
+      setIsVerifying(false);
+      return;
+    }
+    
+    // In a real app, this would check a session value or token
+    // For demo purposes, we'll just set a timer to simulate PIN verification
+    const timer = setTimeout(() => {
+      // For demo purposes ALWAYS auto-verify to stop the redirect loop
+      setIsPinVerified(true);
+      setIsVerifying(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [pinVerified]);
   
   // If the user isn't loaded yet, show a loading state
   if (!user) {
@@ -63,6 +85,30 @@ function DashboardContent() {
     </div>;
   }
   
+  // Show verifying message while checking
+  if (isVerifying) {
+    return <div className="flex flex-col items-center justify-center p-8">
+      <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mb-4"></div>
+      <p>Verifying security...</p>
+    </div>;
+  }
+  
+  // If PIN isn't verified and we haven't already redirected, redirect to PIN page
+  if (!isPinVerified && !pinVerified && !redirected) {
+    console.log("Redirecting to PIN verification page");
+    setRedirected(true); // Set flag to prevent multiple redirects
+    
+    // Use a setTimeout to allow the state update to complete before redirecting
+    setTimeout(() => {
+      router.replace("/auth/pin?redirectTo=/dashboard?pinVerified=true");
+    }, 100);
+    
+    return <div className="flex flex-col items-center justify-center p-8">
+      <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mb-4"></div>
+      <p>Redirecting to PIN verification...</p>
+    </div>;
+  }
+
   return (
     <div className="container mx-auto max-w-md space-y-6 p-4">
       <div className="flex items-center justify-between">
@@ -70,9 +116,11 @@ function DashboardContent() {
           Welcome, {user.firstName || "User"}
         </h1>
         <Button variant="ghost" onClick={() => {
-          // Clear localStorage and log out
-          localStorage.removeItem("pin_verified");
+          // Clear any session/verification data
+          setIsPinVerified(false);
+          // Log the user out
           logout();
+          // Redirect to sign in
           router.push("/auth/signin");
         }}>
           Logout

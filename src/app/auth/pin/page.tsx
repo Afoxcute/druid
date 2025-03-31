@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense, useEffect } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "~/components/ui/card";
 import PinEntry from "~/app/wallet/_components/pin";
@@ -10,19 +10,10 @@ import { useAuth } from "~/providers/auth-provider";
 function PinAuthenticationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const rawRedirectTo = searchParams.get("redirectTo") || "/dashboard";
-  // Handle URL encoded redirect parameter
-  const redirectTo = decodeURIComponent(rawRedirectTo);
-  
+  const redirectTo = searchParams.get("redirectTo") || "/dashboard";
   const { user } = useAuth();
   const [isVerifying, setIsVerifying] = useState(false);
   const [hasRedirected, setHasRedirected] = useState(false);
-
-  // Log the current state for debugging
-  useEffect(() => {
-    console.log("PIN page loaded, user:", user ? "authenticated" : "not authenticated");
-    console.log("Redirect destination:", redirectTo);
-  }, [user, redirectTo]);
 
   const handlePinSuccess = () => {
     if (hasRedirected) return; // Prevent double redirects
@@ -30,19 +21,22 @@ function PinAuthenticationContent() {
     setHasRedirected(true);
     console.log("PIN verification successful, redirecting to:", redirectTo);
     
-    // Store verification in localStorage for persistence
-    localStorage.setItem("pin_verified", "true");
-    
     // In a real app, we'd set a session token or something similar
     // For now, just redirect to the specified path
     setTimeout(() => {
-      try {
-        // Just redirect to the decoded path directly
-        router.push(redirectTo);
-      } catch (error) {
-        console.error("Error during redirect:", error);
-        // Fallback if there's an error with the redirect URL
-        router.push("/dashboard?pinVerified=true");
+      // If the redirectTo already has a query string, handle that correctly
+      if (redirectTo.includes('?')) {
+        // Already has query parameters
+        if (redirectTo.includes('pinVerified=true')) {
+          // Already has the pinVerified parameter
+          router.push(redirectTo);
+        } else {
+          // Add the pinVerified parameter to existing query
+          router.push(`${redirectTo}&pinVerified=true`);
+        }
+      } else {
+        // No existing query parameters, add the pinVerified parameter
+        router.push(`${redirectTo}?pinVerified=true`);
       }
     }, 100);
   };

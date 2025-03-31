@@ -36,18 +36,48 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
   // Auto-validate PIN when 6 digits entered
   useEffect(() => {
     if (pin.length === 6 && !loading) {
-      console.log("PIN complete, automatically validating");
-      
-      // For development, always consider PIN valid
-      setLoading(true);
-      
-      // Simulate validation delay
-      setTimeout(() => {
-        console.log("PIN validation successful in development mode");
-        onSuccess();
-      }, 800);
+      validatePin();
     }
-  }, [pin, loading, onSuccess]);
+  }, [pin, loading]);
+
+  const validatePin = async () => {
+    if (loading) return; // Prevent multiple validation attempts
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // In a real app, you would call an API to validate the PIN
+      // For now, just simulate a successful validation after a delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Simulating PIN validation (PIN 123456 is considered valid for demo)
+      const isValid = pin === "123456";
+      
+      if (isValid) {
+        clickFeedback("medium");
+        // Call success callback after a short delay to ensure UI updates first
+        setTimeout(() => {
+          onSuccess();
+        }, 200);
+      } else {
+        setShake(true);
+        clickFeedback("medium");
+        setError("Incorrect PIN. Please try again.");
+        setPin("");
+      }
+    } catch (err) {
+      setShake(true);
+      clickFeedback("medium");
+      setError("An error occurred. Please try again.");
+      setPin("");
+    } finally {
+      // Keep loading true if successful to prevent more validation attempts
+      if (pin !== "123456") {
+        setLoading(false);
+      }
+    }
+  };
 
   const handleNumberClick = (number: number) => {
     if (pin.length < 6) {
@@ -89,7 +119,7 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
     <div>
       <CardHeader className="space-y-1">
         <CardTitle className="text-center text-2xl font-bold">
-          Druid
+          payu
         </CardTitle>
         <p className="text-center text-gray-600">
           {loading ? "Verifying..." : "Enter your PIN"}
