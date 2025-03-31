@@ -10,11 +10,12 @@ import { useContractStore } from "~/hooks/stores/useContractStore";
 import { useKeyStore } from "~/hooks/stores/useKeyStore";
 import { ClientTRPCErrorHandler } from "~/lib/utils";
 import toast from "react-hot-toast";
-import {   fundPubkey,
-  fundSigner, account as server } from "~/server/services/stellar/PasskeyServer";
 import {
   account,
+  fundPubkey,
+  fundSigner,
   native,
+  server,
 } from "~/lib/client-helpers";
 export const usePasskey = (identifier: string) => {
   const [loading, setLoading] = useState(false);
