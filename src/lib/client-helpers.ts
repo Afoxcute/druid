@@ -35,14 +35,14 @@ export const account = new PasskeyKit({
     networkPassphrase: env.NEXT_PUBLIC_NETWORK_PASSPHRASE,
     walletWasmHash: env.NEXT_PUBLIC_FACTORY_CONTRACT_ID,
 });
-export const server = new PasskeyServer({
-    rpcUrl: env.RPC_URL,
-    launchtubeUrl: env.LAUNCHTUBE_URL,
-    launchtubeJwt: env.LAUNCHETUBE_JWT,
-    // mercuryProjectName: import.meta.env.VITE_mercuryProjectName,
-    mercuryUrl: env.MERCURYT_URL,
-    mercuryJwt: env.MERCURY_JWT,
-});
+// export const server = new PasskeyServer({
+//     rpcUrl: env.RPC_URL,
+//     launchtubeUrl: env.LAUNCHTUBE_URL,
+//     launchtubeJwt: env.LAUNCHETUBE_JWT,
+//     // mercuryProjectName: import.meta.env.VITE_mercuryProjectName,
+//     mercuryUrl: env.MERCURYT_URL,
+//     mercuryJwt: env.MERCURY_JWT,
+// });
 
 export const sac = new SACClient({
     rpcUrl: env.NEXT_PUBLIC_RPC_URL,
