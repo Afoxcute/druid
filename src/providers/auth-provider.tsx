@@ -26,19 +26,78 @@ interface AuthContextType {
   isLoading: boolean;
   login: (identifier: string, passkeyCAddress: string) => Promise<void>;
   logout: () => void;
+  sessionExpired: boolean;
+  lastActivity: number;
+  refreshSession: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Initial context with default values
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: true,
+  login: async () => { },
+  logout: () => { },
+  sessionExpired: false,
+  lastActivity: Date.now(),
+  refreshSession: () => { },
+});
 
 interface AuthProviderProps {
   children: ReactNode;
+  sessionTimeoutMinutes?: number;
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
+export function AuthProvider({ children, sessionTimeoutMinutes }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastActivity, setLastActivity] = useState<number>(Date.now());
+  const [sessionExpired, setSessionExpired] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+
+  // Update last activity timestamp on user interaction
+  useEffect(() => {
+    const updateLastActivity = () => {
+      console.log("Activity detected, refreshing session timer");
+      setLastActivity(Date.now());
+      if (sessionExpired) setSessionExpired(false);
+    };
+
+    // Track user activity events
+    window.addEventListener('mousemove', updateLastActivity);
+    window.addEventListener('mousedown', updateLastActivity);
+    window.addEventListener('keypress', updateLastActivity);
+    window.addEventListener('touchmove', updateLastActivity);
+    window.addEventListener('scroll', updateLastActivity);
+
+    return () => {
+      window.removeEventListener('mousemove', updateLastActivity);
+      window.removeEventListener('mousedown', updateLastActivity);
+      window.removeEventListener('keypress', updateLastActivity);
+      window.removeEventListener('touchmove', updateLastActivity);
+      window.removeEventListener('scroll', updateLastActivity);
+    };
+  }, [sessionExpired]);
+
+  // Check for session timeout
+  useEffect(() => {
+    if (!user) return;
+
+    const sessionTimeout = sessionTimeoutMinutes ? sessionTimeoutMinutes * 60 * 1000 : 5 * 60 * 1000; // 5 minutes in milliseconds
+    
+    const intervalId = setInterval(() => {
+      const currentTime = Date.now();
+      const timeSinceLastActivity = currentTime - lastActivity;
+      
+      if (timeSinceLastActivity > sessionTimeout && !sessionExpired) {
+        console.log("Session expired due to inactivity");
+        setSessionExpired(true);
+        router.push("/auth/pin?timeout=true&redirectTo=" + encodeURIComponent(window.location.pathname));
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(intervalId);
+  }, [user, lastActivity, sessionExpired, router, sessionTimeoutMinutes]);
 
   // Initialize state from localStorage on client
   useEffect(() => {
@@ -358,8 +417,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [user, isLoading, pathname, router]);
 
+  // Manual function to refresh the session
+  const refreshSession = () => {
+    console.log("Session manually refreshed");
+    setLastActivity(Date.now());
+    if (sessionExpired) setSessionExpired(false);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, sessionExpired, lastActivity, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );

@@ -7,6 +7,7 @@ import { Card, CardContent } from "~/components/ui/card";
 import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "~/providers/auth-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { useSessionActivity } from "~/hooks/useSessionActivity";
 
 interface Transaction {
   id: string;
@@ -43,14 +44,37 @@ const mockTransactions: Transaction[] = [
 
 // Create a separate component that uses useSearchParams
 function DashboardContent() {
-  const { user, logout } = useAuth();
+  const { user, logout, lastActivity } = useAuth();
   const [showBalance, setShowBalance] = useState(true);
   const [balance] = useState("1,234.56"); // Mock balance
+  const [sessionTimeLeft, setSessionTimeLeft] = useState<string>("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPinVerified, setIsPinVerified] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
   const [redirected, setRedirected] = useState(false);
+  
+  // Use session activity hook to keep session alive
+  const { refreshActivity } = useSessionActivity();
+  
+  // Calculate and display session timeout for demo purposes
+  useEffect(() => {
+    const updateSessionTimer = () => {
+      const sessionTimeout = 5 * 60 * 1000; // 5 minutes in milliseconds
+      const currentTime = Date.now();
+      const timeSinceLastActivity = currentTime - lastActivity;
+      const timeLeft = Math.max(0, sessionTimeout - timeSinceLastActivity);
+      
+      const minutes = Math.floor(timeLeft / 60000);
+      const seconds = Math.floor((timeLeft % 60000) / 1000);
+      
+      setSessionTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+    };
+    
+    // Update every second
+    const timer = setInterval(updateSessionTimer, 1000);
+    return () => clearInterval(timer);
+  }, [lastActivity]);
   
   // Check if user is coming from bank connection flow
   const bankConnected = searchParams.get("bankConnected") === "true";
@@ -150,16 +174,27 @@ function DashboardContent() {
         <h1 className="text-2xl font-bold">
           Welcome, {user.firstName || "User"}
         </h1>
-        <Button variant="ghost" onClick={() => {
-          // Clear any session/verification data
-          setIsPinVerified(false);
-          // Log the user out
-          logout();
-          // Redirect to sign in
-          router.push("/auth/signin");
-        }}>
-          Logout
-        </Button>
+        <div className="flex flex-col items-end">
+          <div className="text-xs text-gray-500 mb-1">
+            Session: {sessionTimeLeft}
+            <button 
+              onClick={refreshActivity} 
+              className="ml-2 text-blue-500 hover:underline text-xs"
+            >
+              Refresh
+            </button>
+          </div>
+          <Button variant="ghost" onClick={() => {
+            // Clear any session/verification data
+            setIsPinVerified(false);
+            // Log the user out
+            logout();
+            // Redirect to sign in
+            router.push("/auth/signin");
+          }}>
+            Logout
+          </Button>
+        </div>
       </div>
 
       {bankConnected && (
