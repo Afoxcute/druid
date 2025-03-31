@@ -61,29 +61,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       // Fetch user data
       if (isEmail) {
+        console.log('Fetching user by email:', identifier);
         const response = await fetch(
-          `/api/trpc/users.getUserByEmail?input=${encodeURIComponent(JSON.stringify({ email: identifier }))}`
+          `/api/trpc/users.getUserByEmail?batch=1&input=${encodeURIComponent(JSON.stringify({ "0": { email: identifier } }))}`
         );
         
         if (!response.ok) {
           console.error('Error fetching user data: HTTP error!', response.status);
+          console.error('Response:', await response.text());
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const json = await response.json();
-        userData = json.result.data;
+        console.log('User data response:', json);
+        userData = json[0]?.result?.data;
       } else {
+        console.log('Fetching user by phone:', identifier);
         const response = await fetch(
-          `/api/trpc/users.getUserByPhone?input=${encodeURIComponent(JSON.stringify({ phone: identifier }))}`
+          `/api/trpc/users.getUserByPhone?batch=1&input=${encodeURIComponent(JSON.stringify({ "0": { phone: identifier } }))}`
         );
         
         if (!response.ok) {
           console.error('Error fetching user data: HTTP error!', response.status);
+          console.error('Response:', await response.text());
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const json = await response.json();
-        userData = json.result.data;
+        console.log('User data response:', json);
+        userData = json[0]?.result?.data;
       }
       
       if (!userData) {
@@ -98,6 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Update passkey address if not already set
       if (!userData.passkeyCAddress) {
         try {
+          console.log('Saving signer for user:', userData.id);
           // Create signer object with proper type definition
           const saveSigner: {
             contractId: string;
@@ -115,18 +122,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
             saveSigner.phone = identifier;
           }
           
+          console.log('Signer payload:', saveSigner);
+          
           const response = await fetch('/api/trpc/stellar.saveSigner', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              json: saveSigner
+              json: {
+                0: saveSigner
+              }
             }),
           });
           
           if (!response.ok) {
             console.error('Error saving signer:', response.status);
+            console.error('Response:', await response.text());
+          } else {
+            console.log('Signer saved successfully');
           }
           
           // Update the local user data

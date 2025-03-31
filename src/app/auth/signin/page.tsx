@@ -75,6 +75,7 @@ export default function SignIn() {
           return;
         }
         identifier = emailForm.getValues().email;
+        console.log('Using email identifier:', identifier);
       } else {
         const result = await phoneForm.trigger();
         if (!result) {
@@ -82,22 +83,28 @@ export default function SignIn() {
           return;
         }
         identifier = phoneForm.getValues().phone;
+        console.log('Using phone identifier:', identifier);
       }
 
       setIdentifier(identifier);
 
       try {
+        console.log('Attempting passkey connection');
         // Connect with passkey
         const contractId = await connect();
+        console.log('Passkey connection result:', contractId);
+        
         if (!contractId) {
           toast.error("Failed to connect with passkey. Please try again.");
           return;
         }
         
+        console.log('Attempting login with identifier and contractId:', { identifier, contractId });
         // If contractId is returned, call the login function from AuthProvider
         await login(identifier, contractId);
         
         // Authentication successful, redirect to dashboard
+        console.log('Login successful, redirecting to dashboard');
         toast.success("Authentication successful");
         router.push("/dashboard");
       } catch (error: any) {

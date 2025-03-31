@@ -76,15 +76,37 @@ export const usePasskey = (identifier: string) => {
   const connect = async (): Promise<string> => {
     try {
       setLoading(true);
-      const { keyIdBase64, contractId: cid } = await account.connectWallet();
+      console.log('Attempting to connect wallet with passkey');
+      
+      const result = await account.connectWallet();
+      console.log('ConnectWallet result:', result);
+      
+      const { keyIdBase64, contractId: cid } = result;
 
+      if (!keyIdBase64 || !cid) {
+        console.error('Missing keyIdBase64 or contractId from connectWallet result');
+        throw new Error('Failed to retrieve wallet credentials');
+      }
+
+      console.log('Setting keyId and contractId:', { keyIdBase64, cid });
       setKeyId(keyIdBase64);
       setContractId(cid);
 
       toast.success(`Successfully connected with passkey`);
       return cid;
     } catch (err) {
-      toast.error((err as Error)?.message ?? "Failed to connect with passkey");
+      console.error('Error connecting wallet:', err);
+      
+      // If the error occurs during biometric verification, provide specific guidance
+      const errorMessage = (err as Error)?.message || '';
+      if (errorMessage.includes('AbortError') || errorMessage.includes('user canceled')) {
+        toast.error("Authentication was canceled. Please try again and complete the biometric verification.");
+      } else if (errorMessage.includes('not supported')) {
+        toast.error("Your browser doesn't support passkeys. Please use a supported browser like Chrome or Safari.");
+      } else {
+        toast.error(errorMessage || "Failed to connect with passkey");
+      }
+      
       throw err;
     } finally {
       setLoading(false);
