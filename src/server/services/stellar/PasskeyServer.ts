@@ -27,8 +27,6 @@ export const fundKeypair = new Promise<Keypair>(async (resolve) => {
 
   resolve(keypair)
 })
-export const fundPubkey = (await fundKeypair).publicKey()
-export const fundSigner = basicNodeSigner(await fundKeypair, env.NEXT_PUBLIC_NETWORK_PASSPHRASE)
 
 // export const ser = new PasskeyServer({
 //   rpcUrl: env.RPC_URL,

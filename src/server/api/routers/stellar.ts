@@ -3,11 +3,11 @@ import { z } from "zod";
 import { Sep10 } from "~/server/services/stellar/Sep10";
 import { Sep31 } from "~/server/services/stellar/Sep31";
 import { handleHorizonServerError } from "~/lib/utils";
-import { account, server } from "~/lib/client-helpers";
+import { account, } from "~/lib/client-helpers";
 import { Sep6 } from "~/server/services/stellar/Sep6";
 import { TRPCError } from "@trpc/server/unstable-core-do-not-import";
 import { Sep12 } from "~/server/services/stellar/Sep12";
-
+import { account as server } from "~/server/services/stellar/PasskeyServer"
 export const stellarRouter = createTRPCRouter({
   getAuthChallenge: publicProcedure
     .input(
