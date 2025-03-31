@@ -3647,7 +3647,7 @@ passkey-kit-sdk@0.6.6:
     "@stellar/stellar-sdk" "13.1.0"
     buffer "6.0.3"
 
-passkey-kit@^0.10.10:
+passkey-kit@^0.10.19:
   version "0.10.19"
   resolved "https://registry.yarnpkg.com/passkey-kit/-/passkey-kit-0.10.19.tgz#1aa2a0c65af2cd3d7e3d1080275e064b76d175eb"
   integrity sha512-bHCDQwj1zdoqBd1CRKTe31F/99RpBzjoAk5Yd/riK+MAc/rExy3OJza7ZSYqzS1Y2P5na57F2e2ZSz7yAI2q9g==
