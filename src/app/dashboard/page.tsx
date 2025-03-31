@@ -160,9 +160,12 @@ function DashboardContent() {
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
               onClick={() => {
                 if (user?.id) {
+                  // Navigate directly to the send money page
                   router.push(`/wallet/${user.id}/send`);
                 } else {
-                  router.push("/send"); // This will redirect via the intermediate page
+                  console.log("User ID not available");
+                  // Redirect to sign in if user is not properly authenticated
+                  router.push("/auth/signin");
                 }
               }}
             >
@@ -174,9 +177,12 @@ function DashboardContent() {
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
               onClick={() => {
                 if (user?.id) {
+                  // Navigate directly to the receive page
                   router.push(`/wallet/${user.id}/receive`);
                 } else {
-                  router.push("/receive"); // This will redirect via the intermediate page
+                  console.log("User ID not available");
+                  // Redirect to sign in if user is not properly authenticated
+                  router.push("/auth/signin");
                 }
               }}
             >
