@@ -63,7 +63,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (isEmail) {
         console.log('Fetching user by email:', identifier);
         const response = await fetch(
-          `/api/trpc/users.getUserByEmail?batch=1&input=${encodeURIComponent(JSON.stringify({ "0": { email: identifier } }))}`
+          `/api/trpc/users.getUserByEmail`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              json: {
+                email: identifier
+              }
+            }),
+          }
         );
         
         if (!response.ok) {
@@ -74,11 +85,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         const json = await response.json();
         console.log('User data response:', json);
-        userData = json[0]?.result?.data;
+        userData = json.result.data;
       } else {
         console.log('Fetching user by phone:', identifier);
         const response = await fetch(
-          `/api/trpc/users.getUserByPhone?batch=1&input=${encodeURIComponent(JSON.stringify({ "0": { phone: identifier } }))}`
+          `/api/trpc/users.getUserByPhone`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              json: {
+                phone: identifier
+              }
+            }),
+          }
         );
         
         if (!response.ok) {
@@ -89,7 +111,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         const json = await response.json();
         console.log('User data response:', json);
-        userData = json[0]?.result?.data;
+        userData = json.result.data;
       }
       
       if (!userData) {
@@ -130,9 +152,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              json: {
-                0: saveSigner
-              }
+              json: saveSigner
             }),
           });
           
