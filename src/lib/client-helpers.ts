@@ -36,7 +36,7 @@ export const account = new PasskeyKit({
     walletWasmHash: env.NEXT_PUBLIC_FACTORY_CONTRACT_ID,
 });
 export const server = new PasskeyServer({
-    rpcUrl: env.NEXT_PUBLIC_RPC_URL,
+    rpcUrl: env.RPC_URL,
     launchtubeUrl: env.LAUNCHTUBE_URL,
     launchtubeJwt: env.LAUNCHETUBE_JWT,
     // mercuryProjectName: import.meta.env.VITE_mercuryProjectName,
