@@ -35,12 +35,14 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
 
   // Auto-validate PIN when 6 digits entered
   useEffect(() => {
-    if (pin.length === 6) {
+    if (pin.length === 6 && !loading) {
       validatePin();
     }
-  }, [pin]);
+  }, [pin, loading]);
 
   const validatePin = async () => {
+    if (loading) return; // Prevent multiple validation attempts
+    
     setLoading(true);
     setError(null);
     

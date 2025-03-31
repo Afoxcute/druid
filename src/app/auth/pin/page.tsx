@@ -17,7 +17,21 @@ function PinAuthenticationContent() {
   const handlePinSuccess = () => {
     // In a real app, we'd set a session token or something similar
     // For now, just redirect to the specified path
-    router.push(redirectTo);
+    
+    // If the redirectTo already has a query string, handle that correctly
+    if (redirectTo.includes('?')) {
+      // Already has query parameters
+      if (redirectTo.includes('pinVerified=true')) {
+        // Already has the pinVerified parameter
+        router.push(redirectTo);
+      } else {
+        // Add the pinVerified parameter to existing query
+        router.push(`${redirectTo}&pinVerified=true`);
+      }
+    } else {
+      // No existing query parameters, add the pinVerified parameter
+      router.push(`${redirectTo}?pinVerified=true`);
+    }
   };
 
   const handleCancel = () => {

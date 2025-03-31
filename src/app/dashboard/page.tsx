@@ -49,29 +49,69 @@ function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPinVerified, setIsPinVerified] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(true);
   
   // Check if user is coming from bank connection flow
   const bankConnected = searchParams.get("bankConnected") === "true";
   
+  // Check if the pin was already verified in this session
+  const pinVerified = searchParams.get("pinVerified") === "true";
+  
   useEffect(() => {
+    // If coming from the PIN verification page with success
+    if (pinVerified) {
+      setIsPinVerified(true);
+      setIsVerifying(false);
+      return;
+    }
+    
     // In a real app, this would check a session value or token
     // For demo purposes, we'll just set a timer to simulate PIN verification
     const timer = setTimeout(() => {
-      setIsPinVerified(true);
-    }, 500);
+      // For demo purposes only - in a real app, you would check actual security status
+      // Auto-verify during development to prevent loops
+      const devMode = process.env.NODE_ENV === 'development';
+      if (devMode) {
+        // In development mode, auto-verify after a short delay to prevent loops
+        setIsPinVerified(true);
+      } else {
+        // In production, actually redirect to PIN verification
+        setIsPinVerified(false);
+      }
+      setIsVerifying(false);
+    }, 1500);
     
     return () => clearTimeout(timer);
-  }, []);
-
+  }, [pinVerified]);
+  
   // If the user isn't loaded yet, show a loading state
   if (!user) {
-    return <div className="flex justify-center p-8">Loading...</div>;
+    return <div className="flex flex-col items-center justify-center p-8">
+      <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mb-4"></div>
+      <p>Loading user data...</p>
+    </div>;
   }
   
-  // If PIN isn't verified, redirect to PIN page
-  if (!isPinVerified) {
-    router.push("/auth/pin?redirectTo=/dashboard");
-    return <div className="flex justify-center p-8">Verifying security...</div>;
+  // Show verifying message while checking
+  if (isVerifying) {
+    return <div className="flex flex-col items-center justify-center p-8">
+      <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mb-4"></div>
+      <p>Verifying security...</p>
+    </div>;
+  }
+  
+  // If PIN isn't verified, redirect to PIN page (using a more stable approach)
+  if (!isPinVerified && !pinVerified) {
+    // Use replace instead of push to avoid adding to history stack
+    console.log("Redirecting to PIN verification page");
+    // Set a flag to prevent multiple redirects
+    if (!isVerifying) {
+      router.replace("/auth/pin?redirectTo=/dashboard?pinVerified=true");
+      return <div className="flex flex-col items-center justify-center p-8">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mb-4"></div>
+        <p>Redirecting to PIN verification...</p>
+      </div>;
+    }
   }
 
   return (
