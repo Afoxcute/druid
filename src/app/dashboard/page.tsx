@@ -49,10 +49,8 @@ function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // DEVELOPMENT MODE: Force PIN verification to be true
-  // This completely bypasses the PIN verification flow for testing
-  const [isPinVerified, setIsPinVerified] = useState(true);
-  const [isVerifying, setIsVerifying] = useState(false);
+  // In development mode, always consider PIN verified
+  const [isPinVerified] = useState(true);
   
   // Check if user is coming from bank connection flow
   const bankConnected = searchParams.get("bankConnected") === "true";
@@ -72,6 +70,7 @@ function DashboardContent() {
           Welcome, {user.firstName || "User"}
         </h1>
         <Button variant="ghost" onClick={() => {
+          // Clear localStorage and log out
           localStorage.removeItem("pin_verified");
           logout();
           router.push("/auth/signin");

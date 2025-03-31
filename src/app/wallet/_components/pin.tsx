@@ -36,55 +36,18 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
   // Auto-validate PIN when 6 digits entered
   useEffect(() => {
     if (pin.length === 6 && !loading) {
-      console.log("PIN complete, validating...");
-      validatePin();
-    }
-  }, [pin, loading]);
-
-  const validatePin = async () => {
-    if (loading) {
-      console.log("Already validating, skipping");
-      return;
-    } // Prevent multiple validation attempts
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      console.log("Validating PIN...");
-      // In a real app, you would call an API to validate the PIN
-      // For now, just simulate a successful validation after a delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      console.log("PIN complete, automatically validating");
       
-      // Simulating PIN validation (PIN 123456 is considered valid for demo)
-      const isValid = pin === "123456";
+      // For development, always consider PIN valid
+      setLoading(true);
       
-      if (isValid) {
-        console.log("PIN validation successful");
-        clickFeedback("medium");
-        // Call success callback after a short delay to ensure UI updates first
-        setTimeout(() => {
-          console.log("Calling onSuccess callback");
-          onSuccess();
-        }, 300);
-      } else {
-        console.log("PIN validation failed");
-        setShake(true);
-        clickFeedback("medium");
-        setError("Incorrect PIN. Please try again.");
-        setPin("");
-        setLoading(false);
-      }
-    } catch (err) {
-      console.error("PIN validation error:", err);
-      setShake(true);
-      clickFeedback("medium");
-      setError("An error occurred. Please try again.");
-      setPin("");
-      setLoading(false);
+      // Simulate validation delay
+      setTimeout(() => {
+        console.log("PIN validation successful in development mode");
+        onSuccess();
+      }, 800);
     }
-    // Don't set loading to false on success, as we'll redirect away from this page
-  };
+  }, [pin, loading, onSuccess]);
 
   const handleNumberClick = (number: number) => {
     if (pin.length < 6) {

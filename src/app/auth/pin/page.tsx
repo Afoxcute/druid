@@ -11,29 +11,40 @@ function PinAuthenticationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawRedirectTo = searchParams.get("redirectTo") || "/dashboard";
+  // Handle URL encoded redirect parameter
   const redirectTo = decodeURIComponent(rawRedirectTo);
   
   const { user } = useAuth();
   const [isVerifying, setIsVerifying] = useState(false);
+  const [hasRedirected, setHasRedirected] = useState(false);
 
+  // Log the current state for debugging
   useEffect(() => {
-    console.log("PIN page loaded, redirecting to:", redirectTo);
-    
-    // Auto success after 2 second for development to avoid loops
-    const timer = setTimeout(() => {
-      // Auto-success for development - don't get stuck in verification page
-      console.log("Auto-success for development mode");
-      localStorage.setItem("pin_verified", "true");
-      router.push(redirectTo || "/dashboard?pinVerified=true");
-    }, 2000);
-    
-    return () => clearTimeout(timer);
-  }, [redirectTo, router]);
+    console.log("PIN page loaded, user:", user ? "authenticated" : "not authenticated");
+    console.log("Redirect destination:", redirectTo);
+  }, [user, redirectTo]);
 
   const handlePinSuccess = () => {
-    console.log("PIN validation successful");
+    if (hasRedirected) return; // Prevent double redirects
+    
+    setHasRedirected(true);
+    console.log("PIN verification successful, redirecting to:", redirectTo);
+    
+    // Store verification in localStorage for persistence
     localStorage.setItem("pin_verified", "true");
-    router.push(redirectTo || "/dashboard?pinVerified=true");
+    
+    // In a real app, we'd set a session token or something similar
+    // For now, just redirect to the specified path
+    setTimeout(() => {
+      try {
+        // Just redirect to the decoded path directly
+        router.push(redirectTo);
+      } catch (error) {
+        console.error("Error during redirect:", error);
+        // Fallback if there's an error with the redirect URL
+        router.push("/dashboard?pinVerified=true");
+      }
+    }, 100);
   };
 
   const handleCancel = () => {
