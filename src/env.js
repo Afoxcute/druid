@@ -11,7 +11,7 @@ export const env = createEnv({
     TELEGRAM_BOT_TOKEN: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
-      .default("production"),
+      .default("development"),
     ANCHOR_API_BASE_URL: z.string().url(),
     ANCHOR_API_TOKEN: z.string(),
     ESCROW_CONTRACT_ADDRESS: z.string(),
@@ -66,8 +66,7 @@ export const env = createEnv({
     LAUNCHETUBE_JWT: process.env.LAUNCHETUBE_JWT,
     MERCURY_JWT: process.env.MERCURY_JWT,
     NEXT_PUBLIC_RPC_URL: process.env.NEXT_PUBLIC_RPC_URL,
-    NEXT_PUBLIC_FACTORY_CONTRACT_ID:
-      process.env.NEXT_PUBLIC_FACTORY_CONTRACT_ID,
+    NEXT_PUBLIC_FACTORY_CONTRACT_ID: process.env.NEXT_PUBLIC_FACTORY_CONTRACT_ID,
     NEXT_PUBLIC_NATIVE_CONTRACT_ID: process.env.NEXT_PUBLIC_NATIVE_CONTRACT_ID,
     NEXT_PUBLIC_NETWORK_PASSPHRASE: process.env.NEXT_PUBLIC_NETWORK_PASSPHRASE,
     SRT_ASSET_ID: process.env.SRT_ASSET_ID,
