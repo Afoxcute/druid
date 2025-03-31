@@ -45,7 +45,7 @@ export default function LandingPage() {
       {/* Features Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <h2 className="mb-12 text-center text-3xl font-bold">Why Choose Payu</h2>
+          <h2 className="mb-12 text-center text-3xl font-bold">Why Choose Druid</h2>
           <div className="grid gap-8 md:grid-cols-3">
             <div className="rounded-lg bg-white p-6 shadow-lg">
               <h3 className="mb-3 text-xl font-semibold">No Hidden Fees</h3>
@@ -96,7 +96,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="bg-gray-900 py-10 text-center text-white">
         <div className="container mx-auto px-4">
-          <p className="mb-2 text-2xl font-bold">payu</p>
+          <p className="mb-2 text-2xl font-bold">Druid</p>
           <p className="mb-4 text-sm text-gray-400">
             Send money instantly to anyone, anywhere.
           </p>
@@ -106,7 +106,7 @@ export default function LandingPage() {
             <a href="#" className="text-gray-400 hover:text-white">Contact</a>
           </div>
           <p className="text-sm text-gray-500">
-            © {new Date().getFullYear()} payu. All rights reserved.
+            © {new Date().getFullYear()} Druid. All rights reserved.
           </p>
         </div>
       </footer>

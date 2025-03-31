@@ -30,7 +30,7 @@ export default function CreateAccount() {
     <div>
       <CardHeader className="space-y-1">
         <CardTitle className="text-center text-2xl font-bold">
-          Secure Your payu Account
+          Secure Your Druid Account
         </CardTitle>
         <p className="text-center text-gray-600">
           Set up a passkey for maximum security

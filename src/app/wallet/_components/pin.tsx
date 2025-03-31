@@ -55,28 +55,29 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
       const isValid = pin === "123456";
       
       if (isValid) {
+        console.log("PIN validation successful");
         clickFeedback("medium");
         // Call success callback after a short delay to ensure UI updates first
         setTimeout(() => {
           onSuccess();
         }, 200);
       } else {
+        console.log("PIN validation failed");
         setShake(true);
         clickFeedback("medium");
         setError("Incorrect PIN. Please try again.");
         setPin("");
+        setLoading(false);
       }
     } catch (err) {
+      console.error("PIN validation error:", err);
       setShake(true);
       clickFeedback("medium");
       setError("An error occurred. Please try again.");
       setPin("");
-    } finally {
-      // Keep loading true if successful to prevent more validation attempts
-      if (pin !== "123456") {
-        setLoading(false);
-      }
+      setLoading(false);
     }
+    // Don't set loading to false on success, as we'll redirect away from this page
   };
 
   const handleNumberClick = (number: number) => {
@@ -119,7 +120,7 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
     <div>
       <CardHeader className="space-y-1">
         <CardTitle className="text-center text-2xl font-bold">
-          payu
+          Druid
         </CardTitle>
         <p className="text-center text-gray-600">
           {loading ? "Verifying..." : "Enter your PIN"}

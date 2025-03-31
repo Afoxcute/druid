@@ -67,10 +67,10 @@ function DashboardContent() {
     }
     
     // In a real app, this would check a session value or token
-    // For demo purposes, we'll just set a timer to simulate PIN verification
+    // For demo purposes, we'll just set a timer to simulate PIN verification check
     const timer = setTimeout(() => {
-      // For demo purposes ALWAYS auto-verify to stop the redirect loop
-      setIsPinVerified(true);
+      // Always require PIN verification - don't auto-verify
+      setIsPinVerified(false);
       setIsVerifying(false);
     }, 1000);
     
@@ -95,12 +95,14 @@ function DashboardContent() {
   
   // If PIN isn't verified and we haven't already redirected, redirect to PIN page
   if (!isPinVerified && !pinVerified && !redirected) {
-    console.log("Redirecting to PIN verification page");
+    console.log("PIN not verified, redirecting to PIN verification page");
     setRedirected(true); // Set flag to prevent multiple redirects
     
     // Use a setTimeout to allow the state update to complete before redirecting
     setTimeout(() => {
-      router.replace("/auth/pin?redirectTo=/dashboard?pinVerified=true");
+      const redirectUrl = "/auth/pin?redirectTo=/dashboard?pinVerified=true";
+      console.log("Redirecting to:", redirectUrl);
+      router.replace(redirectUrl);
     }, 100);
     
     return <div className="flex flex-col items-center justify-center p-8">
