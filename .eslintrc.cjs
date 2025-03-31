@@ -32,7 +32,8 @@ const config = {
     "@typescript-eslint/no-explicit-any": "off",
     "react/no-unescaped-entities": "off",
     "react-hooks/exhaustive-deps": "off",
-    "@next/next/no-img-element": "off"
+    "@next/next/no-img-element": "off",
+    "prefer-const": "off"
   }
 }
 module.exports = config;

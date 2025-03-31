@@ -97,7 +97,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
           
           // Format is a batch response array
           if (Array.isArray(json) && json[0]?.result?.data) {
-            userData = json[0].result.data;
+            // The API might return data in a nested format with json property
+            let rawUserData = json[0].result.data;
+            console.log('Raw user data structure:', JSON.stringify(rawUserData));
+            
+            // If the user data has a nested json property, extract it
+            if (rawUserData.json && typeof rawUserData.json === 'object') {
+              console.log('Found nested json property, extracting...');
+              userData = rawUserData.json;
+            } else {
+              userData = rawUserData;
+            }
+            
             console.log('Parsed user data:', JSON.stringify(userData));
             
             if (userData) {
@@ -105,7 +116,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               if (!userData.id) {
                 console.error('User data missing ID field:', userData);
                 
-                // Check if there's an 'id' property with a different case
+                // Check if there's an 'id' property with a different case or nested
                 const userDataObj = userData as any;
                 const possibleIdFields = ['ID', 'Id', '_id', 'userId', 'user_id'];
                 
@@ -164,7 +175,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
           
           // Format is a batch response array
           if (Array.isArray(json) && json[0]?.result?.data) {
-            userData = json[0].result.data;
+            // The API might return data in a nested format with json property
+            let rawUserData = json[0].result.data;
+            console.log('Raw user data structure:', JSON.stringify(rawUserData));
+            
+            // If the user data has a nested json property, extract it
+            if (rawUserData.json && typeof rawUserData.json === 'object') {
+              console.log('Found nested json property, extracting...');
+              userData = rawUserData.json;
+            } else {
+              userData = rawUserData;
+            }
+            
             console.log('Parsed user data:', JSON.stringify(userData));
             
             if (userData) {
@@ -172,7 +194,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               if (!userData.id) {
                 console.error('User data missing ID field:', userData);
                 
-                // Check if there's an 'id' property with a different case
+                // Check if there's an 'id' property with a different case or nested
                 const userDataObj = userData as any;
                 const possibleIdFields = ['ID', 'Id', '_id', 'userId', 'user_id'];
                 
