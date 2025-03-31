@@ -567,7 +567,7 @@ export default function Component() {
         <CardContent>{renderStep()}</CardContent>
         <CardFooter className="flex flex-col pb-3 text-center text-sm text-gray-500">
           <span className="mt-2 text-xs text-muted-foreground">
-            © 2024 payu. All rights reserved.
+            © 2024 Druid. All rights reserved.
           </span>
         </CardFooter>
       </Card>

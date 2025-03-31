@@ -10,7 +10,10 @@ import { useAuth } from "~/providers/auth-provider";
 function PinAuthenticationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/dashboard";
+  const rawRedirectTo = searchParams.get("redirectTo") || "/dashboard";
+  // Handle URL encoded redirect parameter
+  const redirectTo = decodeURIComponent(rawRedirectTo);
+  
   const { user } = useAuth();
   const [isVerifying, setIsVerifying] = useState(false);
   const [hasRedirected, setHasRedirected] = useState(false);
@@ -27,24 +30,15 @@ function PinAuthenticationContent() {
     setHasRedirected(true);
     console.log("PIN verification successful, redirecting to:", redirectTo);
     
+    // Store verification in localStorage for persistence
+    localStorage.setItem("pin_verified", "true");
+    
     // In a real app, we'd set a session token or something similar
     // For now, just redirect to the specified path
     setTimeout(() => {
       try {
-        // If the redirectTo already has a query string, handle that correctly
-        if (redirectTo.includes('?')) {
-          // Already has query parameters
-          if (redirectTo.includes('pinVerified=true')) {
-            // Already has the pinVerified parameter
-            router.push(redirectTo);
-          } else {
-            // Add the pinVerified parameter to existing query
-            router.push(`${redirectTo}&pinVerified=true`);
-          }
-        } else {
-          // No existing query parameters, add the pinVerified parameter
-          router.push(`${redirectTo}?pinVerified=true`);
-        }
+        // Just redirect to the decoded path directly
+        router.push(redirectTo);
       } catch (error) {
         console.error("Error during redirect:", error);
         // Fallback if there's an error with the redirect URL

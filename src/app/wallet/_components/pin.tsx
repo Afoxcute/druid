@@ -36,17 +36,22 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
   // Auto-validate PIN when 6 digits entered
   useEffect(() => {
     if (pin.length === 6 && !loading) {
+      console.log("PIN complete, validating...");
       validatePin();
     }
   }, [pin, loading]);
 
   const validatePin = async () => {
-    if (loading) return; // Prevent multiple validation attempts
+    if (loading) {
+      console.log("Already validating, skipping");
+      return;
+    } // Prevent multiple validation attempts
     
     setLoading(true);
     setError(null);
     
     try {
+      console.log("Validating PIN...");
       // In a real app, you would call an API to validate the PIN
       // For now, just simulate a successful validation after a delay
       await new Promise(resolve => setTimeout(resolve, 800));
@@ -59,8 +64,9 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
         clickFeedback("medium");
         // Call success callback after a short delay to ensure UI updates first
         setTimeout(() => {
+          console.log("Calling onSuccess callback");
           onSuccess();
-        }, 200);
+        }, 300);
       } else {
         console.log("PIN validation failed");
         setShake(true);
