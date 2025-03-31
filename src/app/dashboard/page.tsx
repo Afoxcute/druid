@@ -158,7 +158,13 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => router.push("/send")}
+              onClick={() => {
+                if (user?.id) {
+                  router.push(`/wallet/${user.id}/send`);
+                } else {
+                  router.push("/send"); // This will redirect via the intermediate page
+                }
+              }}
             >
               <ArrowUpRight className="mr-2 h-4 w-4" />
               Send
@@ -166,7 +172,13 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => router.push("/receive")}
+              onClick={() => {
+                if (user?.id) {
+                  router.push(`/wallet/${user.id}/receive`);
+                } else {
+                  router.push("/receive"); // This will redirect via the intermediate page
+                }
+              }}
             >
               <ArrowDownToLine className="mr-2 h-4 w-4" />
               Receive
