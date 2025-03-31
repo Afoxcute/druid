@@ -1,3 +1,4 @@
+"use client"
 import { env } from "~/env";
 
 import { PasskeyKit, PasskeyServer, SACClient } from "passkey-kit";
