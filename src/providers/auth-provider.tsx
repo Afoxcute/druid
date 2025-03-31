@@ -8,6 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { api } from "~/trpc/react";
 
 interface User {
   id: number;
@@ -59,59 +60,64 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const isEmail = identifier.includes('@');
       let userData;
       
-      if (isEmail) {
-        // Fetch user by email with proper error handling
-        const response = await fetch(`/api/trpc/users.getUserByEmail?batch=1&input={"0":{"email":"${identifier}"}}`);
+      console.log(`Attempting to login with ${isEmail ? 'email' : 'phone'}: ${identifier}`);
+      console.log(`Passkey address: ${passkeyCAddress}`);
+      
+      try {
+        // Create properly encoded fetch requests
+        const encodedIdentifier = encodeURIComponent(identifier);
+        const endpoint = isEmail 
+          ? `/api/trpc/users.getUserByEmail?batch=1&input={"0":{"email":"${encodedIdentifier}"}}`
+          : `/api/trpc/users.getUserByPhone?batch=1&input={"0":{"phone":"${encodedIdentifier}"}}`;
+        
+        console.log("Fetching from endpoint:", endpoint);
+        const response = await fetch(endpoint);
         
         if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
+        console.log("API response:", data);
         
-        if (!data || !data[0] || !data[0].result || !data[0].result.data) {
-          throw new Error("User not found");
+        if (data[0]?.result?.data) {
+          userData = data[0].result.data;
+        } else {
+          console.error("Unexpected API response format:", data);
+          throw new Error("Invalid API response format");
         }
-        
-        userData = data[0].result.data;
-      } else {
-        // Fetch user by phone with proper error handling
-        const response = await fetch(`/api/trpc/users.getUserByPhone?batch=1&input={"0":{"phone":"${identifier}"}}`);
-        
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (!data || !data[0] || !data[0].result || !data[0].result.data) {
-          throw new Error("User not found");
-        }
-        
-        userData = data[0].result.data;
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        throw new Error("Failed to fetch user data");
       }
       
       if (!userData) {
+        console.error("User not found for identifier:", identifier);
         throw new Error("User not found");
       }
       
       // Verify that the passkey address matches
+      console.log("Database passkey address:", userData.passkeyCAddress);
+      console.log("Provided passkey address:", passkeyCAddress);
+      
       if (userData.passkeyCAddress !== passkeyCAddress) {
+        console.error("Passkey mismatch", {
+          stored: userData.passkeyCAddress,
+          provided: passkeyCAddress
+        });
         throw new Error("Invalid passkey");
       }
       
-      // Create a user object with the name property
-      const userWithName: User = {
-        ...userData,
-        name: userData.firstName 
-          ? userData.firstName + (userData.lastName ? ` ${userData.lastName}` : '')
-          : null
-      };
+      // Create a name field from firstName and lastName
+      if (userData.firstName) {
+        userData.name = userData.firstName + (userData.lastName ? ` ${userData.lastName}` : '');
+      }
       
-      setUser(userWithName);
-      localStorage.setItem("auth_user", JSON.stringify(userWithName));
-    } catch (error) {
-      console.error("Login error:", error);
+      setUser(userData);
+      localStorage.setItem("auth_user", JSON.stringify(userData));
+      console.log("Login successful for user:", userData.id);
+    } catch (error: any) {
+      console.error("Login error:", error.message, error.stack);
       throw error;
     } finally {
       setIsLoading(false);

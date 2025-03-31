@@ -76,7 +76,18 @@ export const usePasskey = (identifier: string) => {
   const connect = async (): Promise<string> => {
     try {
       setLoading(true);
-      const { keyIdBase64, contractId: cid } = await account.connectWallet();
+      console.log("Starting passkey connection process");
+      
+      // Start with more detailed logging
+      console.log("Using identifier:", identifier);
+      
+      const result = await account.connectWallet();
+      console.log("connectWallet result:", result);
+      
+      const { keyIdBase64, contractId: cid } = result;
+
+      console.log("Connected with keyIdBase64:", keyIdBase64);
+      console.log("Connected with contractId:", cid);
 
       setKeyId(keyIdBase64);
       setContractId(cid);
@@ -84,6 +95,7 @@ export const usePasskey = (identifier: string) => {
       toast.success(`Successfully connected with passkey`);
       return cid;
     } catch (err) {
+      console.error("Passkey connection error:", err);
       toast.error((err as Error)?.message ?? "Failed to connect with passkey");
       throw err;
     } finally {
