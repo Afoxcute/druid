@@ -13,7 +13,7 @@ export default function SendPage() {
     if (!isLoading) {
       if (user) {
         // Redirect to the user's send page
-        router.push(`/dashboard/${user.id}/send`);
+        router.push(`/dashboard/send`);
       } else {
         // User not authenticated, redirect to sign in
         router.push("/auth/signin");
