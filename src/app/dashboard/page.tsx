@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff, Receipt } from "lucide-react";
 import { useAuth } from "~/providers/auth-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { shortStellarAddress } from "~/lib/utils";
@@ -235,6 +235,44 @@ function DashboardContent() {
           )}
         </CardContent>
       </Card>
+
+      <div className="grid gap-4">
+        <Card className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/dashboard/${walletAddress}/send`)}>
+          <CardContent className="flex items-center space-x-4 p-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+              <ArrowUpRight className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Send Money</h3>
+              <p className="text-sm text-gray-500">Transfer money to other users</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/dashboard/${walletAddress}/bills`)}>
+          <CardContent className="flex items-center space-x-4 p-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+              <Receipt className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Pay Bills</h3>
+              <p className="text-sm text-gray-500">Pay your utility bills and more</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/dashboard/${walletAddress}/receive`)}>
+          <CardContent className="flex items-center space-x-4 p-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
+              <ArrowDownToLine className="h-6 w-6 text-purple-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Receive Money</h3>
+              <p className="text-sm text-gray-500">Get paid by other users</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Tabs defaultValue="transactions">
         <TabsList className="grid w-full grid-cols-2">
