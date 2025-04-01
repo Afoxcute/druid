@@ -40,7 +40,7 @@ export default function SendMoney() {
 
   const handleBack = () => {
     clickFeedback();
-    router.back();
+    router.push("/dashboard");
   };
 
   const handleContinue = () => {
@@ -93,7 +93,7 @@ export default function SendMoney() {
             <div>
               <p className="font-medium">{user?.name || "Your wallet"}</p>
               <p className="text-xs text-gray-500">
-                {shortStellarAddress(String(user?.id))}
+                {shortStellarAddress(user?.passkeyCAddress || "")}
               </p>
             </div>
             <p className="font-bold">$1,234.56</p>
