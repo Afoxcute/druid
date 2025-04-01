@@ -9,8 +9,34 @@ import { Card, CardContent } from "~/components/ui/card";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
 import { useAuth } from "~/providers/auth-provider";
-import { shortStellarAddress } from "~/lib/utils";
+import { shortStellarAddress, formatPhoneNumber, parsePhoneNumber } from "~/lib/utils";
 import SendPreview from "./preview";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+
+// Country data with phone codes
+const countries = [
+  { code: "US", name: "United States", phoneCode: "+1" },
+  { code: "GB", name: "United Kingdom", phoneCode: "+44" },
+  { code: "CA", name: "Canada", phoneCode: "+1" },
+  { code: "AU", name: "Australia", phoneCode: "+61" },
+  { code: "DE", name: "Germany", phoneCode: "+49" },
+  { code: "FR", name: "France", phoneCode: "+33" },
+  { code: "IT", name: "Italy", phoneCode: "+39" },
+  { code: "ES", name: "Spain", phoneCode: "+34" },
+  { code: "JP", name: "Japan", phoneCode: "+81" },
+  { code: "CN", name: "China", phoneCode: "+86" },
+  { code: "IN", name: "India", phoneCode: "+91" },
+  { code: "BR", name: "Brazil", phoneCode: "+55" },
+  { code: "MX", name: "Mexico", phoneCode: "+52" },
+  { code: "SG", name: "Singapore", phoneCode: "+65" },
+  { code: "AE", name: "United Arab Emirates", phoneCode: "+971" },
+];
 
 export default function SendMoney() {
   const { user } = useAuth();
@@ -19,6 +45,8 @@ export default function SendMoney() {
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
   const [recipientName, setRecipientName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("US");
   const [showPreview, setShowPreview] = useState(false);
   const [isPinVerified, setIsPinVerified] = useState(false);
   
@@ -50,6 +78,14 @@ export default function SendMoney() {
     return recipient.length >= 10;
   };
 
+  const isValidPhoneNumber = () => {
+    const country = countries.find(c => c.code === selectedCountry);
+    if (!country) return false;
+    
+    const fullNumber = `${country.phoneCode}${phoneNumber}`;
+    return parsePhoneNumber(fullNumber) !== null;
+  };
+
   const handleBack = () => {
     clickFeedback();
     router.back();
@@ -57,7 +93,7 @@ export default function SendMoney() {
 
   const handleContinue = () => {
     clickFeedback();
-    if (isValidAmount() && isValidRecipient()) {
+    if (isValidAmount() && isValidRecipient() && isValidPhoneNumber()) {
       setShowPreview(true);
     }
   };
@@ -71,6 +107,15 @@ export default function SendMoney() {
     router.push("/dashboard");
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const country = countries.find(c => c.code === selectedCountry);
+    if (!country) return;
+    
+    const value = e.target.value.replace(/\D/g, '');
+    const formatted = formatPhoneNumber(value, country.phoneCode);
+    setPhoneNumber(formatted);
+  };
+
   if (!isPinVerified) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
@@ -80,11 +125,16 @@ export default function SendMoney() {
   }
 
   if (showPreview) {
+    const country = countries.find(c => c.code === selectedCountry);
+    const fullPhoneNumber = country ? `${country.phoneCode}${phoneNumber}` : phoneNumber;
+    
     return (
       <SendPreview
         amount={parseFloat(amount)}
         recipient={recipient}
         recipientName={recipientName || "Recipient"}
+        phoneNumber={fullPhoneNumber}
+        country={country?.name || "United States"}
         onBack={closePreview}
         onSuccess={handlePreviewSuccess}
       />
@@ -173,13 +223,43 @@ export default function SendMoney() {
               onChange={(e) => setRecipientName(e.target.value)}
             />
           </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Recipient Phone Number</Label>
+            <div className="flex gap-2">
+              <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                <SelectTrigger className="w-[120px] h-12">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((country) => (
+                    <SelectItem key={country.code} value={country.code}>
+                      {country.phoneCode} {country.code}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                type="tel"
+                placeholder="Phone number"
+                className="h-12 flex-1"
+                value={phoneNumber}
+                onChange={handlePhoneChange}
+              />
+            </div>
+            {phoneNumber && !isValidPhoneNumber() && (
+              <p className="text-sm text-red-500">
+                Please enter a valid phone number
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Continue Button */}
         <Button
           className="w-full h-12 text-base font-medium"
           onClick={handleContinue}
-          disabled={!isValidAmount() || !isValidRecipient()}
+          disabled={!isValidAmount() || !isValidRecipient() || !isValidPhoneNumber()}
         >
           Continue
           <ChevronRight className="ml-2 h-5 w-5" />
