@@ -65,11 +65,11 @@ export default function SendMoney() {
     router.push("/dashboard");
   };
 
-  // if (!isPinVerified) {
-  //   // This should not happen, but as a safeguard
-  //   router.push(`/auth/pin?redirectTo=/dashboard/send`);
-  //   return <div className="flex justify-center p-8">Security verification required...</div>;
-  // }
+  if (!isPinVerified) {
+    // This should not happen, but as a safeguard
+    router.push(`/auth/pin?redirectTo=/dashboard/send`);
+    return <div className="flex justify-center p-8">Security verification required...</div>;
+  }
 
   if (showPreview) {
     return (
