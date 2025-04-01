@@ -214,7 +214,7 @@ function DashboardContent() {
                   toast.error("Please wait while we set up your wallet address");
                 }
               }}
-              disabled={!walletAddress}
+              // disabled={!walletAddress}
             >
               <ArrowUpRight className="mr-2 h-4 w-4" />
               Send
