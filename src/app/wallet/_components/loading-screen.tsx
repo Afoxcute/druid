@@ -28,10 +28,10 @@ export default function LoadingScreen() {
   return (
     <div className="w-full max-w-md">
       <CardHeader className="space-y-4">
-        <CardTitle className="flex items-center justify-center text-center text-2xl font-bold">
-          <Loader2 className="mr-2 h-6 w-6 animate-spin text-primary" />
-          <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            druid
+        <CardTitle className="flex items-center justify-center text-center text-3xl font-bold">
+          <Loader2 className="mr-2 h-8 w-8 animate-spin text-primary" />
+          <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+            Druid
           </span>
         </CardTitle>
       </CardHeader>
