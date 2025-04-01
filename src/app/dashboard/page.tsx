@@ -207,14 +207,7 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => {
-                if (walletAddress) {
-                  router.push(`/wallet/${walletAddress}/send`);
-                } else {
-                  toast.error("Please wait while we set up your wallet address");
-                }
-              }}
-              // disabled={!walletAddress}
+              onClick={() => router.push(`/wallet/${walletAddress}/send`)}
             >
               <ArrowUpRight className="mr-2 h-4 w-4" />
               Send
