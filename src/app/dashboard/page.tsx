@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff, ArrowLeft, ChevronRight, Send } from "lucide-react";
 import { useAuth } from "~/providers/auth-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
@@ -147,6 +147,19 @@ function DashboardContent() {
   return (
     <div className="container mx-auto max-w-md space-y-6 p-4">
       <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold">Dashboard</h1>
+        </div>
+        <Button onClick={() => router.push("/dashboard/send")}>
+          <Send className="mr-2 h-4 w-4" />
+          Send Money
+        </Button>
+      </div>
+
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">
           Welcome, {user.firstName || "User"}
         </h1>
@@ -193,7 +206,7 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => router.push("/dashboard/send")}
+              onClick={() => router.push("/send")}
             >
               <ArrowUpRight className="mr-2 h-4 w-4" />
               Send

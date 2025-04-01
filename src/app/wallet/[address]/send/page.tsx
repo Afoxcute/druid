@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -10,9 +10,10 @@ import { ArrowLeft, ChevronRight } from "lucide-react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
 import { useAuth } from "~/providers/auth-provider";
 import { shortStellarAddress } from "~/lib/utils";
-import SendPreview from "./_components/preview";
+import SendPreview from "./preview";
 
 export default function SendMoney() {
+  const { address } = useParams();
   const { user } = useAuth();
   const router = useRouter();
   const { clickFeedback } = useHapticFeedback();
@@ -55,13 +56,13 @@ export default function SendMoney() {
   };
 
   const handlePreviewSuccess = () => {
-    // After successfully sending money, navigate back to dashboard
-    router.push("/dashboard");
+    // After successfully sending money, navigate back to wallet
+    router.push(`/wallet/${address}`);
   };
 
   if (!isPinVerified) {
     // This should not happen, but as a safeguard
-    router.push(`/auth/pin?redirectTo=/dashboard/send`);
+    router.push(`/auth/pin?redirectTo=/wallet/${address}/send`);
     return <div className="flex justify-center p-8">Security verification required...</div>;
   }
 
@@ -93,7 +94,7 @@ export default function SendMoney() {
             <div>
               <p className="font-medium">{user?.name || "Your wallet"}</p>
               <p className="text-xs text-gray-500">
-                {shortStellarAddress(user?.passkeyCAddress || "")}
+                {shortStellarAddress(String(address))}
               </p>
             </div>
             <p className="font-bold">$1,234.56</p>
@@ -160,4 +161,4 @@ export default function SendMoney() {
       </Button>
     </div>
   );
-} 
+}
