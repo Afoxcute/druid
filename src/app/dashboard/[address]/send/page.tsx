@@ -15,7 +15,6 @@ export default function SendPage() {
   const router = useRouter();
   const { clickFeedback } = useHapticFeedback();
   const [amount, setAmount] = useState("");
-  const [recipient, setRecipient] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [country, setCountry] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -31,7 +30,7 @@ export default function SendPage() {
     clickFeedback("medium");
     
     // Validate inputs
-    if (!amount || !recipient || !recipientName || !country || !phoneNumber) {
+    if (!amount || !recipientName || !country || !phoneNumber) {
       setError("Please fill in all fields");
       return;
     }
@@ -64,7 +63,6 @@ export default function SendPage() {
     return (
       <SendPreview
         amount={parseFloat(amount)}
-        recipient={recipient}
         recipientName={recipientName}
         country={country}
         phoneNumber={phoneNumber}
@@ -108,19 +106,6 @@ export default function SendPage() {
                 className="h-12 text-lg"
                 min="0"
                 step="0.01"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="recipient" className="text-sm text-gray-600">
-                Recipient Address
-              </Label>
-              <Input
-                id="recipient"
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-                placeholder="Enter recipient's wallet address"
-                className="h-12"
               />
             </div>
 
