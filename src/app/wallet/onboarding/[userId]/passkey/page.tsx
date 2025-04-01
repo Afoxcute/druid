@@ -91,8 +91,8 @@ export default function PasskeySetup() {
           <CardTitle className="text-2xl">Set Up Passkey</CardTitle>
           <p className="text-gray-500 text-sm">
             Enhance your security with a passkey for faster and more secure logins
-          </p>
-        </CardHeader>
+        </p>
+      </CardHeader>
         
         <CardContent className="space-y-4">
           <div className="space-y-6">
@@ -109,8 +109,8 @@ export default function PasskeySetup() {
             <div className="flex items-start space-x-3">
               <div className="mt-0.5">
                 <Lock className="h-5 w-5 text-blue-500" />
-              </div>
-              <div>
+        </div>
+            <div>
                 <h3 className="font-medium">Faster Login</h3>
                 <p className="text-sm text-gray-500">Sign in quickly without typing passwords</p>
               </div>
@@ -141,8 +141,8 @@ export default function PasskeySetup() {
             >
               Skip for now
             </Button>
-          </div>
-        </CardContent>
+        </div>
+      </CardContent>
       </Card>
     </div>
   );

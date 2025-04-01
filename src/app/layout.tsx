@@ -29,7 +29,7 @@ export default function RootLayout({
       <body className="min-h-screen font-sans antialiased">
         <TRPCReactProvider>
           <ToasterProvider />
-          <AuthProvider sessionTimeoutMinutes={5}>
+          <AuthProvider>
             <Background>
               {children}
             </Background>

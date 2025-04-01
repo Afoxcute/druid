@@ -11,7 +11,6 @@ function PinAuthenticationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
-  const isTimeout = searchParams.get("timeout") === "true";
   const { user } = useAuth();
   const [isVerifying, setIsVerifying] = useState(false);
   const [hasRedirected, setHasRedirected] = useState(false);
@@ -113,11 +112,6 @@ function PinAuthenticationContent() {
   return (
     <div className="w-full max-w-md">
       <Card className="border-none shadow-lg">
-        {isTimeout && (
-          <div className="p-4 mb-2 bg-yellow-50 text-yellow-800 rounded-t-lg text-center text-sm">
-            Your session has expired due to inactivity. Please re-enter your PIN to continue.
-          </div>
-        )}
         <PinEntry 
           onSuccess={handlePinSuccess} 
           onCancel={handleCancel} 

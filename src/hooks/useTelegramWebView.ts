@@ -5,7 +5,7 @@ import { useAuth } from "~/providers/auth-provider";
 // This replaces the Telegram-specific integration
 export default function useTelegramWebView() {
   const { user } = useAuth();
-  
+
   return {
     user: user ? {
       id: user.id,
