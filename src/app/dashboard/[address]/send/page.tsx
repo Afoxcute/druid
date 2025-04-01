@@ -1,315 +1,169 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import { Card, CardContent } from "~/components/ui/card";
-import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, ChevronRight } from "lucide-react";
+import { useHapticFeedback } from "~/hooks/useHapticFeedback";
 import { useAuth } from "~/providers/auth-provider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { shortStellarAddress } from "~/lib/utils";
-import { toast } from "react-hot-toast";
+import SendPreview from "./preview";
 
-interface Transaction {
-  id: string;
-  type: "send" | "receive";
-  amount: number;
-  recipient: string;
-  date: string;
-}
-
-// Mock transactions for demonstration
-const mockTransactions: Transaction[] = [
-  {
-    id: "tx1",
-    type: "send",
-    amount: 20,
-    recipient: "John Doe",
-    date: "2023-06-15",
-  },
-  {
-    id: "tx2",
-    type: "receive",
-    amount: 50,
-    recipient: "Alice Smith",
-    date: "2023-06-10",
-  },
-  {
-    id: "tx3",
-    type: "send",
-    amount: 15,
-    recipient: "Bob Johnson",
-    date: "2023-06-05",
-  },
-];
-
-// Create a separate component that uses useSearchParams
-function DashboardContent() {
-  const { user, logout } = useAuth();
-  const [showBalance, setShowBalance] = useState(true);
-  const [balance] = useState("1,234.56"); // Mock balance
+export default function SendMoney() {
+  const { user } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const { clickFeedback } = useHapticFeedback();
+  const [amount, setAmount] = useState("");
+  const [recipient, setRecipient] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
   const [isPinVerified, setIsPinVerified] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(true);
-  const [redirected, setRedirected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  
-  // Check if user is coming from bank connection flow
-  const bankConnected = searchParams.get("bankConnected") === "true";
-  
-  // Check if the pin was already verified in this session
-  const pinVerified = searchParams.get("pinVerified") === "true";
   
   useEffect(() => {
-    // If coming from the PIN verification page with success
-    if (pinVerified) {
-      setIsPinVerified(true);
-      setIsVerifying(false);
+    // Check if user has a wallet address
+    if (!user?.walletAddress) {
+      router.push("/dashboard");
       return;
     }
-    
-    // Check if user has a PIN set
-    const timer = setTimeout(async () => {
-      if (user) {
-        console.log("Checking if user has PIN set:", user);
-        
-        // Force reload user data from localStorage to get the latest changes
-        try {
-          const userData = localStorage.getItem("auth_user");
-          if (userData) {
-            const refreshedUser = JSON.parse(userData);
-            console.log("Refreshed user data:", refreshedUser);
-            
-            // Check if hashedPin is null (no PIN set)
-            if (refreshedUser.hashedPin === null) {
-              console.log("User has no PIN set, redirecting to PIN setup");
-              router.replace("/wallet/onboarding/" + user.id);
-              return;
-            }
-            
-            // If redirected from PIN page, check for passkey setup
-            // Allow "skipped_setup" as a valid passkey state
-            if (pinVerified && 
-                (!refreshedUser.passkeyCAddress || 
-                refreshedUser.passkeyCAddress === null) && 
-                refreshedUser.passkeyCAddress !== "skipped_setup") {
-              console.log("User has no passkey set, redirecting to passkey setup");
-              router.replace(`/wallet/onboarding/${user.id}/passkey`);
-              return;
-            }
 
-            // Check if user has a wallet address
-            if (!refreshedUser.walletAddress) {
-              // Generate a unique wallet address for the user
-              const newAddress = `stellar:${Math.random().toString(36).substring(2, 15)}`;
-              refreshedUser.walletAddress = newAddress;
-              localStorage.setItem("auth_user", JSON.stringify(refreshedUser));
-              setWalletAddress(newAddress);
-            } else {
-              setWalletAddress(refreshedUser.walletAddress);
-            }
-            
-            // PIN and passkey verification passed
-            setIsPinVerified(true);
-            setIsVerifying(false);
-          }
-        } catch (err) {
-          console.error("Error refreshing user data:", err);
-          // PIN is set, proceed with verification
-          setIsPinVerified(true);
-          setIsVerifying(false);
-        }
-      }
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, [pinVerified, user, router]);
-  
-  // If the user isn't loaded yet, show a loading state
-  if (!user) {
-    return <div className="flex flex-col items-center justify-center p-8">
-      <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mb-4"></div>
-      <p>Loading user data...</p>
-    </div>;
-  }
-  
-  // Show verifying message while checking
-  if (isVerifying) {
-    return <div className="flex flex-col items-center justify-center p-8">
-      <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mb-4"></div>
-      <p>Verifying security...</p>
-    </div>;
-  }
-  
-  // If PIN isn't verified and we haven't already redirected, redirect to PIN page
-  if (!isPinVerified && !pinVerified && !redirected) {
-    console.log("Redirecting to PIN verification page");
-    setRedirected(true); // Set flag to prevent multiple redirects
-    
-    // Use a setTimeout to allow the state update to complete before redirecting
-    setTimeout(() => {
-      router.replace("/auth/pin?redirectTo=/dashboard?pinVerified=true");
-    }, 100);
-    
-    return <div className="flex flex-col items-center justify-center p-8">
-      <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mb-4"></div>
-      <p>Redirecting to PIN verification...</p>
-    </div>;
+    // In a real app, check if coming from PIN page with success
+    // For demo, we'll set to true since the PIN page redirects here
+    setIsPinVerified(true);
+  }, [user, router]);
+
+  const isValidAmount = () => {
+    const numAmount = parseFloat(amount);
+    return !isNaN(numAmount) && numAmount > 0 && numAmount <= 1000;
+  };
+
+  const isValidRecipient = () => {
+    // This is a simple check; in a real app, you'd validate the address format
+    return recipient.length >= 10;
+  };
+
+  const handleBack = () => {
+    clickFeedback();
+    router.back();
+  };
+
+  const handleContinue = () => {
+    clickFeedback();
+    if (isValidAmount() && isValidRecipient()) {
+      setShowPreview(true);
+    }
+  };
+
+  const closePreview = () => {
+    setShowPreview(false);
+  };
+
+  const handlePreviewSuccess = () => {
+    // After successfully sending money, navigate back to dashboard
+    router.push("/dashboard");
+  };
+
+  // if (!isPinVerified) {
+  //   // This should not happen, but as a safeguard
+  //   router.push(`/auth/pin?redirectTo=/dashboard/send`);
+  //   return <div className="flex justify-center p-8">Security verification required...</div>;
+  // }
+
+  if (showPreview) {
+    return (
+      <SendPreview
+        amount={parseFloat(amount)}
+        recipient={recipient}
+        recipientName={recipientName || "Recipient"}
+        onBack={closePreview}
+        onSuccess={handlePreviewSuccess}
+      />
+    );
   }
 
   return (
-    <div className="container mx-auto max-w-md space-y-6 p-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
-          Welcome, {user.firstName || "User"}
-        </h1>
-        <Button variant="ghost" onClick={() => {
-          // Clear any session/verification data
-          setIsPinVerified(false);
-          // Log the user out
-          logout();
-          // Redirect to sign in
-          router.push("/auth/signin");
-        }}>
-          Logout
+    <div className="space-y-6">
+      <div className="flex items-center">
+        <Button variant="ghost" size="icon" onClick={handleBack}>
+          <ArrowLeft className="h-5 w-5" />
         </Button>
+        <h1 className="text-xl font-semibold">Send Money</h1>
       </div>
 
-      {bankConnected && (
-        <div className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-600">
-          Bank account successfully connected! You can now make transfers.
-        </div>
-      )}
-
-      <Card className="overflow-hidden bg-blue-600 text-white">
-        <CardContent className="p-6">
-          <div className="space-y-1">
-            <h2 className="text-sm font-medium text-blue-100">Current Balance</h2>
-            <div className="flex items-center gap-2">
-              <p className="text-3xl font-bold">
-                ${showBalance ? balance : "••••••"}
+      <Card>
+        <CardContent className="p-4">
+          <p className="mb-2 text-sm text-gray-500">From</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">{user?.name || "Your wallet"}</p>
+              <p className="text-xs text-gray-500">
+                {user?.walletAddress ? shortStellarAddress(user.walletAddress) : ""}
               </p>
-              <button 
-                onClick={() => setShowBalance(!showBalance)}
-                className="rounded-full p-1 hover:bg-blue-500"
-              >
-                {showBalance ? (
-                  <EyeOff className="h-4 w-4 text-blue-100" />
-                ) : (
-                  <Eye className="h-4 w-4 text-blue-100" />
-                )}
-              </button>
             </div>
+            <p className="font-bold">$1,234.56</p>
           </div>
-
-          <div className="mt-6 grid grid-cols-2 gap-2">
-            <Button 
-              variant="outline" 
-              className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => {
-                if (walletAddress) {
-                  router.push(`/dashboard/${walletAddress}/send`);
-                } else {
-                  toast.error("Please wait while we set up your wallet address");
-                }
-              }}
-              disabled={!walletAddress}
-            >
-              <ArrowUpRight className="mr-2 h-4 w-4" />
-              Send
-            </Button>
-            <Button 
-              variant="outline" 
-              className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => router.push(`/wallet/${walletAddress}/receive`)}
-            >
-              <ArrowDownToLine className="mr-2 h-4 w-4" />
-              Receive
-            </Button>
-          </div>
-          {walletAddress && (
-            <div className="mt-4 text-center text-sm text-blue-100">
-              Wallet Address: {shortStellarAddress(walletAddress)}
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="transactions">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          <TabsTrigger value="banking">Banking</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="transactions" className="space-y-4 pt-4">
-          {mockTransactions.length === 0 ? (
-            <div className="rounded-lg border border-dashed p-8 text-center">
-              <p className="text-gray-500">No transactions yet</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {mockTransactions.map((tx) => (
-                <Card key={tx.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-full ${tx.type === "receive" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
-                          {tx.type === "receive" ? (
-                            <ArrowDownToLine className="h-5 w-5" />
-                          ) : (
-                            <ArrowUpRight className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">{tx.recipient}</p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(tx.date).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <p className={`font-semibold ${tx.type === "receive" ? "text-green-600" : "text-red-600"}`}>
-                          {tx.type === "receive" ? "+" : "-"}${tx.amount}
-                        </p>
-                        <ArrowRight className="h-4 w-4 text-gray-400" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="amount">Amount (USD)</Label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+              $
+            </span>
+            <Input
+              id="amount"
+              type="number"
+              placeholder="0.00"
+              className="pl-8"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+          {amount && !isValidAmount() && (
+            <p className="text-sm text-red-500">
+              Please enter a valid amount (up to $1,000)
+            </p>
           )}
-        </TabsContent>
-        
-        <TabsContent value="banking" className="space-y-4 pt-4">
-          <Card>
-            <CardContent className="p-6 text-center">
-              <div className="mb-4">
-                <p className="text-lg font-medium">Connect your bank account</p>
-                <p className="text-sm text-gray-500">
-                  Link your bank for faster transfers and withdrawals
-                </p>
-              </div>
-              <Button 
-                className="w-full"
-                onClick={() => router.push("/banking/connect")}
-              >
-                Connect Bank
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
+        </div>
 
-// Main component with Suspense boundary
-export default function Dashboard() {
-  return (
-    <Suspense fallback={<div className="flex justify-center p-8">Loading dashboard...</div>}>
-      <DashboardContent />
-    </Suspense>
+        <div className="space-y-2">
+          <Label htmlFor="recipient">Recipient Address</Label>
+          <Input
+            id="recipient"
+            placeholder="G..."
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
+          />
+          {recipient && !isValidRecipient() && (
+            <p className="text-sm text-red-500">
+              Please enter a valid Stellar address
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="name">Recipient Name (Optional)</Label>
+          <Input
+            id="name"
+            placeholder="John Doe"
+            value={recipientName}
+            onChange={(e) => setRecipientName(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <Button
+        className="w-full"
+        onClick={handleContinue}
+        disabled={!isValidAmount() || !isValidRecipient()}
+      >
+        Continue
+        <ChevronRight className="ml-2 h-4 w-4" />
+      </Button>
+    </div>
   );
 } 
