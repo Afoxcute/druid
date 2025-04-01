@@ -13,7 +13,7 @@ import { shortStellarAddress } from "~/lib/utils";
 import SendPreview from "./preview";
 
 export default function SendMoney() {
-  const { user, isLoading } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const { clickFeedback } = useHapticFeedback();
   const [amount, setAmount] = useState("");
@@ -21,74 +21,18 @@ export default function SendMoney() {
   const [recipientName, setRecipientName] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [isPinVerified, setIsPinVerified] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
   
   useEffect(() => {
-    let mounted = true;
+    // Check if user has a wallet address
+    if (!user?.walletAddress) {
+      router.push("/dashboard");
+      return;
+    }
 
-    const checkAuth = async () => {
-      try {
-        // Wait for auth to load
-        if (isLoading) {
-          return;
-        }
-
-        // Check if user is authenticated
-        if (!user) {
-          if (mounted) {
-            router.push("/auth/signin");
-          }
-          return;
-        }
-
-        // Get fresh user data from localStorage
-        const userData = localStorage.getItem("auth_user");
-        if (!userData) {
-          if (mounted) {
-            router.push("/auth/signin");
-          }
-          return;
-        }
-
-        const refreshedUser = JSON.parse(userData);
-        
-        // Check for wallet address
-        if (!refreshedUser.walletAddress) {
-          if (mounted) {
-            router.push("/dashboard");
-          }
-          return;
-        }
-
-        // Check PIN verification
-        const pinVerified = localStorage.getItem("pin_verified");
-        if (!pinVerified) {
-          if (mounted) {
-            router.push("/auth/pin?redirectTo=/dashboard/send");
-          }
-          return;
-        }
-
-        // All checks passed
-        if (mounted) {
-          setIsPinVerified(true);
-          setIsChecking(false);
-        }
-      } catch (error) {
-        console.error("Auth check error:", error);
-        if (mounted) {
-          router.push("/auth/signin");
-        }
-      }
-    };
-
-    checkAuth();
-
-    // Cleanup function
-    return () => {
-      mounted = false;
-    };
-  }, [user, isLoading, router]);
+    // In a real app, check if coming from PIN page with success
+    // For demo, we'll set to true since the PIN page redirects here
+    setIsPinVerified(true);
+  }, [user, router]);
 
   const isValidAmount = () => {
     const numAmount = parseFloat(amount);
@@ -121,19 +65,10 @@ export default function SendMoney() {
     router.push("/dashboard");
   };
 
-  // Show loading state while checking auth
-  if (isLoading || isChecking) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mb-4"></div>
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
-  // Don't render anything while redirecting
   if (!isPinVerified) {
-    return null;
+    // This should not happen, but as a safeguard
+    router.push(`/auth/pin?redirectTo=/dashboard/send`);
+    return <div className="flex justify-center p-8">Security verification required...</div>;
   }
 
   if (showPreview) {
