@@ -8,6 +8,7 @@ import { TRPCReactProvider } from "~/trpc/react";
 import ToasterProvider from "~/providers/toaster-provider";
 import { AuthProvider } from "~/providers/auth-provider";
 import Background from "./components/background";
+import { HapticFeedbackProvider } from "~/providers/haptic-feedback-provider";
 
 const nunito = Nunito({
   subsets: ['latin'],
@@ -29,11 +30,13 @@ export default function RootLayout({
       <body className="min-h-screen font-sans antialiased">
         <TRPCReactProvider>
           <ToasterProvider />
-          <AuthProvider>
-            <Background>
-              {children}
-            </Background>
-          </AuthProvider>
+          <HapticFeedbackProvider>
+            <AuthProvider>
+              <Background>
+                {children}
+              </Background>
+            </AuthProvider>
+          </HapticFeedbackProvider>
         </TRPCReactProvider>
       </body>
     </html>
