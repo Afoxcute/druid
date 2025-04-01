@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -11,10 +11,12 @@ import { useHapticFeedback } from "~/hooks/useHapticFeedback";
 import { useAuth } from "~/providers/auth-provider";
 import { shortStellarAddress } from "~/lib/utils";
 import SendPreview from "./preview";
+import LoadingScreen from "~/app/wallet/_components/loading-screen";
 
-export default function SendMoney() {
-  const { user } = useAuth();
+export default function SendPage() {
+  const { user, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { clickFeedback } = useHapticFeedback();
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
@@ -23,16 +25,36 @@ export default function SendMoney() {
   const [isPinVerified, setIsPinVerified] = useState(false);
   
   useEffect(() => {
-    // Check if user has a wallet address
-    if (!user?.walletAddress) {
-      router.push("/dashboard");
-      return;
+    if (!isLoading) {
+      if (user) {
+        // Get user's wallet address from localStorage
+        const userData = localStorage.getItem("auth_user");
+        if (userData) {
+          const user = JSON.parse(userData);
+          if (user.walletAddress) {
+            // Check if we're coming from dashboard with pinVerified
+            const pinVerified = searchParams.get("pinVerified") === "true";
+            if (pinVerified) {
+              // If pinVerified is true, we can skip verification
+              router.push(`/dashboard/${user.walletAddress}/send?pinVerified=true`);
+            } else {
+              // If not verified, redirect to PIN verification
+              router.push("/auth/pin?redirectTo=/dashboard/send");
+            }
+          } else {
+            // User has no wallet address, redirect to dashboard
+            router.push("/dashboard");
+          }
+        } else {
+          // No user data found, redirect to dashboard
+          router.push("/dashboard");
+        }
+      } else {
+        // User not authenticated, redirect to sign in
+        router.push("/auth/signin");
+      }
     }
-
-    // In a real app, check if coming from PIN page with success
-    // For demo, we'll set to true since the PIN page redirects here
-    setIsPinVerified(true);
-  }, [user, router]);
+  }, [user, isLoading, router, searchParams]);
 
   const isValidAmount = () => {
     const numAmount = parseFloat(amount);
@@ -65,12 +87,6 @@ export default function SendMoney() {
     router.push("/dashboard");
   };
 
-  if (!isPinVerified) {
-    // This should not happen, but as a safeguard
-    router.push(`/auth/pin?redirectTo=/dashboard/send`);
-    return <div className="flex justify-center p-8">Security verification required...</div>;
-  }
-
   if (showPreview) {
     return (
       <SendPreview
@@ -83,87 +99,6 @@ export default function SendMoney() {
     );
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center">
-        <Button variant="ghost" size="icon" onClick={handleBack}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-xl font-semibold">Send Money</h1>
-      </div>
-
-      <Card>
-        <CardContent className="p-4">
-          <p className="mb-2 text-sm text-gray-500">From</p>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">{user?.name || "Your wallet"}</p>
-              <p className="text-xs text-gray-500">
-                {user?.walletAddress ? shortStellarAddress(user.walletAddress) : ""}
-              </p>
-            </div>
-            <p className="font-bold">$1,234.56</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="amount">Amount (USD)</Label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-              $
-            </span>
-            <Input
-              id="amount"
-              type="number"
-              placeholder="0.00"
-              className="pl-8"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-          </div>
-          {amount && !isValidAmount() && (
-            <p className="text-sm text-red-500">
-              Please enter a valid amount (up to $1,000)
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="recipient">Recipient Address</Label>
-          <Input
-            id="recipient"
-            placeholder="G..."
-            value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
-          />
-          {recipient && !isValidRecipient() && (
-            <p className="text-sm text-red-500">
-              Please enter a valid Stellar address
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="name">Recipient Name (Optional)</Label>
-          <Input
-            id="name"
-            placeholder="John Doe"
-            value={recipientName}
-            onChange={(e) => setRecipientName(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <Button
-        className="w-full"
-        onClick={handleContinue}
-        disabled={!isValidAmount() || !isValidRecipient()}
-      >
-        Continue
-        <ChevronRight className="ml-2 h-4 w-4" />
-      </Button>
-    </div>
-  );
+  // Show loading while checking auth and redirecting
+  return <LoadingScreen />;
 } 
