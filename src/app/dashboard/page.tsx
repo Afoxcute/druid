@@ -193,7 +193,10 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => router.push(`/wallet/${user.id}/send`)}
+              onClick={() => {
+                // For sensitive operations, always verify PIN first
+                router.push("/auth/pin?redirectTo=/wallet/" + user.id + "/send");
+              }}
             >
               <ArrowUpRight className="mr-2 h-4 w-4" />
               Send
@@ -201,7 +204,7 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => router.push("/receive")}
+              onClick={() => router.push("/wallet/" + user.id + "/receive")}
             >
               <ArrowDownToLine className="mr-2 h-4 w-4" />
               Receive
