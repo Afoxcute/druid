@@ -47,34 +47,38 @@ export class AuthService extends BaseService {
    * @param userId
    * @param pin
    */
-  async setPin(userId: number, pin: string): Promise<{ success: boolean }> {
+  async setPin(userId: number, pin: string): Promise<{ success: boolean; error?: string }> {
     try {
       const hashedPin = await this.toHash(pin);
 
-      // Save user to the database
-      const userWithoutPin = await this.db.user.count({
-        where: {
-          id: userId,
-          hashedPin: {
-            not: { equals: null },
-          },
-        },
+      // First check if user exists
+      const user = await this.db.user.findUnique({
+        where: { id: userId },
+        select: { hashedPin: true },
       });
-      console.log("userWithoutPin", userWithoutPin);
-      if (userWithoutPin !== 0) {
-        throw new Error("User already has a pin");
+
+      if (!user) {
+        console.error("User not found:", userId);
+        return { success: false, error: "User not found" };
       }
-      console.log("hashedPin", hashedPin);
+
+      // Check if user already has a PIN
+      if (user.hashedPin !== null) {
+        console.error("User already has a PIN set:", userId);
+        return { success: false, error: "User already has a PIN set" };
+      }
+
+      // Update user with new PIN
       await this.db.user.update({
         where: { id: userId },
         data: { hashedPin },
       });
-      console.log("after update :)");
+      console.log("Successfully set PIN for user:", userId);
 
       return { success: true };
     } catch (e) {
-      console.error(e);
-      return { success: false };
+      console.error("Error setting PIN:", e);
+      return { success: false, error: e instanceof Error ? e.message : "Failed to set PIN" };
     }
   }
 }
