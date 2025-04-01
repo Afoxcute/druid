@@ -209,7 +209,7 @@ function DashboardContent() {
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
               onClick={() => {
                 if (walletAddress) {
-                  router.push("/send");
+                  router.push("/dashboard/send");
                 } else {
                   toast.error("Please wait while we set up your wallet address");
                 }
