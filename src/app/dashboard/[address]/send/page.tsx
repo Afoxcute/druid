@@ -3,13 +3,17 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
+import { useAuth } from "~/providers/auth-provider";
+import { shortStellarAddress } from "~/lib/utils";
+import SendPreview from "./preview";
 
 export default function SendPage() {
+  const { user } = useAuth();
   const router = useRouter();
   const { clickFeedback } = useHapticFeedback();
   const [amount, setAmount] = useState("");
@@ -27,15 +31,6 @@ export default function SendPage() {
     }
   }, [router]);
 
-  const handleContinue = () => {
-    clickFeedback();
-    if (!amount || !recipient) {
-      setError("Please fill in all fields");
-      return;
-    }
-    setIsPreview(true);
-  };
-
   const handleBack = () => {
     clickFeedback();
     if (isPreview) {
@@ -44,6 +39,26 @@ export default function SendPage() {
     } else {
       router.back();
     }
+  };
+
+  const handleContinue = () => {
+    clickFeedback();
+    if (!amount || !recipient) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    if (isNaN(Number(amount)) || Number(amount) <= 0) {
+      setError("Please enter a valid amount");
+      return;
+    }
+
+    if (!recipient.match(/^[A-Z0-9]{56}$/)) {
+      setError("Please enter a valid recipient address");
+      return;
+    }
+
+    setIsPreview(true);
   };
 
   const handleSend = async () => {
@@ -62,136 +77,138 @@ export default function SendPage() {
     }
   };
 
-  if (isPreview) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-4 sm:p-6">
-        <div className="mx-auto max-w-md">
-          <Button
-            variant="ghost"
-            onClick={handleBack}
-            className="mb-6 h-10 w-10 rounded-full p-0"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </Button>
-
-          <Card className="border-primary/20 bg-card/50 backdrop-blur-sm">
-            <CardHeader className="space-y-4">
-              <CardTitle className="text-center text-2xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-                Confirm Transfer
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Amount</span>
-                  <span className="font-semibold">${amount} USD</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Recipient</span>
-                  <span className="font-semibold">{recipientName}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Address</span>
-                  <span className="font-mono text-sm">{recipient}</span>
-                </div>
-              </div>
-
-              <Button
-                onClick={handleSend}
-                disabled={isLoading}
-                className="h-12 w-full text-lg"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  "Confirm & Send"
-                )}
-              </Button>
-
-              {error && (
-                <p className="text-center text-sm text-destructive">{error}</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-4">
+            <CardTitle className="flex items-center justify-center text-center text-3xl font-bold">
+              <Loader2 className="mr-2 h-8 w-8 animate-spin text-primary" />
+              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+                Druid
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <p className="text-center text-muted-foreground text-lg">
+              Processing your payment...
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="mx-auto max-w-md">
-        <Button
-          variant="ghost"
-          onClick={handleBack}
-          className="mb-6 h-10 w-10 rounded-full p-0"
-        >
-          <ArrowLeft className="h-6 w-6" />
-        </Button>
+    <div className="flex min-h-screen flex-col bg-background p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-md">
+        <div className="mb-6 flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBack}
+            className="h-10 w-10 rounded-full"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-2xl font-bold sm:text-3xl">
+            {isPreview ? "Confirm Payment" : "Send Money"}
+          </h1>
+        </div>
 
-        <Card className="border-primary/20 bg-card/50 backdrop-blur-sm">
+        <Card className="w-full">
           <CardHeader className="space-y-4">
-            <CardTitle className="text-center text-2xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-              Send Money
+            <CardTitle className="text-xl font-semibold">
+              {isPreview ? "Review Payment" : "Enter Details"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="amount" className="text-base">
-                  Amount (USD)
-                </Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="h-12 text-lg"
-                />
-              </div>
+            {!isPreview ? (
+              <>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="amount" className="text-base">
+                      Amount
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        $
+                      </span>
+                      <Input
+                        id="amount"
+                        type="number"
+                        placeholder="0.00"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        className="h-12 pl-7 text-lg"
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="recipient" className="text-base">
-                  Recipient Name
-                </Label>
-                <Input
-                  id="recipient"
-                  type="text"
-                  placeholder="Enter recipient's name"
-                  value={recipientName}
-                  onChange={(e) => setRecipientName(e.target.value)}
-                  className="h-12 text-lg"
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="recipient" className="text-base">
+                      Recipient Address
+                    </Label>
+                    <Input
+                      id="recipient"
+                      placeholder="Enter recipient's address"
+                      value={recipient}
+                      onChange={(e) => setRecipient(e.target.value)}
+                      className="h-12 text-base"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="address" className="text-base">
-                  Recipient Address
-                </Label>
-                <Input
-                  id="address"
-                  type="text"
-                  placeholder="Enter recipient's address"
-                  value={recipient}
-                  onChange={(e) => setRecipient(e.target.value)}
-                  className="h-12 text-lg font-mono"
-                />
-              </div>
-            </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="recipientName" className="text-base">
+                      Recipient Name (Optional)
+                    </Label>
+                    <Input
+                      id="recipientName"
+                      placeholder="Enter recipient's name"
+                      value={recipientName}
+                      onChange={(e) => setRecipientName(e.target.value)}
+                      className="h-12 text-base"
+                    />
+                  </div>
+                </div>
 
-            <Button
-              onClick={handleContinue}
-              className="h-12 w-full text-lg"
-            >
-              Continue
-            </Button>
+                {error && (
+                  <p className="text-sm text-destructive">{error}</p>
+                )}
 
-            {error && (
-              <p className="text-center text-sm text-destructive">{error}</p>
+                <Button
+                  onClick={handleContinue}
+                  className="h-12 w-full text-lg"
+                >
+                  Continue
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="space-y-4 rounded-lg border bg-card/50 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Amount</span>
+                    <span className="font-semibold">${amount}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Recipient</span>
+                    <span className="font-semibold">
+                      {recipientName || recipient.slice(0, 8) + "..." + recipient.slice(-8)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Network Fee</span>
+                    <span className="font-semibold">$0.00</span>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleSend}
+                  className="h-12 w-full text-lg"
+                >
+                  Confirm & Send
+                </Button>
+              </>
             )}
           </CardContent>
         </Card>
