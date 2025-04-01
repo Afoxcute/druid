@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useLanguage } from "~/contexts/LanguageContext";
 import { currencies, formatCurrency } from "~/lib/currencies";
 import { Button } from "~/components/ui/button";
@@ -14,34 +14,31 @@ import { Label } from "~/components/ui/label";
 import { parsePhoneNumber, formatPhoneNumber } from "~/lib/utils";
 
 interface SendPreviewProps {
-  params: {
-    address: string;
-  };
+  amount: number;
+  recipientName: string;
+  country: string;
+  phoneNumber: string;
+  onBack: () => void;
+  onSuccess: () => void;
+  onEdit: () => void;
 }
 
-export default function SendPreview({ params }: SendPreviewProps) {
+export default function SendPreview({ 
+  amount,
+  recipientName,
+  country,
+  phoneNumber,
+  onBack,
+  onSuccess,
+  onEdit,
+}: SendPreviewProps) {
   const router = useRouter();
+  const params = useParams();
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
-  const [transferData, setTransferData] = useState<{
-    amount: number;
-    recipientName: string;
-    country: string;
-    phoneNumber: string;
-    currency: string;
-  } | null>(null);
   const { clickFeedback } = useHapticFeedback();
-
-  useEffect(() => {
-    const data = sessionStorage.getItem("transferData");
-    if (data) {
-      setTransferData(JSON.parse(data));
-    } else {
-      router.push(`/dashboard/${params.address}/send`);
-    }
-  }, [router, params.address]);
 
   const handleSend = async () => {
     setLoading(true);
@@ -84,10 +81,6 @@ export default function SendPreview({ params }: SendPreviewProps) {
     clickFeedback("soft");
   };
 
-  if (!transferData) {
-    return null;
-  }
-
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-light-blue p-4 flex items-center justify-center">
@@ -98,7 +91,7 @@ export default function SendPreview({ params }: SendPreviewProps) {
             </div>
             <h2 className="text-2xl font-semibold mb-4">{t("send.transferSuccess")}</h2>
             <p className="text-gray-600 mb-6">
-              {formatCurrency(transferData.amount, transferData.currency)} {t("send.transferredTo")} {transferData.recipientName}
+              {formatCurrency(amount, "USD")} {t("send.transferredTo")} {recipientName}
             </p>
             <Button
               onClick={() => router.push(`/dashboard/${params.address}`)}
@@ -133,23 +126,23 @@ export default function SendPreview({ params }: SendPreviewProps) {
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">{t("common.amount")}</span>
                 <span className="font-semibold">
-                  {formatCurrency(transferData.amount, transferData.currency)}
+                  {formatCurrency(amount, "USD")}
                 </span>
               </div>
 
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">{t("send.recipientName")}</span>
-                <span className="font-semibold">{transferData.recipientName}</span>
+                <span className="font-semibold">{recipientName}</span>
               </div>
 
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">{t("common.country")}</span>
-                <span className="font-semibold">{transferData.country}</span>
+                <span className="font-semibold">{country}</span>
               </div>
 
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">{t("common.phoneNumber")}</span>
-                <span className="font-semibold">{transferData.phoneNumber}</span>
+                <span className="font-semibold">{phoneNumber}</span>
               </div>
 
               {error && (
