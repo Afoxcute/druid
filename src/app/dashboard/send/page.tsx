@@ -13,7 +13,7 @@ import { shortStellarAddress } from "~/lib/utils";
 import SendPreview from "./preview";
 
 export default function SendMoney() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const { clickFeedback } = useHapticFeedback();
   const [amount, setAmount] = useState("");
@@ -21,18 +21,42 @@ export default function SendMoney() {
   const [recipientName, setRecipientName] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [isPinVerified, setIsPinVerified] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   
   useEffect(() => {
-    // Check if user has a wallet address
-    if (!user?.walletAddress) {
-      router.push("/dashboard");
-      return;
-    }
+    const checkAuth = async () => {
+      if (isLoading) {
+        return; // Wait for auth to load
+      }
 
-    // In a real app, check if coming from PIN page with success
-    // For demo, we'll set to true since the PIN page redirects here
-    setIsPinVerified(true);
-  }, [user, router]);
+      if (!user) {
+        router.push("/auth/signin");
+        return;
+      }
+
+      // Check if user has a wallet address
+      const userData = localStorage.getItem("auth_user");
+      if (userData) {
+        const refreshedUser = JSON.parse(userData);
+        if (!refreshedUser.walletAddress) {
+          router.push("/dashboard");
+          return;
+        }
+      }
+
+      // Check if PIN is verified
+      const pinVerified = localStorage.getItem("pin_verified");
+      if (!pinVerified) {
+        router.push("/auth/pin?redirectTo=/dashboard/send");
+        return;
+      }
+
+      setIsPinVerified(true);
+      setIsChecking(false);
+    };
+
+    checkAuth();
+  }, [user, isLoading, router]);
 
   const isValidAmount = () => {
     const numAmount = parseFloat(amount);
@@ -65,10 +89,18 @@ export default function SendMoney() {
     router.push("/dashboard");
   };
 
+  // Show loading state while checking auth
+  if (isLoading || isChecking) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mb-4"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   if (!isPinVerified) {
-    // This should not happen, but as a safeguard
-    router.push(`/auth/pin?redirectTo=/dashboard/send`);
-    return <div className="flex justify-center p-8">Security verification required...</div>;
+    return null; // Will redirect in useEffect
   }
 
   if (showPreview) {
