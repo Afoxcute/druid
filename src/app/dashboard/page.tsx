@@ -209,8 +209,7 @@ function DashboardContent() {
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
               onClick={() => {
                 if (walletAddress) {
-                  // Add pinVerified=true to the URL to bypass verification
-                  router.push(`/dashboard/${walletAddress}/send?pinVerified=true`);
+                  router.push(`/dashboard/${walletAddress}/send`);
                 } else {
                   toast.error("Please wait while we set up your wallet address");
                 }
