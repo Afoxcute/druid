@@ -27,20 +27,25 @@ export default function LoadingScreen() {
 
   return (
     <div className="w-full max-w-md">
-      <CardHeader>
+      <CardHeader className="space-y-4">
         <CardTitle className="flex items-center justify-center text-center text-2xl font-bold">
-          <Loader2 className="mr-2 h-6 w-6 animate-spin text-blue-500" />
-          payu
+          <Loader2 className="mr-2 h-6 w-6 animate-spin text-primary" />
+          <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            druid
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <p className="text-center text-gray-600">
+        <p className="text-center text-muted-foreground">
           Loading your account data...
         </p>
-        <Progress value={progress} className="w-full" />
-        <p className="text-center text-sm text-gray-500">
-          {Math.round(progress)}% complete
-        </p>
+        <div className="space-y-2">
+          <Progress value={progress} className="h-2 w-full" />
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>Loading...</span>
+            <span>{Math.round(progress)}%</span>
+          </div>
+        </div>
       </CardContent>
     </div>
   );

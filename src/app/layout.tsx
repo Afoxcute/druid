@@ -25,8 +25,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${nunito.variable}`}>
-      <body className="min-h-screen font-sans antialiased">
+    <html lang="en" className={`${GeistSans.variable} ${nunito.variable} dark`}>
+      <body className="min-h-screen font-sans antialiased bg-background text-foreground">
         <TRPCReactProvider>
           <ToasterProvider />
           <AuthProvider>

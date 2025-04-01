@@ -119,7 +119,7 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
     <div>
       <CardHeader className="space-y-1">
         <CardTitle className="text-center text-2xl font-bold">
-          payu
+          Druid
         </CardTitle>
         <p className="text-center text-gray-600">
           {loading ? "Verifying..." : "Enter your PIN"}

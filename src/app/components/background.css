@@ -1,16 +1,42 @@
 /* filepath: /Users/josetoscano/Projects/life-dots/src/components/background.css */
 @keyframes wave {
   0% {
-    fill: black;
+    fill: currentColor;
   }
   50% {
     fill: hsl(var(--primary));
   }
   100% {
-    fill: black;
+    fill: currentColor;
+  }
+}
+
+@keyframes gradient-x {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes gradient-y {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
   }
 }
 
 .animate-dots pattern circle {
   animation: wave 2s infinite;
+}
+
+.animate-gradient-x {
+  animation: gradient-x 15s linear infinite;
+}
+
+.animate-gradient-y {
+  animation: gradient-y 15s linear infinite;
 }
