@@ -1,189 +1,200 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
+import { Input } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
-import { Card, CardContent } from "~/components/ui/card";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
-import { useAuth } from "~/providers/auth-provider";
-import { shortStellarAddress } from "~/lib/utils";
-import SendPreview from "./preview";
 
-export default function SendMoney() {
-  const { user } = useAuth();
+export default function SendPage() {
   const router = useRouter();
   const { clickFeedback } = useHapticFeedback();
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
   const [recipientName, setRecipientName] = useState("");
-  const [showPreview, setShowPreview] = useState(false);
-  const [isPinVerified, setIsPinVerified] = useState(false);
-  
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [isPreview, setIsPreview] = useState(false);
+
   useEffect(() => {
-    // Check if user has a wallet address
     const userData = localStorage.getItem("auth_user");
     if (!userData) {
-      router.push("/dashboard");
+      router.push("/auth/signin");
       return;
     }
-
-    const user = JSON.parse(userData);
-    if (!user.walletAddress) {
-      router.push("/dashboard");
-      return;
-    }
-
-    // Set PIN verification to true since we're already authenticated
-    setIsPinVerified(true);
   }, [router]);
 
-  const isValidAmount = () => {
-    const numAmount = parseFloat(amount);
-    return !isNaN(numAmount) && numAmount > 0 && numAmount <= 1000;
-  };
-
-  const isValidRecipient = () => {
-    // This is a simple check; in a real app, you'd validate the address format
-    return recipient.length >= 10;
+  const handleContinue = () => {
+    clickFeedback();
+    if (!amount || !recipient) {
+      setError("Please fill in all fields");
+      return;
+    }
+    setIsPreview(true);
   };
 
   const handleBack = () => {
     clickFeedback();
-    router.back();
-  };
-
-  const handleContinue = () => {
-    clickFeedback();
-    if (isValidAmount() && isValidRecipient()) {
-      setShowPreview(true);
+    if (isPreview) {
+      setIsPreview(false);
+      setError("");
+    } else {
+      router.back();
     }
   };
 
-  const closePreview = () => {
-    setShowPreview(false);
+  const handleSend = async () => {
+    clickFeedback();
+    setIsLoading(true);
+    setError("");
+
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      router.push("/dashboard");
+    } catch (err) {
+      setError("Failed to send payment. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handlePreviewSuccess = () => {
-    // After successfully sending money, navigate back to dashboard
-    router.push("/dashboard");
-  };
-
-  if (!isPinVerified) {
+  if (isPreview) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent"></div>
+      <div className="min-h-screen bg-background p-4 sm:p-6">
+        <div className="mx-auto max-w-md">
+          <Button
+            variant="ghost"
+            onClick={handleBack}
+            className="mb-6 h-10 w-10 rounded-full p-0"
+          >
+            <ArrowLeft className="h-6 w-6" />
+          </Button>
+
+          <Card className="border-primary/20 bg-card/50 backdrop-blur-sm">
+            <CardHeader className="space-y-4">
+              <CardTitle className="text-center text-2xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+                Confirm Transfer
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Amount</span>
+                  <span className="font-semibold">${amount} USD</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Recipient</span>
+                  <span className="font-semibold">{recipientName}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Address</span>
+                  <span className="font-mono text-sm">{recipient}</span>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleSend}
+                disabled={isLoading}
+                className="h-12 w-full text-lg"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Confirm & Send"
+                )}
+              </Button>
+
+              {error && (
+                <p className="text-center text-sm text-destructive">{error}</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
-  if (showPreview) {
-    return (
-      <SendPreview
-        amount={parseFloat(amount)}
-        recipient={recipient}
-        recipientName={recipientName || "Recipient"}
-        onBack={closePreview}
-        onSuccess={handlePreviewSuccess}
-      />
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="mx-auto max-w-md space-y-6">
-        {/* Header */}
-        <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={handleBack}
-            className="h-10 w-10 rounded-full"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-semibold">Send Money</h1>
-        </div>
+    <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="mx-auto max-w-md">
+        <Button
+          variant="ghost"
+          onClick={handleBack}
+          className="mb-6 h-10 w-10 rounded-full p-0"
+        >
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
 
-        {/* From Card */}
-        <Card className="overflow-hidden">
-          <CardContent className="p-4 sm:p-6">
-            <p className="mb-2 text-sm text-gray-500">From</p>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-              <div>
-                <p className="font-medium">{user?.name || "Your wallet"}</p>
-                <p className="text-xs text-gray-500 break-all">
-                  {user?.walletAddress ? shortStellarAddress(user.walletAddress) : ""}
-                </p>
+        <Card className="border-primary/20 bg-card/50 backdrop-blur-sm">
+          <CardHeader className="space-y-4">
+            <CardTitle className="text-center text-2xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              Send Money
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="amount" className="text-base">
+                  Amount (USD)
+                </Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="h-12 text-lg"
+                />
               </div>
-              <p className="font-bold text-lg sm:text-xl">$1,234.56</p>
+
+              <div className="space-y-2">
+                <Label htmlFor="recipient" className="text-base">
+                  Recipient Name
+                </Label>
+                <Input
+                  id="recipient"
+                  type="text"
+                  placeholder="Enter recipient's name"
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                  className="h-12 text-lg"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address" className="text-base">
+                  Recipient Address
+                </Label>
+                <Input
+                  id="address"
+                  type="text"
+                  placeholder="Enter recipient's address"
+                  value={recipient}
+                  onChange={(e) => setRecipient(e.target.value)}
+                  className="h-12 text-lg font-mono"
+                />
+              </div>
             </div>
+
+            <Button
+              onClick={handleContinue}
+              className="h-12 w-full text-lg"
+            >
+              Continue
+            </Button>
+
+            {error && (
+              <p className="text-center text-sm text-destructive">{error}</p>
+            )}
           </CardContent>
         </Card>
-
-        {/* Send Form */}
-        <div className="space-y-4 bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-          <div className="space-y-2">
-            <Label htmlFor="amount" className="text-sm font-medium">Amount (USD)</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                $
-              </span>
-              <Input
-                id="amount"
-                type="number"
-                placeholder="0.00"
-                className="pl-8 h-12 text-lg"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
-            {amount && !isValidAmount() && (
-              <p className="text-sm text-red-500">
-                Please enter a valid amount (up to $1,000)
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="recipient" className="text-sm font-medium">Recipient Address</Label>
-            <Input
-              id="recipient"
-              placeholder="G..."
-              className="h-12"
-              value={recipient}
-              onChange={(e) => setRecipient(e.target.value)}
-            />
-            {recipient && !isValidRecipient() && (
-              <p className="text-sm text-red-500">
-                Please enter a valid Stellar address
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium">Recipient Name (Optional)</Label>
-            <Input
-              id="name"
-              placeholder="John Doe"
-              className="h-12"
-              value={recipientName}
-              onChange={(e) => setRecipientName(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Continue Button */}
-        <Button
-          className="w-full h-12 text-base font-medium"
-          onClick={handleContinue}
-          disabled={!isValidAmount() || !isValidRecipient()}
-        >
-          Continue
-          <ChevronRight className="ml-2 h-5 w-5" />
-        </Button>
       </div>
     </div>
   );
