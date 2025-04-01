@@ -7,7 +7,6 @@ import { Card, CardContent } from "~/components/ui/card";
 import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "~/providers/auth-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { useHapticFeedback } from "~/providers/haptic-feedback-provider";
 
 interface Transaction {
   id: string;
@@ -52,7 +51,6 @@ function DashboardContent() {
   const [isPinVerified, setIsPinVerified] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
   const [redirected, setRedirected] = useState(false);
-  const { clickFeedback } = useHapticFeedback();
   
   // Check if user is coming from bank connection flow
   const bankConnected = searchParams.get("bankConnected") === "true";
@@ -146,17 +144,6 @@ function DashboardContent() {
     </div>;
   }
 
-  const handleAction = (action: "send" | "receive") => {
-    clickFeedback("medium");
-    
-    // For sensitive operations, always verify PIN first
-    if (action === "send") {
-      router.push(`/auth/pin?redirectTo=/dashboard/send`);
-    } else {
-      router.push(`/dashboard/${action}`);
-    }
-  };
-
   return (
     <div className="container mx-auto max-w-md space-y-6 p-4">
       <div className="flex items-center justify-between">
@@ -190,10 +177,7 @@ function DashboardContent() {
                 ${showBalance ? balance : "••••••"}
               </p>
               <button 
-                onClick={() => {
-                  setShowBalance(!showBalance);
-                  clickFeedback();
-                }}
+                onClick={() => setShowBalance(!showBalance)}
                 className="rounded-full p-1 hover:bg-blue-500"
               >
                 {showBalance ? (
@@ -203,16 +187,13 @@ function DashboardContent() {
                 )}
               </button>
             </div>
-            <p className="mt-1 text-xs text-blue-100">
-              {user && user.email ? `Connected with ${user.email}` : `Wallet ID: ${user.id}`}
-            </p>
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-2">
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => handleAction("send")}
+              onClick={() => router.push("/dashboard/send")}
             >
               <ArrowUpRight className="mr-2 h-4 w-4" />
               Send
@@ -220,7 +201,7 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => handleAction("receive")}
+              onClick={() => router.push("/receive")}
             >
               <ArrowDownToLine className="mr-2 h-4 w-4" />
               Receive
@@ -276,9 +257,22 @@ function DashboardContent() {
         </TabsContent>
         
         <TabsContent value="banking" className="space-y-4 pt-4">
-          <div className="rounded-lg border border-dashed p-8 text-center">
-            <p className="text-gray-500">Banking features coming soon</p>
-          </div>
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="mb-4">
+                <p className="text-lg font-medium">Connect your bank account</p>
+                <p className="text-sm text-gray-500">
+                  Link your bank for faster transfers and withdrawals
+                </p>
+              </div>
+              <Button 
+                className="w-full"
+                onClick={() => router.push("/banking/connect")}
+              >
+                Connect Bank
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
