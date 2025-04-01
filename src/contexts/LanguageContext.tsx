@@ -1,32 +1,29 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { languages, translations, Language } from "@/lib/languages";
+import { languages, defaultLanguage, translations } from "@/lib/languages";
 
 interface LanguageContextType {
-  currentLanguage: Language;
+  currentLanguage: string;
   setLanguage: (code: string) => void;
   t: (key: string) => string;
-  availableLanguages: Language[];
+  languages: typeof languages;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [currentLanguage, setCurrentLanguage] = useState<Language>(languages.en);
+  const [currentLanguage, setCurrentLanguage] = useState(defaultLanguage.code);
 
   useEffect(() => {
-    // Get language from localStorage or browser preference
+    // Load saved language preference from localStorage
     const savedLanguage = localStorage.getItem("language");
-    const browserLanguage = navigator.language.split("-")[0];
-    const initialLanguage = savedLanguage || browserLanguage || "en";
-
-    if (languages[initialLanguage]) {
-      setCurrentLanguage(languages[initialLanguage]);
+    if (savedLanguage && languages[savedLanguage]) {
+      setCurrentLanguage(savedLanguage);
     }
   }, []);
 
   const setLanguage = (code: string) => {
     if (languages[code]) {
-      setCurrentLanguage(languages[code]);
+      setCurrentLanguage(code);
       localStorage.setItem("language", code);
       document.documentElement.lang = code;
       document.documentElement.dir = languages[code].direction;
@@ -35,8 +32,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const t = (key: string): string => {
     const keys = key.split(".");
-    let value: any = translations[currentLanguage.code];
-
+    let value: any = translations[currentLanguage];
+    
     for (const k of keys) {
       if (value && typeof value === "object") {
         value = value[k];
@@ -44,7 +41,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         return key;
       }
     }
-
+    
     return value || key;
   };
 
@@ -54,7 +51,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         currentLanguage,
         setLanguage,
         t,
-        availableLanguages: Object.values(languages),
+        languages,
       }}
     >
       {children}

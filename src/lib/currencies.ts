@@ -4,7 +4,6 @@ export interface Currency {
   name: string;
   decimals: number;
   country: string;
-  exchangeRate?: number;
 }
 
 export const currencies: Record<string, Currency> = {
@@ -14,7 +13,6 @@ export const currencies: Record<string, Currency> = {
     name: "US Dollar",
     decimals: 2,
     country: "United States",
-    exchangeRate: 1,
   },
   NGN: {
     code: "NGN",
@@ -22,7 +20,6 @@ export const currencies: Record<string, Currency> = {
     name: "Nigerian Naira",
     decimals: 2,
     country: "Nigeria",
-    exchangeRate: 0.00067, // Example rate: 1 USD = 1492.54 NGN
   },
   EUR: {
     code: "EUR",
@@ -30,7 +27,6 @@ export const currencies: Record<string, Currency> = {
     name: "Euro",
     decimals: 2,
     country: "European Union",
-    exchangeRate: 0.92, // Example rate: 1 USD = 1.09 EUR
   },
   GBP: {
     code: "GBP",
@@ -38,34 +34,22 @@ export const currencies: Record<string, Currency> = {
     name: "British Pound",
     decimals: 2,
     country: "United Kingdom",
-    exchangeRate: 0.79, // Example rate: 1 USD = 1.27 GBP
   },
 };
 
-export function formatCurrency(amount: number, currencyCode: string): string {
-  const currency = currencies[currencyCode];
-  if (!currency) throw new Error(`Unsupported currency: ${currencyCode}`);
+export const defaultCurrency = currencies.USD;
 
-  return new Intl.NumberFormat(currency.country, {
+export function formatCurrency(amount: number, currencyCode: string = "USD"): string {
+  const currency = currencies[currencyCode] || defaultCurrency;
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: currency.code,
+    currency: currencyCode,
     minimumFractionDigits: currency.decimals,
     maximumFractionDigits: currency.decimals,
   }).format(amount);
 }
 
-export function convertCurrency(
-  amount: number,
-  fromCurrency: string,
-  toCurrency: string
-): number {
-  const from = currencies[fromCurrency];
-  const to = currencies[toCurrency];
-  
-  if (!from || !to) throw new Error("Unsupported currency");
-  
-  // Convert to USD first (as base currency)
-  const amountInUSD = amount / (from.exchangeRate || 1);
-  // Convert from USD to target currency
-  return amountInUSD * (to.exchangeRate || 1);
+export function parseCurrency(amount: string, currencyCode: string = "USD"): number {
+  const currency = currencies[currencyCode] || defaultCurrency;
+  return parseFloat(amount.replace(/[^0-9.-]+/g, ""));
 } 
