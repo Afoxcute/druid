@@ -12,8 +12,10 @@ import {
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
+import { useAuth } from "~/providers/auth-provider";
+import LoadingScreen from "~/app/wallet/_components/loading-screen";
 
 interface Transaction {
   id: string;
@@ -51,8 +53,35 @@ export default function DashboardSend() {
   const { address } = useParams();
   const { clickFeedback } = useHapticFeedback();
   const router = useRouter();
+  const { user, isLoading } = useAuth();
 
   const [isBalanceHidden, setIsBalanceHidden] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (user) {
+        // Check if user has a wallet address
+        const userData = localStorage.getItem("auth_user");
+        if (userData) {
+          const user = JSON.parse(userData);
+          if (user.walletAddress) {
+            // User has a wallet address, allow them to stay on the send page
+            return;
+          }
+        }
+        // User has no wallet address, redirect to dashboard
+        router.push("/dashboard");
+      } else {
+        // User is not authenticated, redirect to signin
+        router.push("/auth/signin");
+      }
+    }
+  }, [user, isLoading, router]);
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   const toggleBalanceVisibility = () => {
     setIsBalanceHidden((prev) => !prev);
