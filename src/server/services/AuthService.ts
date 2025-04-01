@@ -1,5 +1,5 @@
 import { BaseService } from "~/server/services/BaseService";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { env } from "~/env";
 
 export class AuthService extends BaseService {

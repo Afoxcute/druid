@@ -42,10 +42,9 @@
     "@trpc/client": "^11.0.0-rc.446",
     "@trpc/react-query": "^11.0.0-rc.446",
     "@trpc/server": "^11.0.0-rc.446",
-    "@types/bcrypt": "^5.0.2",
     "@vercel/og": "^0.6.4",
     "axios": "^1.7.7",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -70,6 +69,8 @@
     "zustand": "^5.0.1"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^2.4.6",
     "@types/eslint": "^8.56.10",
     "@types/node": "^20.14.10",
     "@types/node-telegram-bot-api": "^0.64.7",
@@ -90,5 +91,5 @@
   "ct3aMetadata": {
     "initVersion": "7.38.0"
   },
-  "packageManager": "npm@10.5.0"
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

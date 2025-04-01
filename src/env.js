@@ -28,6 +28,9 @@ export const env = createEnv({
     SRT_ASSET_ID: z.string(),
     ENABLE_SMS: z.string(),
     SALT_ROUNDS: z.string(),
+    TWILIO_ACCOUNT_SID: z.string().optional(),
+    TWILIO_AUTH_TOKEN: z.string().optional(),
+    TWILIO_PHONE_NUMBER: z.string().optional(),
   },
 
   /**
@@ -73,6 +76,9 @@ export const env = createEnv({
     ENABLE_SMS: process.env.ENABLE_SMS,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     SALT_ROUNDS: process.env.SALT_ROUNDS,
+    TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
+    TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
+    TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**
