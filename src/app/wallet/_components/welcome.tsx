@@ -25,6 +25,8 @@ export default function Welcome({
     clickFeedback();
     setHasCreatedWallet(true);
     
+    // For demonstration, we'll create a timeout to simulate
+    // wallet creation. In a real app, this would call an API.
     setTimeout(() => {
       if (onCreateWallet) onCreateWallet();
     }, 2000);
@@ -37,28 +39,28 @@ export default function Welcome({
 
   return (
     <div className="flex flex-col items-center px-4 py-8 text-center">
-      <h1 className="mb-4 text-3xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+      <h1 className="mb-4 text-2xl font-bold">
         {isNewUser ? "Welcome to Druid!" : "Connect Your Wallet"}
       </h1>
-      <p className="mb-8 text-muted-foreground text-lg">
+      <p className="mb-8 text-gray-600">
         {isNewUser
-          ? "Let's set up your digital wallet to send and receive payments securely."
+          ? "Let's set up your digital wallet to send and receive payments."
           : "Connect to your existing Druid wallet."}
       </p>
 
       {hasCreatedWallet ? (
         <div className="mb-6 flex flex-col items-center">
-          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-            <Check className="h-10 w-10 text-primary" />
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+            <Check className="h-8 w-8 text-green-600" />
           </div>
-          <p className="text-muted-foreground text-lg">Creating your wallet...</p>
+          <p className="text-gray-600">Creating your wallet...</p>
         </div>
       ) : (
         <div className="mb-6 flex flex-col items-center">
-          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-            <UserPlus className="h-10 w-10 text-primary" />
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+            <UserPlus className="h-8 w-8 text-blue-600" />
           </div>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-gray-600">
             {isNewUser
               ? "Create a digital wallet to store and transfer money securely."
               : "Connect to access your funds and transaction history."}
@@ -69,13 +71,13 @@ export default function Welcome({
       {isNewUser ? (
         <Button
           onClick={handleCreateWallet}
-          className="mb-4 w-full h-12 text-lg"
+          className="mb-4 w-full"
           disabled={hasCreatedWallet}
         >
           {hasCreatedWallet ? "Creating Wallet..." : "Create Wallet"}
         </Button>
       ) : (
-        <Button onClick={handleConnectWallet} className="mb-4 w-full h-12 text-lg">
+        <Button onClick={handleConnectWallet} className="mb-4 w-full">
           Connect Wallet
         </Button>
       )}
