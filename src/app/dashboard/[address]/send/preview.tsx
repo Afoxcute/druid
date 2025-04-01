@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { ArrowLeft, CheckCircle2, Loader2, Send } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Send, Edit2 } from "lucide-react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
 import { toast } from "react-hot-toast";
 import { Input } from "~/components/ui/input";
@@ -14,33 +14,32 @@ interface SendPreviewProps {
   amount: number;
   recipient: string;
   recipientName: string;
+  country: string;
+  phoneNumber: string;
   onBack: () => void;
   onSuccess: () => void;
+  onEdit: () => void;
 }
 
 export default function SendPreview({
   amount,
   recipient,
   recipientName,
+  country,
+  phoneNumber,
   onBack,
   onSuccess,
+  onEdit,
 }: SendPreviewProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [country, setCountry] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedCountry, setEditedCountry] = useState(country);
+  const [editedPhone, setEditedPhone] = useState(phoneNumber);
   const { clickFeedback } = useHapticFeedback();
 
   const handleSend = async () => {
     try {
-      // Validate phone number
-      const parsedNumber = parsePhoneNumber(phoneNumber);
-      if (!parsedNumber) {
-        setError("Please enter a valid phone number");
-        return;
-      }
-
       setIsLoading(true);
       clickFeedback("medium");
 
@@ -67,11 +66,15 @@ export default function SendPreview({
     onBack();
   };
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const formatted = formatPhoneNumber(value);
-    setPhoneNumber(formatted);
-    setError(null);
+  const handleEdit = () => {
+    setIsEditing(true);
+    clickFeedback("soft");
+  };
+
+  const handleSave = () => {
+    setIsEditing(false);
+    clickFeedback("soft");
+    onEdit();
   };
 
   if (isSuccess) {
@@ -102,9 +105,15 @@ export default function SendPreview({
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Country:</span>
+                  <span className="font-semibold text-green-600">
+                    {editedCountry}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Phone:</span>
                   <span className="font-semibold text-green-600">
-                    {phoneNumber}
+                    {formatPhoneNumber(editedPhone)}
                   </span>
                 </div>
               </div>
@@ -157,30 +166,56 @@ export default function SendPreview({
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                placeholder="Enter country"
-                className="h-12 text-base"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                value={phoneNumber}
-                onChange={handlePhoneChange}
-                placeholder="Enter phone number"
-                className="h-12 text-base"
-              />
-              {error && (
-                <p className="text-sm text-red-500">{error}</p>
+          <div className="space-y-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-blue-600">Contact Details</h3>
+              {!isEditing ? (
+                <Button
+                  onClick={handleEdit}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-blue-600 hover:text-blue-700"
+                >
+                  <Edit2 className="mr-2 h-4 w-4" />
+                  Edit
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSave}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-green-600 hover:text-green-700"
+                >
+                  Save
+                </Button>
               )}
+            </div>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="country" className="text-sm text-gray-600">
+                  Country
+                </Label>
+                <Input
+                  id="country"
+                  value={editedCountry}
+                  onChange={(e) => setEditedCountry(e.target.value)}
+                  disabled={!isEditing}
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-sm text-gray-600">
+                  Phone Number
+                </Label>
+                <Input
+                  id="phone"
+                  value={editedPhone}
+                  onChange={(e) => setEditedPhone(e.target.value)}
+                  disabled={!isEditing}
+                  className="h-10"
+                  placeholder="+1 (555) 000-0000"
+                />
+              </div>
             </div>
           </div>
 
@@ -192,7 +227,7 @@ export default function SendPreview({
 
           <Button
             onClick={handleSend}
-            disabled={isLoading || !phoneNumber || !country}
+            disabled={isLoading}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-semibold"
           >
             {isLoading ? (
