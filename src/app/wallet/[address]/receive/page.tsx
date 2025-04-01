@@ -1,174 +1,165 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import { Card, CardContent } from "~/components/ui/card";
+import { 
+  ArrowLeft, 
+  Copy, 
+  Share, 
+  QrCode, 
+  Check,
+  X
+} from "lucide-react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
-import { useParams } from "next/navigation";
-import { api } from "~/trpc/react";
-import { QrCode, Copy, Share2, Loader2 } from "lucide-react";
-import { cn } from "~/lib/utils";
+import { shortStellarAddress } from "~/lib/utils";
+import { useAuth } from "~/providers/auth-provider";
 
 export default function ReceiveTransfers() {
   const { address } = useParams();
+  const router = useRouter();
+  const { user } = useAuth();
+  const [qrVisible, setQrVisible] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [qrValue] = useState(`https://druid-kohl.vercel.app/payment/${address}`);
   const { clickFeedback } = useHapticFeedback();
-  const [amount, setAmount] = useState("");
-  const [message, setMessage] = useState("");
-  const [showQR, setShowQR] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const paymentLink = `${window.location.origin}/payment/${address}?amount=${amount}&message=${encodeURIComponent(message)}`;
+  // Reset copied state after 2 seconds
+  useEffect(() => {
+    if (copied) {
+      const timer = setTimeout(() => setCopied(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [copied]);
 
   const handleShare = () => {
     clickFeedback();
     if (navigator.share) {
       navigator.share({
-        title: "Druid Payment Link",
-        text: `Send me money on Druid: ${paymentLink}`,
-        url: paymentLink,
+        title: "Send me money with druid",
+        text: "Send money instantly",
+        url: qrValue,
+      }).catch(err => {
+        console.error("Error sharing:", err);
       });
     } else {
-      navigator.clipboard.writeText(paymentLink);
+      alert("Sharing not supported on this browser. Copy the link instead.");
     }
   };
 
   const handleCopy = () => {
     clickFeedback();
-    navigator.clipboard.writeText(paymentLink);
+    navigator.clipboard.writeText(qrValue);
+    setCopied(true);
   };
 
   const handleCreateQR = () => {
     clickFeedback();
-    setShowQR(true);
+    setQrVisible(true);
   };
 
   const handleClosePreview = () => {
     clickFeedback();
-    setShowQR(false);
+    setQrVisible(false);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="space-y-4">
-            <CardTitle className="flex items-center justify-center text-center text-3xl font-bold">
-              <Loader2 className="mr-2 h-8 w-8 animate-spin text-primary" />
-              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-                Druid
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <p className="text-center text-muted-foreground text-lg">
-              Generating your payment link...
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen flex-col bg-background p-4 sm:p-6">
-      <div className="mx-auto w-full max-w-md">
-        <h1 className="mb-6 text-2xl font-bold sm:text-3xl">Receive Money</h1>
+    <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            clickFeedback();
+            router.push(`/wallet/${address}`);
+          }}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h1 className="text-xl font-semibold">Receive Money</h1>
+      </div>
 
-        <Card className="w-full">
-          <CardHeader className="space-y-4">
-            <CardTitle className="text-xl font-semibold">Create Payment Link</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+      <Card className="overflow-hidden">
+        <CardContent className="p-6">
+          {qrVisible ? (
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="amount" className="text-base">Amount (Optional)</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    $
-                  </span>
-                  <Input
-                    id="amount"
-                    type="number"
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="h-12 pl-7 text-lg"
-                  />
-                </div>
+              <div className="flex justify-end">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleClosePreview}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="message" className="text-base">Message (Optional)</Label>
-                <Input
-                  id="message"
-                  placeholder="Add a message for the sender"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="h-12 text-base"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <Button
-                onClick={handleCreateQR}
-                className="h-12 w-full text-lg"
-              >
-                <QrCode className="mr-2 h-5 w-5" />
-                Show QR Code
-              </Button>
-
-              <Button
-                onClick={handleShare}
-                variant="outline"
-                className="h-12 w-full text-lg"
-              >
-                <Share2 className="mr-2 h-5 w-5" />
-                Share Link
-              </Button>
-
-              <Button
-                onClick={handleCopy}
-                variant="outline"
-                className="h-12 w-full text-lg"
-              >
-                <Copy className="mr-2 h-5 w-5" />
-                Copy Link
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {showQR && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-            <Card className="w-full max-w-md">
-              <CardHeader className="space-y-4">
-                <CardTitle className="text-xl font-semibold">Scan QR Code</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex justify-center">
-                  <div className="rounded-lg bg-white p-4">
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(paymentLink)}`}
-                      alt="Payment QR Code"
-                      className="h-48 w-48"
-                    />
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="rounded-lg bg-white p-3 shadow-md">
+                  {/* Here you would use a QR code library. For now using a placeholder */}
+                  <div className="h-60 w-60 bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center">
+                    <QrCode className="h-24 w-24 text-gray-600" />
                   </div>
                 </div>
-                <Button
-                  onClick={handleClosePreview}
-                  variant="outline"
-                  className="h-12 w-full text-lg"
-                >
-                  Close
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </div>
+                <p className="text-center text-sm text-gray-500">
+                  Scan this QR code to send money to {user?.firstName || "me"}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="flex flex-col items-center justify-center space-y-3 p-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+                  <QrCode className="h-8 w-8 text-blue-600" />
+                </div>
+                <h2 className="text-center text-lg font-medium">
+                  Receive money to your account
+                </h2>
+                <p className="text-center text-sm text-gray-500">
+                  Share your payment link or QR code
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between rounded-md bg-gray-50 p-3">
+                  <div className="truncate">
+                    {shortStellarAddress(String(address))}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleCopy}
+                    className="ml-2"
+                  >
+                    {copied ? (
+                      <Check className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleCreateQR}
+                    className="flex items-center justify-center space-x-2"
+                  >
+                    <QrCode className="h-4 w-4" />
+                    <span>Show QR</span>
+                  </Button>
+                  <Button
+                    onClick={handleShare}
+                    className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Share className="h-4 w-4" />
+                    <span>Share</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
