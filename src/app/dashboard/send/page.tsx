@@ -24,38 +24,70 @@ export default function SendMoney() {
   const [isChecking, setIsChecking] = useState(true);
   
   useEffect(() => {
+    let mounted = true;
+
     const checkAuth = async () => {
-      if (isLoading) {
-        return; // Wait for auth to load
-      }
-
-      if (!user) {
-        router.push("/auth/signin");
-        return;
-      }
-
-      // Check if user has a wallet address
-      const userData = localStorage.getItem("auth_user");
-      if (userData) {
-        const refreshedUser = JSON.parse(userData);
-        if (!refreshedUser.walletAddress) {
-          router.push("/dashboard");
+      try {
+        // Wait for auth to load
+        if (isLoading) {
           return;
         }
-      }
 
-      // Check if PIN is verified
-      const pinVerified = localStorage.getItem("pin_verified");
-      if (!pinVerified) {
-        router.push("/auth/pin?redirectTo=/dashboard/send");
-        return;
-      }
+        // Check if user is authenticated
+        if (!user) {
+          if (mounted) {
+            router.push("/auth/signin");
+          }
+          return;
+        }
 
-      setIsPinVerified(true);
-      setIsChecking(false);
+        // Get fresh user data from localStorage
+        const userData = localStorage.getItem("auth_user");
+        if (!userData) {
+          if (mounted) {
+            router.push("/auth/signin");
+          }
+          return;
+        }
+
+        const refreshedUser = JSON.parse(userData);
+        
+        // Check for wallet address
+        if (!refreshedUser.walletAddress) {
+          if (mounted) {
+            router.push("/dashboard");
+          }
+          return;
+        }
+
+        // Check PIN verification
+        const pinVerified = localStorage.getItem("pin_verified");
+        if (!pinVerified) {
+          if (mounted) {
+            router.push("/auth/pin?redirectTo=/dashboard/send");
+          }
+          return;
+        }
+
+        // All checks passed
+        if (mounted) {
+          setIsPinVerified(true);
+          setIsChecking(false);
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        if (mounted) {
+          router.push("/auth/signin");
+        }
+      }
     };
 
     checkAuth();
+
+    // Cleanup function
+    return () => {
+      mounted = false;
+    };
   }, [user, isLoading, router]);
 
   const isValidAmount = () => {
@@ -99,8 +131,9 @@ export default function SendMoney() {
     );
   }
 
+  // Don't render anything while redirecting
   if (!isPinVerified) {
-    return null; // Will redirect in useEffect
+    return null;
   }
 
   if (showPreview) {
