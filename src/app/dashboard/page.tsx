@@ -7,6 +7,8 @@ import { Card, CardContent } from "~/components/ui/card";
 import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "~/providers/auth-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { useHapticFeedback } from "~/hooks/useHapticFeedback";
+import { shortStellarAddress } from "~/lib/utils";
 
 interface Transaction {
   id: string;
@@ -51,6 +53,7 @@ function DashboardContent() {
   const [isPinVerified, setIsPinVerified] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
   const [redirected, setRedirected] = useState(false);
+  const { clickFeedback } = useHapticFeedback();
   
   // Check if user is coming from bank connection flow
   const bankConnected = searchParams.get("bankConnected") === "true";
@@ -144,6 +147,22 @@ function DashboardContent() {
     </div>;
   }
 
+  const handleAction = (action: "send" | "receive") => {
+    clickFeedback("medium");
+    
+    // For sensitive operations, always verify PIN first
+    if (action === "send") {
+      router.push(`/auth/pin?redirectTo=/dashboard/send`);
+    } else {
+      router.push(`/dashboard/${action}`);
+    }
+  };
+
+  const toggleBalanceVisibility = () => {
+    setShowBalance(!showBalance);
+    clickFeedback();
+  };
+
   return (
     <div className="container mx-auto max-w-md space-y-6 p-4">
       <div className="flex items-center justify-between">
@@ -151,11 +170,9 @@ function DashboardContent() {
           Welcome, {user.firstName || "User"}
         </h1>
         <Button variant="ghost" onClick={() => {
-          // Clear any session/verification data
+          clickFeedback();
           setIsPinVerified(false);
-          // Log the user out
           logout();
-          // Redirect to sign in
           router.push("/auth/signin");
         }}>
           Logout
@@ -177,7 +194,7 @@ function DashboardContent() {
                 ${showBalance ? balance : "••••••"}
               </p>
               <button 
-                onClick={() => setShowBalance(!showBalance)}
+                onClick={toggleBalanceVisibility}
                 className="rounded-full p-1 hover:bg-blue-500"
               >
                 {showBalance ? (
@@ -187,16 +204,16 @@ function DashboardContent() {
                 )}
               </button>
             </div>
+            <p className="text-xs text-blue-100">
+              {user.email ? `Connected with ${user.email}` : `Wallet ID: ${shortStellarAddress(String(user.id))}`}
+            </p>
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-2">
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => {
-                // For sensitive operations, always verify PIN first
-                router.push("/auth/pin?redirectTo=/wallet/" + user.id + "/send");
-              }}
+              onClick={() => handleAction("send")}
             >
               <ArrowUpRight className="mr-2 h-4 w-4" />
               Send
@@ -204,7 +221,7 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => router.push("/wallet/" + user.id + "/receive")}
+              onClick={() => handleAction("receive")}
             >
               <ArrowDownToLine className="mr-2 h-4 w-4" />
               Receive
@@ -270,7 +287,10 @@ function DashboardContent() {
               </div>
               <Button 
                 className="w-full"
-                onClick={() => router.push("/banking/connect")}
+                onClick={() => {
+                  clickFeedback();
+                  router.push("/banking/connect");
+                }}
               >
                 Connect Bank
               </Button>
