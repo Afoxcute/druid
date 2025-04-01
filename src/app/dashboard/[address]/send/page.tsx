@@ -72,7 +72,11 @@ export default function SendMoney() {
   };
 
   if (!isPinVerified) {
-    return <div className="flex justify-center p-8">Loading...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent"></div>
+      </div>
+    );
   }
 
   if (showPreview) {
@@ -88,86 +92,99 @@ export default function SendMoney() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center">
-        <Button variant="ghost" size="icon" onClick={handleBack}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-xl font-semibold">Send Money</h1>
-      </div>
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="mx-auto max-w-md space-y-6">
+        {/* Header */}
+        <div className="flex items-center space-x-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleBack}
+            className="h-10 w-10 rounded-full"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold">Send Money</h1>
+        </div>
 
-      <Card>
-        <CardContent className="p-4">
-          <p className="mb-2 text-sm text-gray-500">From</p>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">{user?.name || "Your wallet"}</p>
-              <p className="text-xs text-gray-500">
-                {user?.walletAddress ? shortStellarAddress(user.walletAddress) : ""}
-              </p>
+        {/* From Card */}
+        <Card className="overflow-hidden">
+          <CardContent className="p-4 sm:p-6">
+            <p className="mb-2 text-sm text-gray-500">From</p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+              <div>
+                <p className="font-medium">{user?.name || "Your wallet"}</p>
+                <p className="text-xs text-gray-500 break-all">
+                  {user?.walletAddress ? shortStellarAddress(user.walletAddress) : ""}
+                </p>
+              </div>
+              <p className="font-bold text-lg sm:text-xl">$1,234.56</p>
             </div>
-            <p className="font-bold">$1,234.56</p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="amount">Amount (USD)</Label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-              $
-            </span>
+        {/* Send Form */}
+        <div className="space-y-4 bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+          <div className="space-y-2">
+            <Label htmlFor="amount" className="text-sm font-medium">Amount (USD)</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                $
+              </span>
+              <Input
+                id="amount"
+                type="number"
+                placeholder="0.00"
+                className="pl-8 h-12 text-lg"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+            {amount && !isValidAmount() && (
+              <p className="text-sm text-red-500">
+                Please enter a valid amount (up to $1,000)
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="recipient" className="text-sm font-medium">Recipient Address</Label>
             <Input
-              id="amount"
-              type="number"
-              placeholder="0.00"
-              className="pl-8"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              id="recipient"
+              placeholder="G..."
+              className="h-12"
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+            />
+            {recipient && !isValidRecipient() && (
+              <p className="text-sm text-red-500">
+                Please enter a valid Stellar address
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-sm font-medium">Recipient Name (Optional)</Label>
+            <Input
+              id="name"
+              placeholder="John Doe"
+              className="h-12"
+              value={recipientName}
+              onChange={(e) => setRecipientName(e.target.value)}
             />
           </div>
-          {amount && !isValidAmount() && (
-            <p className="text-sm text-red-500">
-              Please enter a valid amount (up to $1,000)
-            </p>
-          )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="recipient">Recipient Address</Label>
-          <Input
-            id="recipient"
-            placeholder="G..."
-            value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
-          />
-          {recipient && !isValidRecipient() && (
-            <p className="text-sm text-red-500">
-              Please enter a valid Stellar address
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="name">Recipient Name (Optional)</Label>
-          <Input
-            id="name"
-            placeholder="John Doe"
-            value={recipientName}
-            onChange={(e) => setRecipientName(e.target.value)}
-          />
-        </div>
+        {/* Continue Button */}
+        <Button
+          className="w-full h-12 text-base font-medium"
+          onClick={handleContinue}
+          disabled={!isValidAmount() || !isValidRecipient()}
+        >
+          Continue
+          <ChevronRight className="ml-2 h-5 w-5" />
+        </Button>
       </div>
-
-      <Button
-        className="w-full"
-        onClick={handleContinue}
-        disabled={!isValidAmount() || !isValidRecipient()}
-      >
-        Continue
-        <ChevronRight className="ml-2 h-4 w-4" />
-      </Button>
     </div>
   );
 } 
