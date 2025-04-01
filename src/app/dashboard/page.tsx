@@ -4,9 +4,11 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff, ArrowLeft, ChevronRight, Send } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "~/providers/auth-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { shortStellarAddress } from "~/lib/utils";
+import { toast } from "react-hot-toast";
 
 interface Transaction {
   id: string;
@@ -51,6 +53,7 @@ function DashboardContent() {
   const [isPinVerified, setIsPinVerified] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
   const [redirected, setRedirected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   
   // Check if user is coming from bank connection flow
   const bankConnected = searchParams.get("bankConnected") === "true";
@@ -94,6 +97,17 @@ function DashboardContent() {
               console.log("User has no passkey set, redirecting to passkey setup");
               router.replace(`/wallet/onboarding/${user.id}/passkey`);
               return;
+            }
+
+            // Check if user has a wallet address
+            if (!refreshedUser.walletAddress) {
+              // Generate a unique wallet address for the user
+              const newAddress = `stellar:${Math.random().toString(36).substring(2, 15)}`;
+              refreshedUser.walletAddress = newAddress;
+              localStorage.setItem("auth_user", JSON.stringify(refreshedUser));
+              setWalletAddress(newAddress);
+            } else {
+              setWalletAddress(refreshedUser.walletAddress);
             }
             
             // PIN and passkey verification passed
@@ -147,19 +161,6 @@ function DashboardContent() {
   return (
     <div className="container mx-auto max-w-md space-y-6 p-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-semibold">Dashboard</h1>
-        </div>
-        <Button onClick={() => router.push("/dashboard/send")}>
-          <Send className="mr-2 h-4 w-4" />
-          Send Money
-        </Button>
-      </div>
-
-      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">
           Welcome, {user.firstName || "User"}
         </h1>
@@ -206,7 +207,14 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => router.push("/send")}
+              onClick={() => {
+                if (walletAddress) {
+                  router.push("/send");
+                } else {
+                  toast.error("Please wait while we set up your wallet address");
+                }
+              }}
+              disabled={!walletAddress}
             >
               <ArrowUpRight className="mr-2 h-4 w-4" />
               Send
@@ -214,12 +222,17 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => router.push("/receive")}
+              onClick={() => router.push(`/wallet/${walletAddress}/receive`)}
             >
               <ArrowDownToLine className="mr-2 h-4 w-4" />
               Receive
             </Button>
           </div>
+          {walletAddress && (
+            <div className="mt-4 text-center text-sm text-blue-100">
+              Wallet Address: {shortStellarAddress(walletAddress)}
+            </div>
+          )}
         </CardContent>
       </Card>
 

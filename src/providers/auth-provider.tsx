@@ -19,6 +19,7 @@ interface User {
   passkeyKey?: string | null;
   hashedPin?: string | null;
   name?: string | null;
+  walletAddress?: string | null;
 }
 
 interface AuthContextType {

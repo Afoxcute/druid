@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "~/providers/auth-provider";
-import { api } from "~/trpc/react";
 import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import { Eye, EyeOff, Send, ArrowDownToLine } from "lucide-react";
+import { Eye, EyeOff, ArrowDownToLine } from "lucide-react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
 import { shortStellarAddress } from "~/lib/utils";
 
@@ -22,22 +21,15 @@ interface Transaction {
 const mockTransactions: Transaction[] = [
   {
     id: "tx1",
-    type: "send",
-    amount: 20,
-    recipient: "John Doe",
-    date: "2023-06-15",
-  },
-  {
-    id: "tx2",
     type: "receive",
     amount: 50,
     recipient: "Alice Smith",
     date: "2023-06-10",
   },
   {
-    id: "tx3",
-    type: "send",
-    amount: 15,
+    id: "tx2",
+    type: "receive",
+    amount: 30,
     recipient: "Bob Johnson",
     date: "2023-06-05",
   },
@@ -67,15 +59,9 @@ export default function Wallet() {
     clickFeedback();
   };
 
-  const handleAction = (action: "send" | "receive") => {
+  const handleReceive = () => {
     clickFeedback("medium");
-    
-    // For sensitive operations, always verify PIN first
-    if (action === "send") {
-      router.push(`/auth/pin?redirectTo=/wallet/${address}/send`);
-    } else {
-      router.push(`/wallet/${address}/${action}`);
-    }
+    router.push(`/wallet/${address}/receive`);
   };
   
   // If PIN isn't verified for viewing wallet, redirect to PIN page
@@ -107,20 +93,13 @@ export default function Wallet() {
       </div>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <Button
-          onClick={() => handleAction("send")}
-          className="flex h-20 flex-col items-center justify-center space-y-1 bg-blue-500 hover:bg-blue-600"
-        >
-          <Send className="h-6 w-6" />
-          <span>Send Money</span>
-        </Button>
-        <Button
-          onClick={() => handleAction("receive")}
+          onClick={handleReceive}
           className="flex h-20 flex-col items-center justify-center space-y-1 bg-green-500 hover:bg-green-600"
         >
           <ArrowDownToLine className="h-6 w-6" />
-          <span>Receive</span>
+          <span>Receive Money</span>
         </Button>
       </div>
 
@@ -141,14 +120,8 @@ export default function Wallet() {
                         {new Date(tx.date).toLocaleDateString()}
                       </p>
                     </div>
-                    <p
-                      className={`font-bold ${
-                        tx.type === "receive"
-                          ? "text-green-500"
-                          : "text-red-500"
-                      }`}
-                    >
-                      {tx.type === "receive" ? "+" : "-"}${tx.amount}
+                    <p className="font-bold text-green-500">
+                      +${tx.amount}
                     </p>
                   </div>
                 </CardContent>

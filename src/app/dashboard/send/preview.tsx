@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { ArrowLeft, Check, CircleAlert } from "lucide-react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
-import { useParams } from "next/navigation";
+import { useAuth } from "~/providers/auth-provider";
 import { shortStellarAddress } from "~/lib/utils";
 
 interface SendPreviewProps {
@@ -23,7 +23,7 @@ export default function SendPreview({
   onBack,
   onSuccess,
 }: SendPreviewProps) {
-  const { address } = useParams();
+  const { user } = useAuth();
   const { clickFeedback } = useHapticFeedback();
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -94,7 +94,7 @@ export default function SendPreview({
             <p className="text-sm text-gray-500">From</p>
             <p className="font-medium">My Wallet</p>
             <p className="text-xs text-gray-500">
-              {shortStellarAddress(String(address))}
+              {user?.walletAddress ? shortStellarAddress(user.walletAddress) : ""}
             </p>
           </div>
           <div className="p-4">

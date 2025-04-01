@@ -10,7 +10,7 @@ import { ArrowLeft, ChevronRight } from "lucide-react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
 import { useAuth } from "~/providers/auth-provider";
 import { shortStellarAddress } from "~/lib/utils";
-import SendPreview from "./_components/preview";
+import SendPreview from "./preview";
 
 export default function SendMoney() {
   const { user } = useAuth();
@@ -23,10 +23,16 @@ export default function SendMoney() {
   const [isPinVerified, setIsPinVerified] = useState(false);
   
   useEffect(() => {
+    // Check if user has a wallet address
+    if (!user?.walletAddress) {
+      router.push("/dashboard");
+      return;
+    }
+
     // In a real app, check if coming from PIN page with success
     // For demo, we'll set to true since the PIN page redirects here
     setIsPinVerified(true);
-  }, []);
+  }, [user, router]);
 
   const isValidAmount = () => {
     const numAmount = parseFloat(amount);
@@ -93,7 +99,7 @@ export default function SendMoney() {
             <div>
               <p className="font-medium">{user?.name || "Your wallet"}</p>
               <p className="text-xs text-gray-500">
-                {shortStellarAddress(user?.passkeyCAddress || "")}
+                {user?.walletAddress ? shortStellarAddress(user.walletAddress) : ""}
               </p>
             </div>
             <p className="font-bold">$1,234.56</p>

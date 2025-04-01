@@ -11,8 +11,21 @@ export default function WalletLogin() {
 
   useEffect(() => {
     if (!isLoading && user) {
-      // User is authenticated, redirect to their wallet
-      router.push(`/wallet/${user.id}`);
+      // Check if user has a wallet address
+      const userData = localStorage.getItem("auth_user");
+      if (userData) {
+        const user = JSON.parse(userData);
+        if (user.walletAddress) {
+          // User has a wallet address, redirect to their wallet
+          router.push(`/wallet/${user.walletAddress}`);
+        } else {
+          // User has no wallet address, redirect to dashboard
+          router.push("/dashboard");
+        }
+      } else {
+        // No user data found, redirect to dashboard
+        router.push("/dashboard");
+      }
     } else if (!isLoading && !user) {
       // User is not authenticated, redirect to signin
       router.push("/auth/signin");
