@@ -5,14 +5,15 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { ArrowLeft, CheckCircle2, Loader2, Send } from "lucide-react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
-import { useToast } from "~/components/ui/use-toast";
+import { toast } from "react-hot-toast";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { parsePhoneNumber, formatPhoneNumber } from "~/lib/utils";
 
 interface SendPreviewProps {
   amount: number;
   recipient: string;
   recipientName: string;
-  phoneNumber: string;
-  country: string;
   onBack: () => void;
   onSuccess: () => void;
 }
@@ -21,158 +22,193 @@ export default function SendPreview({
   amount,
   recipient,
   recipientName,
-  phoneNumber,
-  country,
   onBack,
   onSuccess,
 }: SendPreviewProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [country, setCountry] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const { clickFeedback } = useHapticFeedback();
-  const { toast } = useToast();
 
   const handleSend = async () => {
-    clickFeedback();
-    setIsLoading(true);
-
     try {
+      // Validate phone number
+      const parsedNumber = parsePhoneNumber(phoneNumber);
+      if (!parsedNumber) {
+        setError("Please enter a valid phone number");
+        return;
+      }
+
+      setIsLoading(true);
+      clickFeedback("medium");
+
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      
-      // Simulate success
+
       setIsSuccess(true);
-      toast({
-        title: "Success!",
-        description: "Money sent successfully",
-        variant: "success",
-      });
+      clickFeedback("success");
+      toast.success("Transfer successful!");
       
-      // Navigate after success
-      setTimeout(onSuccess, 2000);
+      // Wait for animation to complete
+      setTimeout(() => {
+        onSuccess();
+      }, 2000);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send money. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
       setIsLoading(false);
+      clickFeedback("error");
+      toast.error("Failed to send money. Please try again.");
     }
   };
 
   const handleBack = () => {
-    clickFeedback();
+    clickFeedback("soft");
     onBack();
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const formatted = formatPhoneNumber(value);
+    setPhoneNumber(formatted);
+    setError(null);
   };
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-light-blue flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-6 text-center animate-slide-in">
-          <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
-            <CheckCircle2 className="w-10 h-10 text-green-600" />
-          </div>
-          <h1 className="text-2xl font-bold">Money Sent!</h1>
-          <p className="text-gray-600">
-            Your transfer of ${amount.toFixed(2)} has been sent successfully.
-          </p>
-          <Card className="mt-6">
-            <CardContent className="p-4 sm:p-6 space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-500">Amount</span>
-                <span className="font-semibold">${amount.toFixed(2)}</span>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-light-blue p-4">
+        <Card className="w-full max-w-md animate-slide-in">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle2 className="h-8 w-8 text-green-500" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-green-600">
+              Transfer Successful!
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Amount:</span>
+                  <span className="font-semibold text-green-600">
+                    ${amount.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Recipient:</span>
+                  <span className="font-semibold text-green-600">
+                    {recipientName}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Phone:</span>
+                  <span className="font-semibold text-green-600">
+                    {phoneNumber}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-500">Recipient</span>
-                <span className="font-semibold">{recipientName}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-500">Country</span>
-                <span className="font-semibold">{country}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-500">Phone</span>
-                <span className="font-semibold">{phoneNumber}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-500">Address</span>
-                <span className="font-mono text-sm break-all">{recipient}</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-light-blue p-4">
-      <div className="mx-auto max-w-md space-y-6">
-        {/* Header */}
-        <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={handleBack}
-            className="h-10 w-10 rounded-full"
+    <div className="flex min-h-screen items-center justify-center bg-gradient-light-blue p-4">
+      <Card className="w-full max-w-md animate-slide-in">
+        <CardHeader className="space-y-4">
+          <div className="flex items-center space-x-4">
+            <Button
+              onClick={handleBack}
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-full hover:bg-blue-50"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <CardTitle className="text-2xl font-bold text-blue-600">
+              Confirm Transfer
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Amount:</span>
+                <span className="text-lg font-semibold text-blue-600">
+                  ${amount.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Recipient:</span>
+                <span className="font-semibold text-blue-600">
+                  {recipientName}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Address:</span>
+                <span className="font-mono text-sm text-blue-600 break-all">
+                  {recipient}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                placeholder="Enter country"
+                className="h-12 text-base"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                value={phoneNumber}
+                onChange={handlePhoneChange}
+                placeholder="Enter phone number"
+                className="h-12 text-base"
+              />
+              {error && (
+                <p className="text-sm text-red-500">{error}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+            <p className="text-sm text-yellow-800">
+              This is a demo transaction. No actual funds will be transferred.
+            </p>
+          </div>
+
+          <Button
+            onClick={handleSend}
+            disabled={isLoading || !phoneNumber || !country}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-semibold"
           >
-            <ArrowLeft className="h-5 w-5" />
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Send className="mr-2 h-5 w-5" />
+                Confirm & Send
+              </>
+            )}
           </Button>
-          <h1 className="text-xl font-semibold">Confirm Transfer</h1>
-        </div>
-
-        {/* Transfer Details */}
-        <Card className="overflow-hidden">
-          <CardContent className="p-4 sm:p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-500">Amount</span>
-              <span className="font-semibold text-lg">${amount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-500">Recipient</span>
-              <span className="font-semibold">{recipientName}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-500">Country</span>
-              <span className="font-semibold">{country}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-500">Phone</span>
-              <span className="font-semibold">{phoneNumber}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-500">Address</span>
-              <span className="font-mono text-sm break-all">{recipient}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Note */}
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <p className="text-sm text-blue-700">
-            Note: This is a demo transaction. No actual funds will be transferred.
-          </p>
-        </div>
-
-        {/* Confirm Button */}
-        <Button
-          className="w-full h-12 text-base font-medium"
-          onClick={handleSend}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              Confirm & Send
-              <Send className="ml-2 h-5 w-5" />
-            </>
-          )}
-        </Button>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 } 
