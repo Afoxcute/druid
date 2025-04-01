@@ -51,11 +51,21 @@ export default function SendPreview({
   
   // TRPC mutations for OTP
   const sendOtpMutation = api.post.otp.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       setOtpSent(true);
+      
+      // In development, the server returns the actual OTP for easier testing
+      const isDev = process.env.NODE_ENV === 'development';
+      if (isDev && typeof data === 'string' && data.length === 6) {
+        // Auto-fill the OTP in development mode for easier testing
+        console.log('DEV MODE: Auto-filling OTP:', data);
+        setOtpCode(data);
+      }
+      
       toast.success("Verification code sent to your phone");
     },
     onError: (error) => {
+      setIsLoading(false);
       toast.error(`Failed to send verification code: ${error.message}`);
     }
   });

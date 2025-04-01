@@ -9,11 +9,29 @@ async function sendSms(to: string, text: string) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN; 
   
+  // Check if we're in development mode or if SMS is disabled
+  const isDev = process.env.NODE_ENV === 'development';
+  const isSmsEnabled = String(env.ENABLE_SMS) === "true";
+  
+  // If credentials are missing but we're in dev mode, just mock the SMS sending
+  if ((!accountSid || !authToken) && isDev) {
+    console.log('MOCK SMS SENDING (Development mode):', { to, text });
+    return { success: true, messageId: 'mock-message-id', mock: true };
+  }
+  
+  // If SMS is not enabled, just return success without sending
+  if (!isSmsEnabled) {
+    console.log('SMS DISABLED:', { to, text });
+    return { success: true, messageId: 'disabled', disabled: true };
+  }
+  
+  // If credentials are missing in production, log error
   if (!accountSid || !authToken) {
     console.error("Twilio credentials are not configured");
     throw new Error("Twilio credentials are not configured");
   }
   
+  // Proceed with real SMS sending
   const client = new Twilio(accountSid, authToken);
 
   try {
@@ -35,13 +53,17 @@ export const postRouter = createTRPCRouter({
     .input(z.object({ phone: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        // const otp = Math.floor(100000 + Math.random() * 900000);
-        const otp = "000000";
+        // Generate OTP code - use a fixed code in development for easier testing
+        const isDev = process.env.NODE_ENV === 'development';
+        const otp = isDev ? "000000" : Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Find or create user
         let user = await ctx.db.user.findUnique({
           where: {
             phone: input.phone,
           },
         });
+        
         if (!user) {
           user = await ctx.db.user.create({
             data: {
@@ -49,36 +71,44 @@ export const postRouter = createTRPCRouter({
             },
           });
         }
-        // TODO: Enable this
-        if (String(env.ENABLE_SMS) === "true") {
-          try {
-            await sendSms(input.phone, `Your payu OTP is: ${otp}`);
-          } catch (error) {
-            console.error("Failed to send SMS:", error);
+        
+        // Try to send SMS, but handle errors gracefully
+        try {
+          await sendSms(input.phone, `Your payu OTP is: ${otp}`);
+        } catch (error) {
+          console.error("Failed to send SMS:", error);
+          // In development, continue even if SMS fails
+          if (process.env.NODE_ENV !== 'development') {
             if (error instanceof Error && error.message.includes("not configured")) {
               throw new Error("SMS service is not properly configured. Please contact support.");
             } else {
               throw new Error("Failed to send verification code. Please try again.");
             }
+          } else {
+            console.log("Development mode: Continuing despite SMS failure");
           }
         }
+        
+        // Store the OTP in database
         await ctx.db.oTPVerification.upsert({
           where: {
             userId: user.id,
           },
           create: {
             userId: user.id,
-            otpCode: String(otp),
+            otpCode: otp,
             verified: false,
             expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
           },
           update: {
-            otpCode: String(otp),
+            otpCode: otp,
             verified: false,
             expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
           },
         });
-        return otp;
+        
+        // In development, return the OTP for easier testing
+        return isDev ? otp : "OTP sent successfully";
       } catch (error) {
         console.error("OTP generation error:", error);
         throw error;
@@ -87,33 +117,56 @@ export const postRouter = createTRPCRouter({
   verifyOtp: publicProcedure
     .input(z.object({ phone: z.string(), otp: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      const verification = await ctx.db.oTPVerification.findFirst({
-        where: {
-          user: {
+      try {
+        // Get user by phone
+        const user = await ctx.db.user.findUnique({
+          where: {
             phone: input.phone,
           },
-          otpCode: input.otp,
-          verified: false,
-          expiresAt: {
-            gte: new Date(),
+        });
+        
+        if (!user) {
+          throw new Error("User not found. Please request a new verification code.");
+        }
+        
+        // In development, always allow "000000" as a valid OTP for testing
+        const isDev = process.env.NODE_ENV === 'development';
+        if (isDev && input.otp === "000000") {
+          console.log("DEV MODE: Accepting test OTP code");
+          return user;
+        }
+        
+        // Find verification record
+        const verification = await ctx.db.oTPVerification.findFirst({
+          where: {
+            userId: user.id,
+            otpCode: input.otp,
+            verified: false,
+            expiresAt: {
+              gte: new Date(),
+            },
           },
-        },
-        include: {
-          user: true,
-        },
-      });
-      if (!verification) {
-        throw new Error("Invalid or expired verification code");
+        });
+        
+        if (!verification) {
+          throw new Error("Invalid or expired verification code");
+        }
+        
+        // Mark as verified
+        await ctx.db.oTPVerification.update({
+          where: {
+            id: verification.id,
+          },
+          data: {
+            verified: true,
+          },
+        });
+        
+        return user;
+      } catch (error) {
+        console.error("OTP verification error:", error);
+        throw error;
       }
-      await ctx.db.oTPVerification.update({
-        where: {
-          id: verification.id,
-        },
-        data: {
-          verified: true,
-        },
-      });
-      return verification.user;
     }),
   hello: publicProcedure
     .input(z.object({ text: z.string() }))
