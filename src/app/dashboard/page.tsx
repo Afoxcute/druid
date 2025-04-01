@@ -193,14 +193,7 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => {
-                console.log("Navigating to send page");
-                if (user) {
-                  router.push(`/wallet/${user.id}/send`);
-                } else {
-                  router.push("/send");
-                }
-              }}
+              onClick={() => router.push("/send")}
             >
               <ArrowUpRight className="mr-2 h-4 w-4" />
               Send
@@ -208,14 +201,7 @@ function DashboardContent() {
             <Button 
               variant="outline" 
               className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => {
-                console.log("Navigating to receive page");
-                if (user) {
-                  router.push(`/wallet/${user.id}/receive`);
-                } else {
-                  router.push("/receive");
-                }
-              }}
+              onClick={() => router.push("/receive")}
             >
               <ArrowDownToLine className="mr-2 h-4 w-4" />
               Receive
