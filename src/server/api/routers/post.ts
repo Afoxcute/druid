@@ -41,7 +41,7 @@ export const postRouter = createTRPCRouter({
       }
       // TODO: Enable this
       if (String(env.ENABLE_SMS) === "true") {
-        await sendSms(input.phone, `Your druid OTP is: ${otp}`);
+        await sendSms(input.phone, `Your payu OTP is: ${otp}`);
       }
       await ctx.db.oTPVerification.upsert({
         where: {
