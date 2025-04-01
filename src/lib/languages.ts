@@ -1,0 +1,168 @@
+export interface Language {
+  code: string;
+  name: string;
+  nativeName: string;
+  direction: "ltr" | "rtl";
+}
+
+export const languages: Record<string, Language> = {
+  en: {
+    code: "en",
+    name: "English",
+    nativeName: "English",
+    direction: "ltr",
+  },
+  ha: {
+    code: "ha",
+    name: "Hausa",
+    nativeName: "Hausa",
+    direction: "ltr",
+  },
+  yo: {
+    code: "yo",
+    name: "Yoruba",
+    nativeName: "Yorùbá",
+    direction: "ltr",
+  },
+  ig: {
+    code: "ig",
+    name: "Igbo",
+    nativeName: "Igbo",
+    direction: "ltr",
+  },
+};
+
+export const translations = {
+  en: {
+    common: {
+      send: "Send",
+      receive: "Receive",
+      amount: "Amount",
+      recipient: "Recipient",
+      country: "Country",
+      phoneNumber: "Phone Number",
+      continue: "Continue",
+      back: "Back",
+      confirm: "Confirm",
+      cancel: "Cancel",
+      edit: "Edit",
+      save: "Save",
+      loading: "Loading...",
+      success: "Success",
+      error: "Error",
+    },
+    send: {
+      title: "Send Money",
+      recipientName: "Recipient Name",
+      enterAmount: "Enter amount",
+      selectCurrency: "Select currency",
+      confirmTransfer: "Confirm Transfer",
+      transferSuccess: "Transfer Successful!",
+    },
+    receive: {
+      title: "Receive Money",
+      shareAddress: "Share your address",
+      copyAddress: "Copy address",
+      generateQR: "Generate QR code",
+    },
+  },
+  ha: {
+    common: {
+      send: "Aika",
+      receive: "Karba",
+      amount: "Adadin",
+      recipient: "Mai karba",
+      country: "Ƙasa",
+      phoneNumber: "Lambar waya",
+      continue: "Ci gaba",
+      back: "Baya",
+      confirm: "Tabbatar",
+      cancel: "Soke",
+      edit: "Gyara",
+      save: "Ajiye",
+      loading: "Ana ɗauka...",
+      success: "Nasara",
+      error: "Kuskure",
+    },
+    send: {
+      title: "Aika Kuɗi",
+      recipientName: "Sunan mai karba",
+      enterAmount: "Shigar da adadin",
+      selectCurrency: "Zaɓi kuɗin",
+      confirmTransfer: "Tabbatar da canja wurin",
+      transferSuccess: "Canja wurin ya yi nasara!",
+    },
+    receive: {
+      title: "Karba Kuɗi",
+      shareAddress: "Raba adireshin ka",
+      copyAddress: "Kwafi adireshi",
+      generateQR: "Samar da lambar QR",
+    },
+  },
+  yo: {
+    common: {
+      send: "Firanṣẹ",
+      receive: "Gba",
+      amount: "Iye",
+      recipient: "Olugba",
+      country: "Orílẹ̀-èdè",
+      phoneNumber: "Nọmba fóònù",
+      continue: "Tẹ̀síwájú",
+      back: "Pẹ̀lú",
+      confirm: "Jẹ́rìí",
+      cancel: "Fagilé",
+      edit: "Ṣàtúnṣe",
+      save: "Fipamọ́",
+      loading: "N jẹ́ kíkọ...",
+      success: "Àṣeyọrí",
+      error: "Àṣìṣe",
+    },
+    send: {
+      title: "Firanṣẹ́ Owó",
+      recipientName: "Orúkọ olugba",
+      enterAmount: "Tẹ iye",
+      selectCurrency: "Yan owó",
+      confirmTransfer: "Jẹ́rìí ìfiranṣẹ́",
+      transferSuccess: "Ìfiranṣẹ́ ti jẹ́ àṣeyọrí!",
+    },
+    receive: {
+      title: "Gba Owó",
+      shareAddress: "Pín adírẹ́sì rẹ",
+      copyAddress: "Kọ́pí adírẹ́sì",
+      generateQR: "Dídá kódù QR",
+    },
+  },
+  ig: {
+    common: {
+      send: "Ziga",
+      receive: "Nata",
+      amount: "Ọnụ ego",
+      recipient: "Onye nnata",
+      country: "Mba",
+      phoneNumber: "Nọmba ekwentị",
+      continue: "Gaa n'ihu",
+      back: "Azụ",
+      confirm: "Kwenye",
+      cancel: "Kaghị",
+      edit: "Dezie",
+      save: "Chekwaa",
+      loading: "Ana ebu...",
+      success: "Ihe ịga nke ọma",
+      error: "Njehie",
+    },
+    send: {
+      title: "Ziga ego",
+      recipientName: "Aha onye nnata",
+      enterAmount: "Tinye ego",
+      selectCurrency: "Họrọ ego",
+      confirmTransfer: "Kwenye nnyefe",
+      transferSuccess: "Nnyefe gara nke ọma!",
+    },
+    receive: {
+      title: "Nata ego",
+      shareAddress: "Kesaa adreesị gị",
+      copyAddress: "Detuo adreesị",
+      generateQR: "Mepụta koodu QR",
+    },
+  },
+}; 
