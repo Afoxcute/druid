@@ -15,6 +15,11 @@ interface SendPreviewProps {
   recipientName: string;
   country: string;
   phoneNumber: string;
+  currency: {
+    code: string;
+    symbol: string;
+    name: string;
+  };
   onBack: () => void;
   onSuccess: () => void;
   onEdit: () => void;
@@ -25,6 +30,7 @@ export default function SendPreview({
   recipientName,
   country,
   phoneNumber,
+  currency,
   onBack,
   onSuccess,
   onEdit,
@@ -88,7 +94,7 @@ export default function SendPreview({
               Transfer Successful!
             </CardTitle>
             <CardDescription className="mt-2">
-              Your payment of ${amount.toFixed(2)} USD has been sent to {recipientName}
+              Your payment of {currency.symbol}{amount.toFixed(2)} {currency.code} has been sent to {recipientName}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -96,7 +102,7 @@ export default function SendPreview({
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Amount:</span>
-                  <span className="font-semibold">${amount.toFixed(2)} USD</span>
+                  <span className="font-semibold">{currency.symbol}{amount.toFixed(2)} {currency.code}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Recipient:</span>
@@ -150,7 +156,7 @@ export default function SendPreview({
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Amount:</span>
-                  <span className="font-semibold">${amount.toFixed(2)} USD</span>
+                  <span className="font-semibold">{currency.symbol}{amount.toFixed(2)} {currency.code}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Recipient:</span>
