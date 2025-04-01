@@ -10,7 +10,7 @@ import { ArrowLeft, ChevronRight } from "lucide-react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
 import { useAuth } from "~/providers/auth-provider";
 import { shortStellarAddress } from "~/lib/utils";
-import SendPreview from "./preview";
+import SendPreview from "../[address]/send/preview";
 
 export default function SendMoney() {
   const { user } = useAuth();
