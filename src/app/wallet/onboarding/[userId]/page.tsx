@@ -97,11 +97,11 @@ export default function OnboardingMobile() {
             }
           }
         );
-      } else {
+        } else {
         // PINs don't match
-        setShake(true);
-        clickFeedback("error");
-        setConfirmPin("");
+          setShake(true);
+          clickFeedback("error");
+          setConfirmPin("");
         setError("PINs don't match. Please try again.");
       }
     }
