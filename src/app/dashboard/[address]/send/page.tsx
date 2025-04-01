@@ -60,19 +60,10 @@ export default function DashboardSend() {
   useEffect(() => {
     if (!isLoading) {
       if (user) {
-        // Check if user has a wallet address
-        const userData = localStorage.getItem("auth_user");
-        if (userData) {
-          const user = JSON.parse(userData);
-          if (user.walletAddress) {
-            // User has a wallet address, allow them to stay on the send page
-            return;
-          }
-        }
-        // User has no wallet address, redirect to dashboard
-        router.push("/dashboard");
+        // Redirect to the user's send page
+        router.push(`/dashboard/${user.walletAddress}/send`);
       } else {
-        // User is not authenticated, redirect to signin
+        // User not authenticated, redirect to sign in
         router.push("/auth/signin");
       }
     }
