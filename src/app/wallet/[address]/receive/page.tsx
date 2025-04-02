@@ -37,7 +37,7 @@ export default function ReceiveTransfers() {
     clickFeedback();
     if (navigator.share) {
       navigator.share({
-        title: "Send me money with payu",
+        title: "Send me money with Druid",
         text: "Send money instantly",
         url: qrValue,
       }).catch(err => {

@@ -6,8 +6,18 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { ArrowLeft, CreditCard, Home, Zap, Wifi, Droplet, Phone } from "lucide-react";
+import { ArrowLeft, CreditCard, Home, Zap, Wifi, Droplet, Phone, X } from "lucide-react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
+import PinEntry from "~/app/wallet/_components/pin";
+
+// Add Dialog components for the PIN verification modal
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
 
 interface BillType {
   id: string;
@@ -63,10 +73,11 @@ export default function BillsPage() {
   const [accountNumber, setAccountNumber] = useState("");
   const [amount, setAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
 
   const handleBack = () => {
     clickFeedback();
-    router.push(`/dashboard/${address}`);
+    router.push(`/dashboard`);
   };
 
   const handleBillSelect = (bill: BillType) => {
@@ -77,12 +88,24 @@ export default function BillsPage() {
   const handlePayBill = async (e: React.FormEvent) => {
     e.preventDefault();
     clickFeedback();
+    
+    // Instead of immediately processing payment, open PIN verification modal
+    setIsPinModalOpen(true);
+  };
+  
+  const handlePinSuccess = async () => {
+    // PIN verified successfully, now process the payment
+    setIsPinModalOpen(false);
     setIsLoading(true);
 
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 2000));
     
     router.push(`/dashboard/${address}/bills/success`);
+  };
+  
+  const handlePinCancel = () => {
+    setIsPinModalOpen(false);
   };
 
   if (selectedBill) {
@@ -141,6 +164,22 @@ export default function BillsPage() {
             </CardContent>
           </Card>
         </div>
+        
+        {/* PIN Verification Modal */}
+        <Dialog open={isPinModalOpen} onOpenChange={setIsPinModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-center">Verify Payment</DialogTitle>
+              <DialogDescription className="text-center">
+                Enter your PIN to authorize the {selectedBill.name} bill payment of ${amount}
+              </DialogDescription>
+            </DialogHeader>
+            <PinEntry 
+              onSuccess={handlePinSuccess} 
+              onCancel={handlePinCancel}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
