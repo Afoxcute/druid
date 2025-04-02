@@ -307,6 +307,7 @@ yarn start
 
 ### Q3-Q4 2024 (Planned)
 - **Soroban Escrow Contract Integration**: Implementing trustless escrow services using Soroban smart contracts
+- **Buy Now, Pay Later (BNPL) Service**: Introducing BNPL functionality allowing users to split payments into installments with transparent terms
 - Mobile application development
 - Merchant payment solutions
 - Enhanced notification system
@@ -317,6 +318,41 @@ yarn start
 - International expansion
 - DeFi features and services
 - Cross-chain integration
+
+### Market Acquisition Strategy (10,000 Users)
+
+Our plan to target the market and acquire our first 10,000 users:
+
+1. **Geographic Focus**:
+   - Initial concentration on high-remittance corridors (e.g., US-Mexico, US-Philippines, Europe-Africa)
+   - University campuses with high international student populations
+   - Urban areas with diverse immigrant communities
+
+2. **Growth Tactics**:
+   - **Referral Program**: Reward users with fee-free transfers for successful referrals
+   - **Community Partnerships**: Collaborate with community organizations and cultural associations
+   - **Merchant Onboarding**: Partner with 500+ local businesses to accept Druid payments
+   - **Campus Ambassadors**: Recruit student representatives at 50+ universities
+
+3. **Marketing Channels**:
+   - Targeted social media campaigns on platforms popular with diaspora communities
+   - Influencer partnerships with trusted community voices
+   - Location-based advertising in high-traffic remittance areas
+   - Educational webinars on financial literacy and blockchain benefits
+
+4. **Incentive Structure**:
+   - First transfer free (up to $1,000)
+   - No fees for the first month for new users
+   - Cashback rewards for early adopters
+   - Special promotions for BNPL early access
+
+5. **Retention Strategy**:
+   - Regular engagement through personalized offers
+   - Early access to new features for active users
+   - Community building through user groups and forums
+   - Continuous education on platform benefits and financial management
+
+Our target is to reach 10,000 active users within the first six months of full launch, establishing a solid foundation for exponential growth thereafter.
 
 ## Contributing
 
