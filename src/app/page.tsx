@@ -40,7 +40,7 @@ export default function LandingPage() {
               <Button 
                 onClick={() => router.push("/auth/signup")}
                 variant="outline" 
-                className="border-2 border-white/70 px-10 py-6 text-lg font-semibold text-white hover:bg-white/20 hover:scale-105 transition-all"
+                className="border-2 border-blue-500 px-10 py-6 text-lg font-semibold text-blue-400 hover:bg-blue-500/20 hover:scale-105 transition-all"
                 size="lg"
               >
                 Create Account
