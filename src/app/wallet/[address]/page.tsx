@@ -63,7 +63,6 @@ export default function Wallet() {
     clickFeedback("medium");
     router.push(`/wallet/${address}/receive`);
   };
-  
   // If PIN isn't verified for viewing wallet, redirect to PIN page
   if (!isPinVerified) {
     router.push(`/auth/pin?redirectTo=/wallet/${address}`);

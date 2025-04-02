@@ -79,7 +79,7 @@ const ConfirmComponent: React.FC = () => {
       if (userData) {
         const user = JSON.parse(userData);
         if (user.walletAddress) {
-          router.push(`/dashboard/${user.walletAddress}`);
+          router.push(`/wallet/${user.walletAddress}`);
           return;
         }
       }
@@ -87,8 +87,22 @@ const ConfirmComponent: React.FC = () => {
       console.error("Error parsing user data:", error);
     }
     
-    // Fallback to generic dashboard
-    router.push('/dashboard');
+    // Fallback to main wallet page or home page
+    const fallbackRoutes = ['/wallet', '/dashboard', '/'];
+    
+    // Try each fallback route in order
+    for (const route of fallbackRoutes) {
+      try {
+        router.push(route);
+        return;
+      } catch (error) {
+        console.error(`Failed to navigate to ${route}:`, error);
+        // Continue to next fallback
+      }
+    }
+    
+    // If all fallbacks fail, go to home page
+    router.push('/');
   };
 
   if (!transferData && transfer.isLoading) {
