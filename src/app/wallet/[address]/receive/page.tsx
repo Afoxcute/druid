@@ -22,7 +22,7 @@ export default function ReceiveTransfers() {
   const { user } = useAuth();
   const [qrVisible, setQrVisible] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [qrValue] = useState(`https://payu.app/payment/${address}`);
+  const [qrValue] = useState(`https://druid-kohl.vercel.app/payment/${address}`);
   const { clickFeedback } = useHapticFeedback();
 
   // Reset copied state after 2 seconds

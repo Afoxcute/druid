@@ -1,4 +1,4 @@
-// This is a placeholder hook to replace Telegram-specific haptic feedback
+// This is a placeholder hook for haptic feedback functionality
 
 type FeedbackType = "soft" | "medium" | "heavy" | "success" | "error" | "warning" | "selectionChanged";
 

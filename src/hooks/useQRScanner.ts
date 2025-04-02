@@ -7,7 +7,7 @@ export const useQRScanner = () => {
   const [isScanning, setIsScanning] = useState(false);
   const router = useRouter();
 
-  // This is a web-based replacement for the Telegram QR scanner
+  // This is a web-based QR scanner implementation
   const scan = () => {
     // In a real implementation, you would integrate with a library like html5-qrcode
     // For now, we'll just simulate a QR code scan with a prompt

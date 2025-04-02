@@ -8,7 +8,6 @@ export const env = createEnv({
    */
   server: {
     DATABASE_URL: z.string().url(),
-    TELEGRAM_BOT_TOKEN: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -16,8 +15,8 @@ export const env = createEnv({
     ANCHOR_API_TOKEN: z.string(),
     ESCROW_CONTRACT_ADDRESS: z.string(),
     RPC_URL: z.string().url(),
-    payu_DISTRIBUTOR_PUBLIC_KEY: z.string(),
-    PAYU_DISTRIBUTOR_SECRET_KEY: z.string(),
+    druid_DISTRIBUTOR_PUBLIC_KEY: z.string(),
+    DRUID_DISTRIBUTOR_SECRET_KEY: z.string(),
     STELLAR_HORIZON_URL: z.string().url(),
     NATIVE_CONTRACT_ID: z.string(),
     USDC_SAC: z.string(),
@@ -45,6 +44,7 @@ export const env = createEnv({
     NEXT_PUBLIC_NATIVE_CONTRACT_ID: z.string(),
     NEXT_PUBLIC_NETWORK_PASSPHRASE: z.string(),
     NEXT_PUBLIC_APP_URL: z.string().url(),
+    NEXT_PUBLIC_PUSHER_APP_KEY: z.string().optional(),
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
   },
 
@@ -55,13 +55,12 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
-    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
     ANCHOR_API_BASE_URL: process.env.ANCHOR_API_BASE_URL,
     ANCHOR_API_TOKEN: process.env.ANCHOR_API_TOKEN,
     ESCROW_CONTRACT_ADDRESS: process.env.ESCROW_CONTRACT_ADDRESS,
     RPC_URL: process.env.RPC_URL,
-    payu_DISTRIBUTOR_PUBLIC_KEY: process.env.payu_DISTRIBUTOR_PUBLIC_KEY,
-    PAYU_DISTRIBUTOR_SECRET_KEY: process.env.PAYU_DISTRIBUTOR_SECRET_KEY,
+    druid_DISTRIBUTOR_PUBLIC_KEY: process.env.druid_DISTRIBUTOR_PUBLIC_KEY,
+    DRUID_DISTRIBUTOR_SECRET_KEY: process.env.DRUID_DISTRIBUTOR_SECRET_KEY,
     STELLAR_HORIZON_URL: process.env.STELLAR_HORIZON_URL,
     NATIVE_CONTRACT_ID: process.env.NATIVE_CONTRACT_ID,
     USDC_SAC: process.env.USDC_SAC,
@@ -81,6 +80,7 @@ export const env = createEnv({
     TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
     TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
     MOCK_KYC: process.env.MOCK_KYC,
+    NEXT_PUBLIC_PUSHER_APP_KEY: process.env.NEXT_PUBLIC_PUSHER_APP_KEY,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**
