@@ -119,6 +119,30 @@ export default function Component() {
   // Get amount from either API data or localStorage
   const amount = transfer.data?.amount || transferData?.amount || 0;
 
+  // List of popular banks
+  const popularBanks = [
+    "Chase Bank",
+    "Bank of America",
+    "Wells Fargo",
+    "Citibank",
+    "HSBC",
+    "TD Bank",
+    "Capital One",
+    "Barclays",
+    "Santander",
+    "Royal Bank of Canada"
+  ];
+
+  // Generate a random bank name
+  const randomBankIndex = Math.floor(Math.random() * popularBanks.length);
+  const bankName = popularBanks[randomBankIndex];
+
+  // Generate a random account number (12 digits)
+  const accountNumber = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+  
+  // Generate a random routing number (9 digits)
+  const routingNumber = Math.floor(100000000 + Math.random() * 900000000).toString();
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
@@ -145,12 +169,12 @@ export default function Component() {
           <Separator />
           <div className="space-y-2">
             <Label htmlFor="bank-name">Bank Name</Label>
-            <Input id="bank-name" value="FAKE International Bank" readOnly />
+            <Input id="bank-name" value={bankName} readOnly />
           </div>
           <div className="space-y-2">
             <Label htmlFor="account-number">Account Number</Label>
             <div className="flex items-center space-x-2">
-              <Input id="account-number" value="1234567890" readOnly />
+              <Input id="account-number" value={accountNumber} readOnly />
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -159,7 +183,7 @@ export default function Component() {
                       variant="outline"
                       onClick={() =>
                         navigator.clipboard
-                          .writeText("1234567890")
+                          .writeText(accountNumber)
                           .then(() =>
                             toast.success("Account Number Copied to Clipboard"),
                           )
@@ -178,7 +202,7 @@ export default function Component() {
           <div className="space-y-2">
             <Label htmlFor="routing-number">Routing Number</Label>
             <div className="flex items-center space-x-2">
-              <Input id="routing-number" value="987654321" readOnly />
+              <Input id="routing-number" value={routingNumber} readOnly />
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -187,7 +211,7 @@ export default function Component() {
                       variant="outline"
                       onClick={() =>
                         navigator.clipboard
-                          .writeText("987654321")
+                          .writeText(routingNumber)
                           .then(() =>
                             toast.success("Routing Number Copied to Clipboard"),
                           )
