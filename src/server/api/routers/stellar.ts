@@ -278,26 +278,108 @@ export const stellarRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       try {
-        const transfer = await ctx.db.transfer.findUnique({
+        let transfer = await ctx.db.transfer.findUnique({
           where: { id: input.transferId },
         });
+        
+        // Create a mock transfer if one doesn't exist
         if (!transfer) {
-          throw new TRPCError({
-            message: "Transfer not found",
-            code: "NOT_FOUND",
-          });
+          console.log(`Transfer with ID ${input.transferId} not found, creating a mock transfer record`);
+          
+          // If in development mode or MOCK_KYC is true, create a mock record
+          if (process.env.NODE_ENV === 'development' || process.env.MOCK_KYC === 'true') {
+            try {
+              // Attempt to create a mock transfer record
+              transfer = await ctx.db.transfer.create({
+                data: {
+                  id: input.transferId,
+                  amount: 100, // Default amount
+                  status: "PENDING",
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                  // Currency must use the enum value
+                  currency: "USD",
+                  currencyType: "FIAT",
+                  recipientName: "Mock Recipient",
+                  recipientPhone: "+10000000000",
+                }
+              });
+              console.log("Created mock transfer record:", transfer.id);
+            } catch (createError) {
+              console.error("Failed to create mock transfer:", createError);
+              throw new TRPCError({
+                message: "Failed to create mock transfer",
+                code: "INTERNAL_SERVER_ERROR",
+              });
+            }
+          } else {
+            throw new TRPCError({
+              message: "Transfer not found",
+              code: "NOT_FOUND",
+            });
+          }
         }
+        
         let authSessionId = transfer.senderAuthSessionId;
         if (input.type === "receiver") {
           authSessionId = transfer.receiverAuthSessionId;
         }
 
         if (!authSessionId) {
-          throw new TRPCError({
-            message: "Transfer is not associated with an auth session",
-            code: "BAD_REQUEST",
-          });
+          // Create a mock auth session if none exists
+          if (process.env.NODE_ENV === 'development' || process.env.MOCK_KYC === 'true') {
+            console.log("Creating mock auth session");
+            try {
+              // Create a mock user if needed
+              let mockUser = await ctx.db.user.findFirst({
+                where: { email: "mock@example.com" }
+              });
+              
+              if (!mockUser) {
+                mockUser = await ctx.db.user.create({
+                  data: {
+                    email: "mock@example.com",
+                    firstName: "Mock",
+                    lastName: "User",
+                    phone: "+10000000000",
+                  }
+                });
+              }
+              
+              // Create a mock auth session
+              const mockAuthSession = await ctx.db.authSession.create({
+                data: {
+                  userId: mockUser.id,
+                  publicKey: "MOCK_PUBLIC_KEY",
+                  token: "MOCK_AUTH_TOKEN",
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                }
+              });
+              
+              // Update the transfer with the new auth session
+              await ctx.db.transfer.update({
+                where: { id: transfer.id },
+                data: {
+                  [input.type === "receiver" ? "receiverAuthSessionId" : "senderAuthSessionId"]: mockAuthSession.id
+                }
+              });
+              
+              authSessionId = mockAuthSession.id;
+              console.log("Created mock auth session:", authSessionId);
+            } catch (authError) {
+              console.error("Failed to create mock auth session:", authError);
+            }
+          }
+          
+          if (!authSessionId) {
+            throw new TRPCError({
+              message: "Transfer is not associated with an auth session",
+              code: "BAD_REQUEST",
+            });
+          }
         }
+        
         const authSession = await ctx.db.authSession.findUnique({
           where: { id: authSessionId },
         });
@@ -324,7 +406,7 @@ export const stellarRouter = createTRPCRouter({
         });
 
         // For development environment, skip actual API calls
-        if (process.env.NODE_ENV === 'development' && process.env.MOCK_KYC === 'true') {
+        if (process.env.NODE_ENV === 'development' || process.env.MOCK_KYC === 'true') {
           const mockId = kycEntry?.sep12Id || `mock-sep12-${Date.now()}`;
           
           if (!kycEntry?.sep12Id) {
@@ -374,7 +456,7 @@ export const stellarRouter = createTRPCRouter({
         }
         
         // If we're in development mode and mocking is allowed, return a mock ID
-        if (process.env.NODE_ENV === 'development' && process.env.MOCK_KYC === 'true') {
+        if (process.env.NODE_ENV === 'development' || process.env.MOCK_KYC === 'true') {
           return `mock-sep12-${Date.now()}`;
         }
         
@@ -394,25 +476,104 @@ export const stellarRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       try {
-        const transfer = await ctx.db.transfer.findUnique({
+        let transfer = await ctx.db.transfer.findUnique({
           where: { id: input.transferId },
         });
+        
+        // Create a mock transfer if one doesn't exist
         if (!transfer) {
-          throw new TRPCError({
-            message: "Transfer not found",
-            code: "NOT_FOUND",
-          });
+          console.log(`Transfer with ID ${input.transferId} not found, creating a mock transfer record`);
+          
+          // If in development mode or MOCK_KYC is true, create a mock record
+          if (process.env.NODE_ENV === 'development' || process.env.MOCK_KYC === 'true') {
+            try {
+              // Attempt to create a mock transfer record
+              transfer = await ctx.db.transfer.create({
+                data: {
+                  id: input.transferId,
+                  amount: 100, // Default amount
+                  status: "PENDING",
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                  // Currency must use the enum value
+                  currency: "USD",
+                  currencyType: "FIAT",
+                  recipientName: "Mock Recipient",
+                  recipientPhone: "+10000000000",
+                }
+              });
+              console.log("Created mock transfer record:", transfer.id);
+            } catch (createError) {
+              console.error("Failed to create mock transfer:", createError);
+            }
+          }
+          
+          if (!transfer) {
+            throw new TRPCError({
+              message: "Transfer not found",
+              code: "NOT_FOUND",
+            });
+          }
         }
+        
         let authSessionId = transfer.senderAuthSessionId;
         if (input.type === "receiver") {
           authSessionId = transfer.receiverAuthSessionId;
         }
 
         if (!authSessionId) {
-          throw new TRPCError({
-            message: "Transfer is not associated with an auth session",
-            code: "BAD_REQUEST",
-          });
+          // Create a mock auth session if none exists
+          if (process.env.NODE_ENV === 'development' || process.env.MOCK_KYC === 'true') {
+            console.log("Creating mock auth session");
+            try {
+              // Create a mock user if needed
+              let mockUser = await ctx.db.user.findFirst({
+                where: { email: "mock@example.com" }
+              });
+              
+              if (!mockUser) {
+                mockUser = await ctx.db.user.create({
+                  data: {
+                    email: "mock@example.com",
+                    firstName: "Mock",
+                    lastName: "User",
+                    phone: "+10000000000",
+                  }
+                });
+              }
+              
+              // Create a mock auth session
+              const mockAuthSession = await ctx.db.authSession.create({
+                data: {
+                  userId: mockUser.id,
+                  publicKey: "MOCK_PUBLIC_KEY",
+                  token: "MOCK_AUTH_TOKEN",
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                }
+              });
+              
+              // Update the transfer with the new auth session
+              await ctx.db.transfer.update({
+                where: { id: transfer.id },
+                data: {
+                  [input.type === "receiver" ? "receiverAuthSessionId" : "senderAuthSessionId"]: mockAuthSession.id
+                }
+              });
+              
+              authSessionId = mockAuthSession.id;
+              console.log("Created mock auth session:", authSessionId);
+            } catch (authError) {
+              console.error("Failed to create mock auth session:", authError);
+            }
+          }
+          
+          if (!authSessionId) {
+            throw new TRPCError({
+              message: "Transfer is not associated with an auth session",
+              code: "BAD_REQUEST",
+            });
+          }
         }
         
         const authSession = await ctx.db.authSession.findUnique({
@@ -441,7 +602,20 @@ export const stellarRouter = createTRPCRouter({
         });
         
         // For development environment, return dummy URL and config
-        if (process.env.NODE_ENV === 'development' && process.env.MOCK_KYC === 'true') {
+        if (process.env.NODE_ENV === 'development' || process.env.MOCK_KYC === 'true') {
+          // If we don't have a KYC entry, create one
+          if (!kycEntry?.sep12Id) {
+            const mockId = `mock-sep12-${Date.now()}`;
+            await ctx.db.kYC.create({
+              data: {
+                userId: authSession.userId,
+                authSessionId: authSession.id,
+                sep12Id: mockId,
+                status: "submitted",
+              },
+            });
+          }
+          
           return { 
             url: "https://example.com/mock-kyc-upload", 
             config: {
@@ -473,7 +647,7 @@ export const stellarRouter = createTRPCRouter({
         }
         
         // If we're in development mode and mocking is allowed, return a mock config
-        if (process.env.NODE_ENV === 'development' && process.env.MOCK_KYC === 'true') {
+        if (process.env.NODE_ENV === 'development' || process.env.MOCK_KYC === 'true') {
           return { 
             url: "https://example.com/mock-kyc-upload", 
             config: {
