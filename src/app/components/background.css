@@ -1,16 +1,16 @@
 /* filepath: /Users/josetoscano/Projects/life-dots/src/components/background.css */
 @keyframes wave {
   0% {
-    fill: black;
+    fill: rgba(0, 0, 0, 0.5);
   }
   50% {
-    fill: hsl(var(--primary));
+    fill: hsla(var(--primary), 0.4);
   }
   100% {
-    fill: black;
+    fill: rgba(0, 0, 0, 0.5);
   }
 }
 
 .animate-dots pattern circle {
-  animation: wave 2s infinite;
+  animation: wave 4s infinite ease-in-out;
 }
