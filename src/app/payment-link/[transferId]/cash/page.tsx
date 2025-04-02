@@ -124,7 +124,7 @@ export default function Component() {
           <div className="space-y-2">
             <Label htmlFor="receive-code">Receive Code</Label>
             <div className="flex items-center space-x-2">
-              <Input id="receive-code" value="1234567890" readOnly />
+              <Input id="receive-code" value="45890e6wq" readOnly />
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -133,7 +133,7 @@ export default function Component() {
                       variant="outline"
                       onClick={() =>
                         navigator.clipboard
-                          .writeText("1234567890")
+                          .writeText("45890e6wq")
                           .then(() => toast.success("Code Copied to Clipboard"))
                       }
                     >
