@@ -36,7 +36,13 @@ export default function OnboardingMobile() {
 
   // tRPC procedures
   const persistPin = api.users.setPin.useMutation({
-    onError: ClientTRPCErrorHandler,
+    onError: (error) => {
+      console.error("Error setting PIN:", error);
+      setIsLoading(false);
+      setError(error.message || "Failed to save PIN. Please try again.");
+      setShake(true);
+      clickFeedback("error");
+    }
   });
 
   useEffect(() => {
@@ -69,39 +75,47 @@ export default function OnboardingMobile() {
             pin: pin,
           },
           {
-            onSuccess: () => {
+            onSuccess: (data) => {
+              if (!data.success) {
+                setIsLoading(false);
+                setError(data.message || "Failed to save PIN. Please try again.");
+                setShake(true);
+                clickFeedback("error");
+                return;
+              }
+              
               // Update the local user data
               try {
                 const userData = localStorage.getItem("auth_user");
                 if (userData) {
                   const user = JSON.parse(userData);
-                  user.hashedPin = "hashed_" + pin; // Mock hashing for demo
+                  user.hasPin = true; // Just flag that user has a pin now
                   localStorage.setItem("auth_user", JSON.stringify(user));
-                  console.log("Updated local user data with hashedPin");
+                  console.log("Updated local user data with hasPin flag");
                 }
               } catch (err) {
                 console.error("Failed to update local user data:", err);
               }
               
               // Show success toast
-              toast.success("PIN set successfully!");
+              toast.success(data.message || "PIN set successfully!");
               setIsLoading(false);
               setStep("passkey");
             },
             onError: (error) => {
               console.error("Failed to save PIN:", error);
               setIsLoading(false);
-              setError("Failed to save PIN. Please try again.");
+              setError(error.message || "Failed to save PIN. Please try again.");
               setShake(true);
               clickFeedback("error");
             }
           }
         );
-        } else {
+      } else {
         // PINs don't match
-          setShake(true);
-          clickFeedback("error");
-          setConfirmPin("");
+        setShake(true);
+        clickFeedback("error");
+        setConfirmPin("");
         setError("PINs don't match. Please try again.");
       }
     }

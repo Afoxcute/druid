@@ -51,8 +51,8 @@ export class AuthService extends BaseService {
     try {
       const hashedPin = await this.toHash(pin);
 
-      // Save user to the database
-      const userWithoutPin = await this.db.user.count({
+      // Check if user already has a pin
+      const userWithPin = await this.db.user.count({
         where: {
           id: userId,
           hashedPin: {
@@ -60,20 +60,24 @@ export class AuthService extends BaseService {
           },
         },
       });
-      console.log("userWithoutPin", userWithoutPin);
-      if (userWithoutPin !== 0) {
-        throw new Error("User already has a pin");
+      
+      console.log("userWithPin count:", userWithPin);
+      
+      if (userWithPin !== 0) {
+        console.log("User already has a pin");
+        return { success: false };
       }
-      console.log("hashedPin", hashedPin);
+      
+      // Update user with hashed pin
       await this.db.user.update({
         where: { id: userId },
         data: { hashedPin },
       });
-      console.log("after update :)");
-
+      
+      console.log("Pin set successfully for user", userId);
       return { success: true };
     } catch (e) {
-      console.error(e);
+      console.error("Error setting pin:", e);
       return { success: false };
     }
   }

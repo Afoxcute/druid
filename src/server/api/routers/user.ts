@@ -70,16 +70,24 @@ export const userRouter = createTRPCRouter({
   setPin: publicProcedure
     .input(z.object({ userId: z.string().or(z.number()), pin: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const authService = new AuthService(ctx.db);
-      const { success } = await authService.setPin(
-        Number(input.userId),
-        input.pin,
-      );
-      console.log("success:", success);
-      if (!success) {
-        throw new Error("Failed to set pin");
+      try {
+        const authService = new AuthService(ctx.db);
+        const { success } = await authService.setPin(
+          Number(input.userId),
+          input.pin,
+        );
+        
+        console.log("Pin setting result:", success);
+        
+        if (!success) {
+          return { success: false, message: "Failed to set PIN" };
+        }
+        
+        return { success: true, message: "PIN set successfully" };
+      } catch (error) {
+        console.error("Error in setPin procedure:", error);
+        return { success: false, message: "An unexpected error occurred" };
       }
-      return { success: true };
     }),
   validatePin: publicProcedure
     .input(z.object({ userId: z.string().or(z.number()), pin: z.string() }))
