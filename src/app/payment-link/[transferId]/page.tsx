@@ -12,10 +12,67 @@ import {
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { Badge } from "~/components/ui/badge";
+import { useState, useEffect } from "react";
+import { api } from "~/trpc/react";
+
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+interface TransferData {
+  id: string;
+  amount: any; // Changed from number | any to just any
+  recipientName?: string;
+  phoneNumber?: string;
+  country?: string;
+  currency?: string;
+  createdAt?: string;
+}
 
 export default function Component() {
   const { transferId } = useParams();
   const searchParams = useSearchParams();
+  const [transferData, setTransferData] = useState<TransferData | null>(null);
+
+  const transfer = api.stellar.getTransferData.useQuery(
+    {
+      transferId: String(transferId),
+    },
+    {
+      enabled: !!transferId,
+    },
+  );
+
+  // Try to get transfer data from localStorage if it's not in searchParams
+  useEffect(() => {
+    try {
+      // Check if we have data in localStorage
+      const storedTransferData = localStorage.getItem('currentTransfer');
+      if (storedTransferData) {
+        const parsedData = JSON.parse(storedTransferData);
+        if (parsedData.id === transferId) {
+          setTransferData(parsedData);
+        }
+      }
+    } catch (error) {
+      console.error("Error retrieving transfer from localStorage:", error);
+    }
+  }, [transferId]);
+
+  // Update transferData with API data if available
+  useEffect(() => {
+    if (transfer.data) {
+      console.log("Transfer data from API:", transfer.data);
+      // Convert to the expected format
+      setTransferData({
+        id: transfer.data.id,
+        amount: transfer.data.amount,
+        recipientName: transfer.data.recipientName,
+        phoneNumber: transfer.data.recipientPhone,
+        // Handle case where currency might be a string or an object with code property
+        currency: typeof transfer.data.currency === 'object' && transfer.data.currency !== null
+          ? (transfer.data.currency as { code: string }).code
+          : transfer.data.currency,
+      });
+    }
+  }, [transfer.data]);
 
   const isReceiver = searchParams.get("receiver") === "true";
 
@@ -29,6 +86,14 @@ export default function Component() {
           <CardDescription className="text-center">
             Select how you&#39;d like to{" "}
             {isReceiver ? "receive your transfer" : "complete your transfer"}
+            {transferData && (
+              <div className="mt-2 font-medium">
+                Amount: ${Number(transferData.amount).toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </div>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-1 space-y-6">

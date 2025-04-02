@@ -14,14 +14,44 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+interface TransferData {
+  id: string;
+  amount: any;
+  recipientName?: string;
+  phoneNumber?: string;
+  country?: string;
+  currency?: string;
+  createdAt?: string;
+}
 
 export default function Component() {
   const searchParams = useSearchParams();
   const { transferId } = useParams();
+  const router = useRouter();
+  const [transferData, setTransferData] = useState<TransferData | null>(null);
+  
+  // Try to get transfer data from localStorage
+  useEffect(() => {
+    try {
+      // Check if we have data in localStorage
+      const storedTransferData = localStorage.getItem('currentTransfer');
+      if (storedTransferData) {
+        const parsedData = JSON.parse(storedTransferData);
+        if (parsedData.id === transferId) {
+          setTransferData(parsedData);
+        }
+      }
+    } catch (error) {
+      console.error("Error retrieving transfer from localStorage:", error);
+    }
+  }, [transferId]);
 
   const transfer = api.stellar.getTransferData.useQuery(
     {
@@ -31,12 +61,38 @@ export default function Component() {
       enabled: !!transferId,
     },
   );
+
+  // Update transferData with API data if available
+  useEffect(() => {
+    if (transfer.data) {
+      console.log("Transfer data from API:", transfer.data);
+      // Convert to the expected format
+      setTransferData({
+        id: transfer.data.id,
+        amount: transfer.data.amount,
+        recipientName: transfer.data.recipientName,
+        phoneNumber: transfer.data.recipientPhone,
+        currency: typeof transfer.data.currency === 'object' && transfer.data.currency !== null
+          ? (transfer.data.currency as { code: string }).code
+          : transfer.data.currency,
+      });
+    }
+  }, [transfer.data]);
+
   const handleCopyCode = () => {
     navigator.clipboard
       .writeText("1234567890")
       .then(() => toast.success("Code copied"))
       .catch(() => toast.error("Failed to copy code"));
   };
+
+  const handlePaymentConfirmed = () => {
+    router.push(`/payment-link/${String(transferId)}/confirm`);
+  };
+
+  // Use data from either the API or localStorage
+  const amount = transfer.data?.amount || transferData?.amount || 0;
+  const recipientName = transfer.data?.recipientName || transferData?.recipientName || 'John Doe';
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
@@ -54,7 +110,7 @@ export default function Component() {
             <h2 className="text-lg font-semibold">Amount to Collect</h2>
             <div className="flex items-center text-2xl font-bold">
               <DollarSign className="mr-1 h-6 w-6" />
-              {Number(transfer?.data?.amount)?.toLocaleString("en-US", {
+              {Number(amount)?.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}{" "}
@@ -79,7 +135,7 @@ export default function Component() {
             <h2 className="text-lg font-semibold">Your Information</h2>
             <div className="space-y-1">
               <p>
-                <span className="text-gray-600">Name:</span> John Smith
+                <span className="text-gray-600">Name:</span> {recipientName}
               </p>
               <p>
                 <span className="text-gray-600">City:</span> New York
@@ -124,15 +180,20 @@ export default function Component() {
           >
             <Button variant="outline">Back</Button>
           </Link>
-          <Link
-            href="https://www.moneygram.com/intl/en/en-locator"
-            target="_blank"
-          >
-            <Button>
-              Find MoneyGram Location
-              <ArrowUpRight className="ml-2 h-4 w-4" />
+          <div className="flex gap-2">
+            <Link
+              href="https://www.moneygram.com/intl/en/en-locator"
+              target="_blank"
+            >
+              <Button variant="outline">
+                Find Location
+                <ArrowUpRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <Button onClick={handlePaymentConfirmed}>
+              Mark as Collected
             </Button>
-          </Link>
+          </div>
         </CardFooter>
       </Card>
     </div>

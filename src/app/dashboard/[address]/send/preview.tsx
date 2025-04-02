@@ -23,7 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Progress } from "~/components/ui/progress";
 import { parsePhoneNumber, formatPhoneNumber, ClientTRPCErrorHandler } from "~/lib/utils";
 import { api } from "~/trpc/react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 
 interface SendPreviewProps {
@@ -58,6 +58,7 @@ export default function SendPreview({
   const [editedPhoneNumber, setEditedPhoneNumber] = useState(phoneNumber);
   const { clickFeedback } = useHapticFeedback();
   const { address } = useParams<{ address: string }>();
+  const router = useRouter();
   
   // OTP verification states
   const [showOtpVerification, setShowOtpVerification] = useState(false);
@@ -370,21 +371,34 @@ export default function SendPreview({
   const processPayment = async () => {
     try {
       // Simulate API call for payment processing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setIsSuccess(true);
       setShowKycVerification(false);
       clickFeedback("success");
-      toast.success("Transfer successful!");
+      toast.success("Transfer initiated!");
       
-      // Wait for animation to complete
-      setTimeout(() => {
-        onSuccess();
-      }, 2000);
+      // Instead of showing success screen, redirect to payment link page
+      if (transferId) {
+        router.push(`/payment-link/${transferId}`);
+      } else {
+        // Generate a fallback transferId if we don't have one
+        const fallbackId = `transfer_${Date.now()}`;
+        localStorage.setItem('currentTransfer', JSON.stringify({
+          id: fallbackId,
+          amount,
+          recipientName,
+          phoneNumber,
+          country,
+          currency,
+          createdAt: new Date().toISOString()
+        }));
+        router.push(`/payment-link/${fallbackId}`);
+      }
     } catch (error) {
       setIsLoading(false);
       clickFeedback("error");
-      toast.error("Failed to send money. Please try again.");
+      toast.error("Failed to process transfer. Please try again.");
     }
   };
 
@@ -431,47 +445,12 @@ export default function SendPreview({
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-light-blue p-4">
         <Card className="w-full max-w-md animate-slide-in">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-              <CheckCircle2 className="h-10 w-10 text-green-600" />
-            </div>
-            <CardTitle className="text-2xl font-bold text-green-600">
-              Transfer Successful!
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
+            <CardTitle className="text-2xl font-bold text-blue-600">
+              Redirecting to payment...
             </CardTitle>
-            <CardDescription className="mt-2">
-              Your payment of {currency.symbol}{amount.toFixed(2)} {currency.code} has been sent to {recipientName}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-lg border border-gray-200 p-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Amount:</span>
-                  <span className="font-semibold">{currency.symbol}{amount.toFixed(2)} {currency.code}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Recipient:</span>
-                  <span className="font-semibold">{recipientName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Country:</span>
-                  <span className="font-semibold">{country}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Phone:</span>
-                  <span className="font-semibold">{phoneNumber}</span>
-                </div>
-              </div>
-            </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button
-              onClick={onSuccess}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-semibold"
-            >
-              Done
-            </Button>
-          </CardFooter>
         </Card>
       </div>
     );

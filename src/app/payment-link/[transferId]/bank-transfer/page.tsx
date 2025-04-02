@@ -21,7 +21,7 @@ import {
 import Link from "next/link";
 import { api } from "~/trpc/react";
 import { ClientTRPCErrorHandler } from "~/lib/utils";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -32,9 +32,40 @@ interface IBank {
     message: "'how' would normally contain a terse explanation for how to deposit the asset with the anchor, and 'extra_info' would provide any additional information.";
   };
 }
+
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+interface TransferData {
+  id: string;
+  amount: any;
+  recipientName?: string;
+  phoneNumber?: string;
+  country?: string;
+  currency?: string;
+  createdAt?: string;
+}
+
 export default function Component() {
   const searchParams = useSearchParams();
   const { transferId } = useParams();
+  const router = useRouter();
+  const [transferData, setTransferData] = useState<TransferData | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Try to get transfer data from localStorage
+  useEffect(() => {
+    try {
+      // Check if we have data in localStorage
+      const storedTransferData = localStorage.getItem('currentTransfer');
+      if (storedTransferData) {
+        const parsedData = JSON.parse(storedTransferData);
+        if (parsedData.id === transferId) {
+          setTransferData(parsedData);
+        }
+      }
+    } catch (error) {
+      console.error("Error retrieving transfer from localStorage:", error);
+    }
+  }, [transferId]);
 
   const transfer = api.stellar.getTransferData.useQuery(
     {
@@ -44,6 +75,24 @@ export default function Component() {
       enabled: !!transferId,
     },
   );
+
+  // Update transferData with API data if available
+  useEffect(() => {
+    if (transfer.data) {
+      console.log("Transfer data from API:", transfer.data);
+      // Convert to the expected format
+      setTransferData({
+        id: transfer.data.id,
+        amount: transfer.data.amount,
+        recipientName: transfer.data.recipientName,
+        phoneNumber: transfer.data.recipientPhone,
+        // Handle case where currency might be a string or an object with code property
+        currency: typeof transfer.data.currency === 'object' && transfer.data.currency !== null
+          ? (transfer.data.currency as { code: string }).code
+          : transfer.data.currency,
+      });
+    }
+  }, [transfer.data]);
 
   const deposit = api.stellar.deposit.useMutation({
     // onError: ClientTRPCErrorHandler,
@@ -57,6 +106,18 @@ export default function Component() {
       deposit.mutate({ transferId });
     }
   }, [transferId]);
+
+  const handlePaymentConfirmation = () => {
+    setIsSubmitting(true);
+    // Simulate API call for payment confirmation
+    setTimeout(() => {
+      setIsSubmitting(false);
+      router.push(`/payment-link/${String(transferId)}/confirm`);
+    }, 1000);
+  };
+
+  // Get amount from either API data or localStorage
+  const amount = transfer.data?.amount || transferData?.amount || 0;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
@@ -74,7 +135,7 @@ export default function Component() {
             <Label htmlFor="amount">Amount to Pay</Label>
             <div className="text-2xl font-bold">
               $
-              {Number(transfer?.data?.amount)?.toLocaleString("en-US", {
+              {Number(amount)?.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}{" "}
@@ -200,12 +261,16 @@ export default function Component() {
           >
             <Button variant="outline">Back</Button>
           </Link>
-          <Link href={`/payment-link/${String(transferId)}/confirm`}>
-            <Button>
-              I&#39;ve Made the Payment
-              <ArrowUpRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+          <Button onClick={handlePaymentConfirmation} disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>Processing...</>
+            ) : (
+              <>
+                I&#39;ve Made the Payment
+                <ArrowUpRight className="ml-2 h-4 w-4" />
+              </>
+            )}
+          </Button>
         </CardFooter>
       </Card>
     </div>
