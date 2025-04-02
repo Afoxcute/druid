@@ -41,12 +41,22 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
+    // Log all server errors to help with debugging
+    if (error.cause) {
+      console.error(`TRPC Error (${error.code}):`, error.message, error.cause);
+    } else {
+      console.error(`TRPC Error (${error.code}):`, error.message);
+    }
+
     return {
       ...shape,
       data: {
         ...shape.data,
         zodError:
           error.cause instanceof ZodError ? error.cause.flatten() : null,
+        // Always ensure we have a valid JSON-serializable error
+        message: error.message,
+        code: error.code
       },
     };
   },

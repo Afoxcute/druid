@@ -25,10 +25,34 @@ const handler = (req: NextRequest) =>
       env.NODE_ENV === "development"
         ? ({ path, error }) => {
             console.error(
-              `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`
+              `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
+              error.cause || ""
             );
           }
         : undefined,
+    responseMeta: () => {
+      // Set proper content type for all responses
+      return {
+        headers: {
+          "content-type": "application/json",
+        },
+      };
+    },
+  }).catch(error => {
+    // Catch any handler errors and return a proper JSON response
+    console.error("Unhandled API error:", error);
+    return new Response(
+      JSON.stringify({
+        message: "An unexpected error occurred",
+        success: false,
+      }),
+      {
+        status: 500,
+        headers: {
+          "content-type": "application/json",
+        },
+      }
+    );
   });
 
 export { handler as GET, handler as POST };

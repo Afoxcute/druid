@@ -72,6 +72,8 @@ export const userRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       try {
         const authService = new AuthService(ctx.db);
+        console.log("Setting PIN for user ID:", Number(input.userId));
+        
         const { success } = await authService.setPin(
           Number(input.userId),
           input.pin,
@@ -80,13 +82,23 @@ export const userRouter = createTRPCRouter({
         console.log("Pin setting result:", success);
         
         if (!success) {
-          return { success: false, message: "Failed to set PIN" };
+          return { 
+            success: false, 
+            message: "Failed to set PIN" 
+          };
         }
         
-        return { success: true, message: "PIN set successfully" };
+        return { 
+          success: true, 
+          message: "PIN set successfully" 
+        };
       } catch (error) {
         console.error("Error in setPin procedure:", error);
-        return { success: false, message: "An unexpected error occurred" };
+        
+        return { 
+          success: false, 
+          message: "An unexpected error occurred while setting PIN" 
+        };
       }
     }),
   validatePin: publicProcedure

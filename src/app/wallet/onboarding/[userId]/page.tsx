@@ -36,6 +36,33 @@ export default function OnboardingMobile() {
 
   // tRPC procedures
   const persistPin = api.users.setPin.useMutation({
+    onSuccess: (data) => {
+      if (!data.success) {
+        setIsLoading(false);
+        setError(data.message || "Failed to save PIN. Please try again.");
+        setShake(true);
+        clickFeedback("error");
+        return;
+      }
+      
+      // Update the local user data
+      try {
+        const userData = localStorage.getItem("auth_user");
+        if (userData) {
+          const user = JSON.parse(userData);
+          user.hasPin = true; // Just flag that user has a pin now
+          localStorage.setItem("auth_user", JSON.stringify(user));
+          console.log("Updated local user data with hasPin flag");
+        }
+      } catch (err) {
+        console.error("Failed to update local user data:", err);
+      }
+      
+      // Show success toast
+      toast.success(data.message || "PIN set successfully!");
+      setIsLoading(false);
+      setStep("passkey");
+    },
     onError: (error) => {
       console.error("Error setting PIN:", error);
       setIsLoading(false);
@@ -69,48 +96,18 @@ export default function OnboardingMobile() {
         setIsLoading(true);
         console.log("Setting PIN for user:", userId);
         
-        persistPin.mutate(
-          {
+        try {
+          persistPin.mutate({
             userId: Number(userId),
             pin: pin,
-          },
-          {
-            onSuccess: (data) => {
-              if (!data.success) {
-                setIsLoading(false);
-                setError(data.message || "Failed to save PIN. Please try again.");
-                setShake(true);
-                clickFeedback("error");
-                return;
-              }
-              
-              // Update the local user data
-              try {
-                const userData = localStorage.getItem("auth_user");
-                if (userData) {
-                  const user = JSON.parse(userData);
-                  user.hasPin = true; // Just flag that user has a pin now
-                  localStorage.setItem("auth_user", JSON.stringify(user));
-                  console.log("Updated local user data with hasPin flag");
-                }
-              } catch (err) {
-                console.error("Failed to update local user data:", err);
-              }
-              
-              // Show success toast
-              toast.success(data.message || "PIN set successfully!");
-              setIsLoading(false);
-              setStep("passkey");
-            },
-            onError: (error) => {
-              console.error("Failed to save PIN:", error);
-              setIsLoading(false);
-              setError(error.message || "Failed to save PIN. Please try again.");
-              setShake(true);
-              clickFeedback("error");
-            }
-          }
-        );
+          });
+        } catch (err) {
+          console.error("Failed to trigger PIN mutation:", err);
+          setIsLoading(false);
+          setError("An unexpected error occurred. Please try again.");
+          setShake(true);
+          clickFeedback("error");
+        }
       } else {
         // PINs don't match
         setShake(true);

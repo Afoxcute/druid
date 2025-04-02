@@ -49,22 +49,28 @@ export class AuthService extends BaseService {
    */
   async setPin(userId: number, pin: string): Promise<{ success: boolean }> {
     try {
+      // Validate inputs
+      if (!userId || !pin) {
+        console.error("Invalid inputs for setPin:", { userId, pinLength: pin?.length });
+        return { success: false };
+      }
+
+      // Generate hashed pin
       const hashedPin = await this.toHash(pin);
 
       // Check if user already has a pin
-      const userWithPin = await this.db.user.count({
-        where: {
-          id: userId,
-          hashedPin: {
-            not: { equals: null },
-          },
-        },
+      const user = await this.db.user.findUnique({
+        where: { id: userId },
+        select: { id: true, hashedPin: true }
       });
+
+      if (!user) {
+        console.error("User not found for setPin:", userId);
+        return { success: false };
+      }
       
-      console.log("userWithPin count:", userWithPin);
-      
-      if (userWithPin !== 0) {
-        console.log("User already has a pin");
+      if (user.hashedPin) {
+        console.log("User already has a pin:", userId);
         return { success: false };
       }
       
@@ -77,7 +83,7 @@ export class AuthService extends BaseService {
       console.log("Pin set successfully for user", userId);
       return { success: true };
     } catch (e) {
-      console.error("Error setting pin:", e);
+      console.error("Error in AuthService.setPin:", e);
       return { success: false };
     }
   }
