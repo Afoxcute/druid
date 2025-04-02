@@ -277,61 +277,113 @@ export const stellarRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const transfer = await ctx.db.transfer.findUnique({
-        where: { id: input.transferId },
-      });
-      if (!transfer) {
-        throw new TRPCError({
-          message: "Transfer not found",
-          code: "INTERNAL_SERVER_ERROR",
+      try {
+        const transfer = await ctx.db.transfer.findUnique({
+          where: { id: input.transferId },
         });
-      }
-      let authSessionId = transfer.senderAuthSessionId;
-      if (input.type === "receiver") {
-        authSessionId = transfer.receiverAuthSessionId;
-      }
+        if (!transfer) {
+          throw new TRPCError({
+            message: "Transfer not found",
+            code: "NOT_FOUND",
+          });
+        }
+        let authSessionId = transfer.senderAuthSessionId;
+        if (input.type === "receiver") {
+          authSessionId = transfer.receiverAuthSessionId;
+        }
 
-      if (!authSessionId) {
-        throw new TRPCError({
-          message: "Transfer is not associated with an auth session",
-          code: "INTERNAL_SERVER_ERROR",
+        if (!authSessionId) {
+          throw new TRPCError({
+            message: "Transfer is not associated with an auth session",
+            code: "BAD_REQUEST",
+          });
+        }
+        const authSession = await ctx.db.authSession.findUnique({
+          where: { id: authSessionId },
         });
-      }
-      const authSession = await ctx.db.authSession.findUniqueOrThrow({
-        where: { id: authSessionId },
-      });
+        
+        if (!authSession) {
+          throw new TRPCError({
+            message: "Auth session not found",
+            code: "NOT_FOUND",
+          });
+        }
 
-      const kycEntry = await ctx.db.kYC.findFirst({
-        where: {
-          authSessionId: authSessionId,
-          userId: authSession.userId,
-        },
-      });
+        if (!authSession.token) {
+          throw new TRPCError({
+            message: "Auth session has no token",
+            code: "UNAUTHORIZED",
+          });
+        }
 
-      if (kycEntry?.sep12Id) {
-        Object.assign(input.fields, {
-          id: kycEntry.sep12Id,
-        });
-      }
-
-      const sep12 = new Sep12("testanchor.stellar.org");
-      const { id } = await sep12.putSep12Fields({
-        authToken: String(authSession.token),
-        fields: input.fields,
-      });
-
-      if (!kycEntry?.sep12Id) {
-        await ctx.db.kYC.create({
-          data: {
+        const kycEntry = await ctx.db.kYC.findFirst({
+          where: {
+            authSessionId: authSessionId,
             userId: authSession.userId,
-            authSessionId: authSession.id,
-            sep12Id: id,
-            status: "submitted",
           },
         });
-      }
 
-      return id;
+        // For development environment, skip actual API calls
+        if (process.env.NODE_ENV === 'development' && process.env.MOCK_KYC === 'true') {
+          const mockId = kycEntry?.sep12Id || `mock-sep12-${Date.now()}`;
+          
+          if (!kycEntry?.sep12Id) {
+            await ctx.db.kYC.create({
+              data: {
+                userId: authSession.userId,
+                authSessionId: authSession.id,
+                sep12Id: mockId,
+                status: "submitted",
+              },
+            });
+          }
+          
+          return mockId;
+        }
+
+        // Add the existing ID if we have one
+        const fieldsToSubmit = {...input.fields};
+        if (kycEntry?.sep12Id) {
+          Object.assign(fieldsToSubmit, {
+            id: kycEntry.sep12Id,
+          });
+        }
+
+        const sep12 = new Sep12("testanchor.stellar.org");
+        const { id } = await sep12.putSep12Fields({
+          authToken: String(authSession.token),
+          fields: fieldsToSubmit,
+        });
+
+        if (!kycEntry?.sep12Id) {
+          await ctx.db.kYC.create({
+            data: {
+              userId: authSession.userId,
+              authSessionId: authSession.id,
+              sep12Id: id,
+              status: "submitted",
+            },
+          });
+        }
+
+        return id;
+      } catch (e) {
+        console.error("KYC submission error:", e);
+        if (e instanceof TRPCError) {
+          throw e;
+        }
+        
+        // If we're in development mode and mocking is allowed, return a mock ID
+        if (process.env.NODE_ENV === 'development' && process.env.MOCK_KYC === 'true') {
+          return `mock-sep12-${Date.now()}`;
+        }
+        
+        throw new TRPCError({
+          message: "Failed to submit KYC information",
+          code: "INTERNAL_SERVER_ERROR",
+          cause: e,
+        });
+      }
     }),
   kycFileConfig: publicProcedure
     .input(
@@ -341,56 +393,103 @@ export const stellarRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      try{const transfer = await ctx.db.transfer.findUnique({
-        where: { id: input.transferId },
-      });
-      if (!transfer) {
-        throw new TRPCError({
-          message: "Transfer not found",
-          code: "INTERNAL_SERVER_ERROR",
+      try {
+        const transfer = await ctx.db.transfer.findUnique({
+          where: { id: input.transferId },
         });
-      }
-      let authSessionId = transfer.senderAuthSessionId;
-      if (input.type === "receiver") {
-        authSessionId = transfer.receiverAuthSessionId;
-      }
+        if (!transfer) {
+          throw new TRPCError({
+            message: "Transfer not found",
+            code: "NOT_FOUND",
+          });
+        }
+        let authSessionId = transfer.senderAuthSessionId;
+        if (input.type === "receiver") {
+          authSessionId = transfer.receiverAuthSessionId;
+        }
 
-      if (!authSessionId) {
-        throw new TRPCError({
-          message: "Transfer is not associated with an auth session",
-          code: "INTERNAL_SERVER_ERROR",
+        if (!authSessionId) {
+          throw new TRPCError({
+            message: "Transfer is not associated with an auth session",
+            code: "BAD_REQUEST",
+          });
+        }
+        
+        const authSession = await ctx.db.authSession.findUnique({
+          where: { id: authSessionId },
         });
-      }
-      console.log("authSessionId", authSessionId);
-      const authSession = await ctx.db.authSession.findUniqueOrThrow({
-        where: { id: authSessionId },
-      });
+        
+        if (!authSession) {
+          throw new TRPCError({
+            message: "Auth session not found",
+            code: "NOT_FOUND",
+          });
+        }
 
-      console.log("authSession", authSession);
-      const kycEntry = await ctx.db.kYC.findFirst({
-        where: {
-          authSessionId: authSessionId,
-          userId: authSession.userId,
-        },
-      });
-      console.log("kycEntry", kycEntry);
+        if (!authSession.token) {
+          throw new TRPCError({
+            message: "Auth session has no token",
+            code: "UNAUTHORIZED",
+          });
+        }
 
-      if (!kycEntry?.sep12Id) {
-        throw new TRPCError({
-          message: "KYC not submitted",
-          code: "INTERNAL_SERVER_ERROR",
+        const kycEntry = await ctx.db.kYC.findFirst({
+          where: {
+            authSessionId: authSessionId,
+            userId: authSession.userId,
+          },
         });
-      }
+        
+        // For development environment, return dummy URL and config
+        if (process.env.NODE_ENV === 'development' && process.env.MOCK_KYC === 'true') {
+          return { 
+            url: "https://example.com/mock-kyc-upload", 
+            config: {
+              headers: {
+                "Content-Type": "multipart/form-data",
+                Authorization: "Bearer mock-token"
+              }
+            } 
+          };
+        }
 
-      const sep12 = new Sep12("testanchor.stellar.org");
-      const { url, config } = await sep12.getKYCRequestConfigForFiles({
-        authToken: String(authSession.token),
-      });
+        if (!kycEntry?.sep12Id) {
+          throw new TRPCError({
+            message: "KYC not submitted, please submit KYC information first",
+            code: "BAD_REQUEST",
+          });
+        }
 
-      return { url, config };
-    }catch(e){
-      console.error(e);
-      return { url: "", config: {} };
+        const sep12 = new Sep12("testanchor.stellar.org");
+        const { url, config } = await sep12.getKYCRequestConfigForFiles({
+          authToken: String(authSession.token),
+        });
+
+        return { url, config };
+      } catch (e) {
+        console.error("KYC file config error:", e);
+        if (e instanceof TRPCError) {
+          throw e;
+        }
+        
+        // If we're in development mode and mocking is allowed, return a mock config
+        if (process.env.NODE_ENV === 'development' && process.env.MOCK_KYC === 'true') {
+          return { 
+            url: "https://example.com/mock-kyc-upload", 
+            config: {
+              headers: {
+                "Content-Type": "multipart/form-data",
+                Authorization: "Bearer mock-token"
+              }
+            } 
+          };
+        }
+        
+        throw new TRPCError({
+          message: "Failed to get KYC file upload configuration",
+          code: "INTERNAL_SERVER_ERROR",
+          cause: e,
+        });
       }
     }),
   linkAuthSession: publicProcedure

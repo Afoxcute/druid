@@ -114,11 +114,17 @@ export default function SendPreview({
   
   // KYC mutations
   const putKyc = api.stellar.kyc.useMutation({
-    onError: ClientTRPCErrorHandler,
+    onError: (error) => {
+      console.error("KYC submission error:", error);
+      // Don't show error to the user yet, as we'll handle it in the try/catch
+    }
   });
   
   const kycFileConfig = api.stellar.kycFileConfig.useMutation({
-    onError: ClientTRPCErrorHandler,
+    onError: (error) => {
+      console.error("KYC file config error:", error);
+      // Don't show error to the user yet, as we'll handle it in the try/catch
+    }
   });
   
   // Initialize KYC verification process
@@ -171,24 +177,53 @@ export default function SendPreview({
       try {
         const { photo_id_front, photo_id_back, ...stringFields } = kycFormData;
         
-        // Submit basic KYC info
-        const sep12Id = await putKyc.mutateAsync({
-          type: "sender",
-          transferId: transferId,
-          fields: stringFields,
-        });
+        // Check if we're in development mode for easier testing
+        const isDev = process.env.NODE_ENV === 'development';
         
-        // Get file upload config
-        const { url, config } = await kycFileConfig.mutateAsync({
-          type: "sender",
-          transferId: transferId,
-        });
+        let sep12Id;
+        try {
+          // Submit basic KYC info
+          sep12Id = await putKyc.mutateAsync({
+            type: "sender",
+            transferId: transferId,
+            fields: stringFields,
+          });
+        } catch (error) {
+          console.error("Failed to submit KYC info:", error);
+          if (isDev) {
+            // In development mode, continue with a mock ID
+            console.log("DEV MODE: Using mock sep12Id");
+            sep12Id = "mock-sep12-id";
+          } else {
+            throw error;
+          }
+        }
+        
+        let fileUploadConfig;
+        try {
+          // Get file upload config
+          fileUploadConfig = await kycFileConfig.mutateAsync({
+            type: "sender",
+            transferId: transferId,
+          });
+        } catch (error) {
+          console.error("Failed to get file upload config:", error);
+          if (isDev) {
+            // In development mode, skip file upload
+            console.log("DEV MODE: Skipping file upload");
+            // Proceed to payment processing
+            processPayment();
+            return;
+          } else {
+            throw error;
+          }
+        }
         
         // Upload ID documents
-        if (url && config) {
+        if (fileUploadConfig?.url && fileUploadConfig?.config) {
           const formData = new FormData();
           if (sep12Id) {
-            formData.append("id", sep12Id);
+            formData.append("id", String(sep12Id));
           }
           if (photo_id_front) {
             formData.append("photo_id_front", photo_id_front);
@@ -197,7 +232,17 @@ export default function SendPreview({
             formData.append("photo_id_back", photo_id_back);
           }
           
-          await axios.put(url, formData, config);
+          try {
+            await axios.put(fileUploadConfig.url, formData, fileUploadConfig.config);
+          } catch (error) {
+            console.error("Failed to upload ID documents:", error);
+            if (isDev) {
+              // In development mode, continue even if file upload fails
+              console.log("DEV MODE: Ignoring file upload failure");
+            } else {
+              throw error;
+            }
+          }
         }
         
         // KYC successful, proceed to payment processing
