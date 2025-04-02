@@ -149,7 +149,7 @@ export default function Component() {
           </div>
           <div className="space-y-2">
             <Label>Recipient Information</Label>
-            <p className="text-sm">Name: [Fake bank] ACME Financial Services</p>
+            <p className="text-sm">Name:  ACME Financial Services</p>
             <p className="text-sm">City: New York</p>
             <p className="text-sm">Country: United States</p>
           </div>
