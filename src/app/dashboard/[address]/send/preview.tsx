@@ -3,13 +3,28 @@
 import { useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "~/components/ui/card";
-import { ArrowLeft, CheckCircle2, Loader2, Send, Edit2, ShieldCheck } from "lucide-react";
+import { 
+  ArrowLeft, 
+  CheckCircle2, 
+  Loader2, 
+  Send, 
+  Edit2, 
+  ShieldCheck, 
+  Upload, 
+  ArrowRight, 
+  ChevronLeft,
+  AlertCircle 
+} from "lucide-react";
 import { useHapticFeedback } from "~/hooks/useHapticFeedback";
 import { toast } from "react-hot-toast";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { parsePhoneNumber, formatPhoneNumber } from "~/lib/utils";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { Progress } from "~/components/ui/progress";
+import { parsePhoneNumber, formatPhoneNumber, ClientTRPCErrorHandler } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { useParams } from "next/navigation";
+import axios from "axios";
 
 interface SendPreviewProps {
   amount: number;
@@ -42,12 +57,27 @@ export default function SendPreview({
   const [editedCountry, setEditedCountry] = useState(country);
   const [editedPhoneNumber, setEditedPhoneNumber] = useState(phoneNumber);
   const { clickFeedback } = useHapticFeedback();
+  const { address } = useParams<{ address: string }>();
   
   // OTP verification states
   const [showOtpVerification, setShowOtpVerification] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [isResendingOtp, setIsResendingOtp] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
+  
+  // KYC verification states
+  const [showKycVerification, setShowKycVerification] = useState(false);
+  const [transferId, setTransferId] = useState<string>("");
+  const [kycStep, setKycStep] = useState(0);
+  const [kycSteps] = useState(["Personal Information", "Photo ID"]);
+  const [kycFormData, setKycFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email_address: "",
+    photo_id_front: null as File | null,
+    photo_id_back: null as File | null,
+  });
+  const [kycError, setKycError] = useState("");
   
   // TRPC mutations for OTP
   const sendOtpMutation = api.post.otp.useMutation({
@@ -73,13 +103,117 @@ export default function SendPreview({
   const verifyOtpMutation = api.post.verifyOtp.useMutation({
     onSuccess: () => {
       toast.success("Phone verified successfully");
-      processPayment();
+      // After OTP is verified, show KYC verification
+      initializeKycVerification();
     },
     onError: (error) => {
       setIsLoading(false);
       toast.error(`Verification failed: ${error.message}`);
     }
   });
+  
+  // KYC mutations
+  const putKyc = api.stellar.kyc.useMutation({
+    onError: ClientTRPCErrorHandler,
+  });
+  
+  const kycFileConfig = api.stellar.kycFileConfig.useMutation({
+    onError: ClientTRPCErrorHandler,
+  });
+  
+  // Initialize KYC verification process
+  const initializeKycVerification = () => {
+    // Generate a transfer ID (in a real app, this would come from your backend)
+    const newTransferId = `transfer_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    setTransferId(newTransferId);
+    setShowKycVerification(true);
+    setShowOtpVerification(false);
+    setIsLoading(false);
+  };
+  
+  const handleKycChange = (name: string, value: string | File | null) => {
+    setKycFormData({ ...kycFormData, [name]: value });
+  };
+
+  const handleKycFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    fieldName: string,
+  ) => {
+    const file = event.target.files?.[0] ?? null;
+    handleKycChange(fieldName, file);
+  };
+  
+  const handleKycSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clickFeedback();
+    setKycError("");
+
+    if (kycStep === 0) {
+      if (
+        !kycFormData.first_name ||
+        !kycFormData.last_name ||
+        !kycFormData.email_address
+      ) {
+        setKycError("Please fill in all personal information fields.");
+        return;
+      }
+    } else if (kycStep === 1) {
+      if (!kycFormData.photo_id_front) {
+        setKycError("Please upload the front of your photo ID.");
+        return;
+      }
+    }
+
+    if (kycStep < kycSteps.length - 1) {
+      setKycStep(kycStep + 1);
+    } else {
+      setIsLoading(true);
+      try {
+        const { photo_id_front, photo_id_back, ...stringFields } = kycFormData;
+        
+        // Submit basic KYC info
+        const sep12Id = await putKyc.mutateAsync({
+          type: "sender",
+          transferId: transferId,
+          fields: stringFields,
+        });
+        
+        // Get file upload config
+        const { url, config } = await kycFileConfig.mutateAsync({
+          type: "sender",
+          transferId: transferId,
+        });
+        
+        // Upload ID documents
+        if (url && config) {
+          const formData = new FormData();
+          if (sep12Id) {
+            formData.append("id", sep12Id);
+          }
+          if (photo_id_front) {
+            formData.append("photo_id_front", photo_id_front);
+          }
+          if (photo_id_back) {
+            formData.append("photo_id_back", photo_id_back);
+          }
+          
+          await axios.put(url, formData, config);
+        }
+        
+        // KYC successful, proceed to payment processing
+        processPayment();
+      } catch (error) {
+        setIsLoading(false);
+        if (error instanceof Error) {
+          setKycError(error.message);
+          toast.error("Error submitting verification documents");
+        } else {
+          setKycError("An unknown error occurred");
+          toast.error("Something went wrong");
+        }
+      }
+    }
+  };
 
   const handleInitiateVerification = async () => {
     try {
@@ -136,6 +270,7 @@ export default function SendPreview({
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       setIsSuccess(true);
+      setShowKycVerification(false);
       clickFeedback("success");
       toast.success("Transfer successful!");
       
@@ -158,6 +293,16 @@ export default function SendPreview({
   };
 
   const handleBack = () => {
+    if (showKycVerification) {
+      if (kycStep > 0) {
+        setKycStep(kycStep - 1);
+      } else {
+        setShowKycVerification(false);
+        setShowOtpVerification(true);
+      }
+      return;
+    }
+    
     if (showOtpVerification) {
       setShowOtpVerification(false);
       return;
@@ -223,6 +368,170 @@ export default function SendPreview({
             >
               Done
             </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+  
+  if (showKycVerification) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-light-blue p-4">
+        <Card className="w-full max-w-md animate-slide-in">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-blue-600">
+              Account Verification
+            </CardTitle>
+            <CardDescription>
+              We need to validate your identity to complete the transfer.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4">
+              <Progress
+                value={((kycStep + 1) / kycSteps.length) * 100}
+                className="w-full"
+              />
+            </div>
+            <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+              {kycStep === 0 && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name">First Name</Label>
+                    <Input
+                      id="first_name"
+                      name="first_name"
+                      placeholder="John"
+                      onChange={(e) => handleKycChange("first_name", e.target.value)}
+                      value={kycFormData.first_name}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name">Last Name</Label>
+                    <Input
+                      id="last_name"
+                      name="last_name"
+                      placeholder="Doe"
+                      onChange={(e) => handleKycChange("last_name", e.target.value)}
+                      value={kycFormData.last_name}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email_address">Email Address</Label>
+                    <Input
+                      id="email_address"
+                      name="email_address"
+                      type="email"
+                      placeholder="john.doe@example.com"
+                      onChange={(e) =>
+                        handleKycChange("email_address", e.target.value)
+                      }
+                      value={kycFormData.email_address}
+                      required
+                    />
+                  </div>
+                </>
+              )}
+              {kycStep === 1 && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="photo_id_front">Photo ID Front</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        id="photo_id_front"
+                        name="photo_id_front"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleKycFileChange(e, "photo_id_front")}
+                        className="hidden"
+                      />
+                      <Label
+                        htmlFor="photo_id_front"
+                        className="flex h-32 w-full cursor-pointer appearance-none items-center justify-center rounded-md border-2 border-dashed border-gray-300 bg-white px-4 transition hover:border-gray-400 focus:outline-none"
+                      >
+                        <span className="flex items-center space-x-2">
+                          <Upload className="h-6 w-6 text-gray-600" />
+                          <span className="font-medium text-gray-600">
+                            {kycFormData.photo_id_front
+                              ? kycFormData.photo_id_front.name
+                              : "Click to upload front of ID"}
+                          </span>
+                        </span>
+                      </Label>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="photo_id_back">
+                      Photo ID Back (Optional)
+                    </Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        id="photo_id_back"
+                        name="photo_id_back"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleKycFileChange(e, "photo_id_back")}
+                        className="hidden"
+                      />
+                      <Label
+                        htmlFor="photo_id_back"
+                        className="flex h-32 w-full cursor-pointer appearance-none items-center justify-center rounded-md border-2 border-dashed border-gray-300 bg-white px-4 transition hover:border-gray-400 focus:outline-none"
+                      >
+                        <span className="flex items-center space-x-2">
+                          <Upload className="h-6 w-6 text-gray-600" />
+                          <span className="font-medium text-gray-600">
+                            {kycFormData.photo_id_back
+                              ? kycFormData.photo_id_back.name
+                              : "Click to upload back of ID (Optional)"}
+                          </span>
+                        </span>
+                      </Label>
+                    </div>
+                  </div>
+                </>
+              )}
+              {kycError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{kycError}</AlertDescription>
+                </Alert>
+              )}
+            </form>
+          </CardContent>
+          <CardFooter className="flex flex-col">
+            <div className="flex w-full items-center justify-between">
+              {kycStep > 0 ? (
+                <Button variant="outline" onClick={() => setKycStep(kycStep - 1)}>
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+              ) : (
+                <Button variant="outline" onClick={handleBack}>
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+              )}
+              <Button
+                disabled={isLoading}
+                className="ml-4 flex-1"
+                onClick={handleKycSubmit}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    {kycStep === kycSteps.length - 1 ? "Complete verification" : "Next"}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
           </CardFooter>
         </Card>
       </div>
@@ -296,7 +605,7 @@ export default function SendPreview({
                   Verifying...
                 </>
               ) : (
-                "Verify & Send"
+                "Verify & Continue"
               )}
             </Button>
           </CardContent>
