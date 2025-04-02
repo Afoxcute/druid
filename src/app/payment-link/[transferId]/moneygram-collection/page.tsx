@@ -79,9 +79,55 @@ export default function Component() {
     }
   }, [transfer.data]);
 
+  // Use data from either the API or localStorage
+  const amount = transfer.data?.amount || transferData?.amount || 0;
+  const recipientName = transfer.data?.recipientName || transferData?.recipientName || 'John Doe';
+
+  // Generate a random collection code (10 characters: 2 letters + 8 numbers)
+  const generateCollectionCode = () => {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const prefix = letters.charAt(Math.floor(Math.random() * letters.length)) + 
+                  letters.charAt(Math.floor(Math.random() * letters.length));
+    const numbers = Math.floor(10000000 + Math.random() * 90000000).toString();
+    return prefix + numbers;
+  };
+
+  // List of popular MoneyGram partner locations/banks
+  const moneyGramPartners = [
+    "Walmart",
+    "CVS Pharmacy",
+    "7-Eleven",
+    "Kroger",
+    "Walgreens",
+    "ACE Cash Express",
+    "Albertsons",
+    "Advance America",
+    "Rite Aid",
+    "United States Postal Service",
+    "Western Union",
+    "Bank of America",
+    "Wells Fargo",
+    "Chase Bank",
+    "Citibank"
+  ];
+
+  // Generate a random collection code
+  const collectionCode = generateCollectionCode();
+  
+  // Select random partner locations
+  const randomPartner1 = moneyGramPartners[Math.floor(Math.random() * moneyGramPartners.length)];
+  let randomPartner2 = moneyGramPartners[Math.floor(Math.random() * moneyGramPartners.length)];
+  while (randomPartner2 === randomPartner1) {
+    randomPartner2 = moneyGramPartners[Math.floor(Math.random() * moneyGramPartners.length)];
+  }
+  let randomPartner3 = moneyGramPartners[Math.floor(Math.random() * moneyGramPartners.length)];
+  while (randomPartner3 === randomPartner1 || randomPartner3 === randomPartner2) {
+    randomPartner3 = moneyGramPartners[Math.floor(Math.random() * moneyGramPartners.length)];
+  }
+
   const handleCopyCode = () => {
     navigator.clipboard
-      .writeText("1234567890")
+      .writeText(collectionCode)
       .then(() => toast.success("Code copied"))
       .catch(() => toast.error("Failed to copy code"));
   };
@@ -89,10 +135,6 @@ export default function Component() {
   const handlePaymentConfirmed = () => {
     router.push(`/payment-link/${String(transferId)}/confirm`);
   };
-
-  // Use data from either the API or localStorage
-  const amount = transfer.data?.amount || transferData?.amount || 0;
-  const recipientName = transfer.data?.recipientName || transferData?.recipientName || 'John Doe';
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
@@ -122,7 +164,7 @@ export default function Component() {
             <h2 className="text-lg font-semibold">Collection Code</h2>
             <div className="flex items-center gap-2">
               <div className="flex-1 rounded-lg bg-gray-50 p-3 font-mono text-lg">
-                1234567890
+                {collectionCode}
               </div>
               <Button variant="outline" size="icon" onClick={handleCopyCode}>
                 <Copy className="h-4 w-4" />
@@ -162,6 +204,24 @@ export default function Component() {
               <li>Show your ID for verification</li>
               <li>Receive your cash and keep the receipt</li>
             </ol>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Nearby MoneyGram Locations</h2>
+            <div className="space-y-2">
+              <div className="rounded-md border p-3">
+                <div className="font-medium">{randomPartner1}</div>
+                <div className="text-sm text-gray-500">1.2 miles away • Open until 9PM</div>
+              </div>
+              <div className="rounded-md border p-3">
+                <div className="font-medium">{randomPartner2}</div>
+                <div className="text-sm text-gray-500">2.4 miles away • Open until 10PM</div>
+              </div>
+              <div className="rounded-md border p-3">
+                <div className="font-medium">{randomPartner3}</div>
+                <div className="text-sm text-gray-500">3.1 miles away • Open until 8PM</div>
+              </div>
+            </div>
           </div>
 
           <div className="rounded-lg border border-[#3390EC] bg-[#E7F3FF] p-4">
