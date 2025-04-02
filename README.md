@@ -101,6 +101,12 @@ Druid is a modern financial application that bridges traditional banking with bl
 - **Soroban**: Smart contract platform
 - **SACClient**: Stellar Asset Contract client
 
+### ZK Verification Integration
+- **Self Protocol**: Privacy-preserving passport verification via Zero-Knowledge proofs
+- **Front-end SDK**: QR code generation for verification requests
+- **Back-end SDK**: Verification of ZK proofs with customizable compliance rules
+- **OFAC Compliance**: Built-in screening while preserving user privacy
+
 ### Environment Configuration
 - Type-safe environment variables via `@t3-oss/env-nextjs`
 - Configuration for both server and client
@@ -138,13 +144,90 @@ Druid is a modern financial application that bridges traditional banking with bl
 
 ### Environment Setup
 1. Clone the repository
-2. Copy `.env.example` to `.env` and configure:
-   ```
-   DATABASE_URL="postgres://postgres:postgres@localhost:5432/druid_db"
-   DIRECT_URL="postgres://postgres:postgres@localhost:5432/druid_db"
-   NEXT_PUBLIC_RPC_URL="https://soroban-testnet.stellar.org"
-   NEXT_PUBLIC_NETWORK_PASSPHRASE="Test SDF Network ; September 2015"
-   ```
+2. Copy `.env.example` to `.env` and configure the following environment variables:
+
+```bash
+# Database Configuration
+DATABASE_URL="postgres://<username>:<password>@<host>:<port>/<database>?sslmode=require"
+DIRECT_URL="postgres://<username>:<password>@<host>:<port>/<database>?sslmode=require"
+
+# Node Environment
+NODE_ENV="development"  # Options: development, test, production
+
+# Stellar/Anchor API Configuration
+ANCHOR_API_BASE_URL="http://extmgxanchor.moneygram.com/"
+ANCHOR_API_TOKEN="your_anchor_api_token"
+STELLAR_HORIZON_URL="https://horizon-testnet.stellar.org"
+
+# Smart Contract Configuration
+ESCROW_CONTRACT_ADDRESS="CC3CFRC6ZLWPG3M6JJSUMY3L7MYA34R3QK3VES7LHHWUFMW7YRWW4ZBL"
+RPC_URL="https://soroban-testnet.stellar.org"
+DRUID_DISTRIBUTOR_PUBLIC_KEY="GDUZK2USSJJPMDFIT65VXR3JTU3QDONTXTTGK4H4B4Z2ZD7QWAUUGAXN"
+DRUID_DISTRIBUTOR_SECRET_KEY="your_secret_key"
+NATIVE_CONTRACT_ID="CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47BEA6SLY2MIGWXMRQ6GU5"
+USDC_SAC="CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+SRT_ASSET_ID="GCDNJUBQSX7AJWLJACMJ7I4BC3Z47BQUTMHEICZLE6MU4KQBRYG5JY6B"
+
+# Passkey Service URLs
+LAUNCHTUBE_URL="https://testnet.launchtube.xyz"
+MERCURYT_URL="https://api.mercurydata.app"
+LAUNCHETUBE_JWT="your_launchetube_jwt"
+MERCURY_JWT="your_mercury_jwt"
+
+# SMS & Authentication Configuration
+ENABLE_SMS="true"
+SALT_ROUNDS="10"
+MOCK_KYC="true"  # Set to true to bypass actual KYC API calls in development
+TWILIO_ACCOUNT_SID="your_twilio_account_sid"  # Required if ENABLE_SMS is true
+TWILIO_AUTH_TOKEN="your_twilio_auth_token"    # Required if ENABLE_SMS is true
+TWILIO_PHONE_NUMBER="your_twilio_phone_number"  # Required if ENABLE_SMS is true
+
+# Client-Side Environment Variables (prefixed with NEXT_PUBLIC_)
+NEXT_PUBLIC_RPC_URL="https://soroban-testnet.stellar.org"
+NEXT_PUBLIC_FACTORY_CONTRACT_ID="your_factory_contract_id"
+NEXT_PUBLIC_NATIVE_CONTRACT_ID="CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47BEA6SLY2MIGWXMRQ6GU5"
+NEXT_PUBLIC_NETWORK_PASSPHRASE="Test SDF Network ; September 2015"
+NEXT_PUBLIC_APP_URL="https://your-app-url.com"
+NEXT_PUBLIC_PUSHER_APP_KEY="your_pusher_app_key"  # Required for real-time features
+```
+
+#### Environment Variables Explanation
+
+1. **Database Configuration**
+   - `DATABASE_URL` & `DIRECT_URL`: PostgreSQL connection strings for Prisma
+   
+2. **Stellar Integration**
+   - `STELLAR_HORIZON_URL`: URL for Stellar Horizon API
+   - `RPC_URL`: URL for Soroban RPC
+   - `NEXT_PUBLIC_NETWORK_PASSPHRASE`: Stellar network identifier
+   - `ESCROW_CONTRACT_ADDRESS`: Address of the escrow smart contract
+   - `NATIVE_CONTRACT_ID` & `NEXT_PUBLIC_NATIVE_CONTRACT_ID`: Contract ID for native asset operations
+   - `DRUID_DISTRIBUTOR_PUBLIC_KEY` & `DRUID_DISTRIBUTOR_SECRET_KEY`: Keys for the distributor account
+   
+3. **Passkey Authentication**
+   - `LAUNCHTUBE_URL` & `LAUNCHETUBE_JWT`: For passkey registration
+   - `MERCURYT_URL` & `MERCURY_JWT`: For Mercury data API
+   - `NEXT_PUBLIC_FACTORY_CONTRACT_ID`: Contract ID for passkey factory
+   
+4. **SMS & Authentication**
+   - `ENABLE_SMS`: Toggle SMS functionality
+   - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`: Twilio credentials for SMS
+   - `SALT_ROUNDS`: Security parameter for password hashing
+   - `MOCK_KYC`: Toggle to bypass real KYC checks in development
+
+5. **Anchor Integration**
+   - `ANCHOR_API_BASE_URL` & `ANCHOR_API_TOKEN`: For connecting to the Stellar Anchor
+   - `SRT_ASSET_ID`: Asset ID for SRT token
+   - `USDC_SAC`: Stellar Asset Contract for USDC
+
+6. **Self Protocol Integration** (Coming Soon)
+   - Front-end: `npm install @selfxyz/qrcode` or `yarn add @selfxyz/qrcode`
+   - Back-end: `npm install @selfxyz/core` or `yarn add @selfxyz/core`
+   - Required environment variables will include:
+     ```
+     CELO_RPC_URL=https://forno.celo.org
+     SCOPE=druid-app-verification
+     ```
 
 ### Installation Steps
 ```bash
@@ -196,6 +279,7 @@ yarn start
 - PIN and biometric verification for transactions
 - Passkey support for passwordless authentication
 - Stellar blockchain for secure transaction records
+- ZK Self verification for privacy-preserving identity verification
 
 ## Technical Innovation
 
@@ -216,6 +300,7 @@ yarn start
 - **Smart Contract Implementation**: Leveraging Soroban for programmable financial logic
 - **Trustless Operations**: Implementing escrow services without centralized authority
 - **Cross-border Capabilities**: Facilitating international transfers with minimal friction
+- **Zero-Knowledge Proofs**: Utilizing Self protocol for privacy-preserving identity verification
 
 ## Real-World Impact
 
@@ -236,6 +321,7 @@ yarn start
 - **Target Market**: Clear focus on both banked and underbanked populations
 - **Revenue Model**: Sustainable fee structure with growth opportunities
 - **Regulatory Compliance**: Built with KYC/AML considerations from the ground up
+- **Privacy-Preserving Verification**: Using ZK proofs via Self protocol for compliant yet private identity verification
 
 ## User Experience
 
@@ -308,6 +394,7 @@ yarn start
 ### Q3-Q4 2024 (Planned)
 - **Soroban Escrow Contract Integration**: Implementing trustless escrow services using Soroban smart contracts
 - **Buy Now, Pay Later (BNPL) Service**: Introducing BNPL functionality allowing users to split payments into installments with transparent terms
+- **ZK Self Protocol Integration**: Implementing privacy-preserving identity verification using Zero-Knowledge proofs via Self protocol
 - Mobile application development
 - Merchant payment solutions
 - Enhanced notification system
@@ -315,6 +402,7 @@ yarn start
 ### 2025 (Future)
 - **AI-Powered Financial Assistant**: Integration of AI prompts to help users with financial decisions and transaction analysis
 - **Voice Command System**: Implementation of voice prompts for hands-free operation and accessibility
+- **Advanced ZK Verification Features**: Expanding Self protocol integration with additional identity verification options
 - International expansion
 - DeFi features and services
 - Cross-chain integration

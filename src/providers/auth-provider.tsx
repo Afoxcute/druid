@@ -89,7 +89,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             },
           });
           
-          if (!response.ok) {
+          if (response.ok) {
             console.error('HTTP error from users.getUserByEmail:', response.status);
             console.error('Response:', await response.text());
             throw new Error(`HTTP error! status: ${response.status}`);
