@@ -376,8 +376,6 @@ NEXT_PUBLIC_PUSHER_APP_KEY="your_pusher_app_key"  # Required for real-time featu
    
 4. **SMS & Authentication**
    - `ENABLE_SMS`: Toggle SMS functionality
-     - When set to `"false"`, the system will use a hardcoded OTP code "980433" for all verifications
-     - When set to `"true"`, SMS will be sent via Twilio
    - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`: Twilio credentials for SMS
    - `SALT_ROUNDS`: Security parameter for password hashing
    - `MOCK_KYC`: Toggle to bypass real KYC checks in development

@@ -107,7 +107,7 @@ export default function Component() {
             >
               <Banknote className="h-6 w-6" />
               <div className="text-left">
-                <h3 className="text-base sm:text-lg font-semibold">Bank Transfer</h3>
+                <h3 className="font-semibold text-base sm:text-lg">Bank Transfer</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground">
                   {isReceiver
                     ? "Receive funds directly to your bank account"
@@ -126,7 +126,7 @@ export default function Component() {
             >
               <Banknote className="h-6 w-6" />
               <div className="text-left">
-                <h3 className="text-base sm:text-lg font-semibold">
+                <h3 className="font-semibold text-base sm:text-lg">
                   Cash {isReceiver ? "Collection" : "Payment"}
                   <Badge
                     className="ml-2 border-none bg-gradient-to-br from-[#3390EC] to-blue-300"

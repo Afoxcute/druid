@@ -53,12 +53,9 @@ export const postRouter = createTRPCRouter({
     .input(z.object({ phone: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        // Generate OTP code - use a fixed code in development for easier testing or when SMS is disabled
+        // Generate OTP code - use a fixed code in development for easier testing
         const isDev = process.env.NODE_ENV === 'development';
-        const isSmsEnabled = String(process.env.ENABLE_SMS).toLowerCase() === "true";
-        
-        // Use 980433 as the hardcoded OTP when SMS is disabled, regardless of environment
-        const otp = !isSmsEnabled ? "980433" : (isDev ? "000000" : Math.floor(100000 + Math.random() * 900000).toString());
+        const otp = isDev ? "000000" : Math.floor(100000 + Math.random() * 900000).toString();
         
         // Find or create user
         let user = await ctx.db.user.findUnique({
@@ -76,24 +73,20 @@ export const postRouter = createTRPCRouter({
         }
         
         // Try to send SMS, but handle errors gracefully
-        if (isSmsEnabled) {
-          try {
-            await sendSms(input.phone, `Your Druid OTP is: ${otp}`);
-          } catch (error) {
-            console.error("Failed to send SMS:", error);
-            // In development, continue even if SMS fails
-            if (process.env.NODE_ENV !== 'development') {
-              if (error instanceof Error && error.message.includes("not configured")) {
-                throw new Error("SMS service is not properly configured. Please contact support.");
-              } else {
-                throw new Error("Failed to send verification code. Please try again.");
-              }
+        try {
+          await sendSms(input.phone, `Your Druidapp OTP is: ${otp}`);
+        } catch (error) {
+          console.error("Failed to send SMS:", error);
+          // In development, continue even if SMS fails
+          if (process.env.NODE_ENV !== 'development') {
+            if (error instanceof Error && error.message.includes("not configured")) {
+              throw new Error("SMS service is not properly configured. Please contact support.");
             } else {
-              console.log("Development mode: Continuing despite SMS failure");
+              throw new Error("Failed to send verification code. Please try again.");
             }
+          } else {
+            console.log("Development mode: Continuing despite SMS failure");
           }
-        } else {
-          console.log(`SMS is disabled. Using hardcoded OTP: ${otp}`);
         }
         
         // Store the OTP in database
@@ -114,8 +107,8 @@ export const postRouter = createTRPCRouter({
           },
         });
         
-        // Return the OTP for testing when in development or when SMS is disabled
-        return (isDev || !isSmsEnabled) ? otp : "OTP sent successfully";
+        // In development, return the OTP for easier testing
+        return isDev ? otp : "OTP sent successfully";
       } catch (error) {
         console.error("OTP generation error:", error);
         throw error;
@@ -136,12 +129,10 @@ export const postRouter = createTRPCRouter({
           throw new Error("User not found. Please request a new verification code.");
         }
         
-        // Accept hardcoded OTP "980433" when SMS is disabled, regardless of environment
-        const isSmsEnabled = String(process.env.ENABLE_SMS).toLowerCase() === "true";
+        // In development, always allow "000000" as a valid OTP for testing
         const isDev = process.env.NODE_ENV === 'development';
-
-        if ((!isSmsEnabled && input.otp === "980433") || (isDev && input.otp === "000000")) {
-          console.log(`Accepting ${input.otp === "980433" ? "hardcoded" : "test"} OTP code`);
+        if (isDev && input.otp === "000000") {
+          console.log("DEV MODE: Accepting test OTP code");
           return user;
         }
         
