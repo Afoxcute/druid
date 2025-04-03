@@ -47,7 +47,7 @@ const mockTransactions: Transaction[] = [
 function DashboardContent() {
   const { user, logout } = useAuth();
   const [showBalance, setShowBalance] = useState(true);
-  const [balance] = useState("8,000.56"); // Mock balance
+  const [balance] = useState("673,000.56"); // Mock balance
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPinVerified, setIsPinVerified] = useState(false);
