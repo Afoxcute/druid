@@ -354,7 +354,6 @@ NEXT_PUBLIC_NATIVE_CONTRACT_ID="CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47BEA6SLY2MIGW
 NEXT_PUBLIC_NETWORK_PASSPHRASE="Test SDF Network ; September 2015"
 NEXT_PUBLIC_APP_URL="https://your-app-url.com"
 NEXT_PUBLIC_PUSHER_APP_KEY="your_pusher_app_key"  # Required for real-time features
-NEXT_PUBLIC_ENABLE_SMS="true"  # Client-side SMS toggle (set to "false" to use hardcoded OTP 98043)
 ```
 
 #### Environment Variables Explanation
@@ -377,10 +376,11 @@ NEXT_PUBLIC_ENABLE_SMS="true"  # Client-side SMS toggle (set to "false" to use h
    
 4. **SMS & Authentication**
    - `ENABLE_SMS`: Toggle SMS functionality
+     - When set to `"false"`, the system will use a hardcoded OTP code "980433" for all verifications
+     - When set to `"true"`, SMS will be sent via Twilio
    - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`: Twilio credentials for SMS
    - `SALT_ROUNDS`: Security parameter for password hashing
    - `MOCK_KYC`: Toggle to bypass real KYC checks in development
-   - `NEXT_PUBLIC_ENABLE_SMS`: Client-side SMS toggle (set to "false" to use hardcoded OTP 98043)
 
 5. **Anchor Integration**
    - `ANCHOR_API_BASE_URL` & `ANCHOR_API_TOKEN`: For connecting to the Stellar Anchor

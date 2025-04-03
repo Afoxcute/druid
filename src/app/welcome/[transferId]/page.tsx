@@ -182,19 +182,6 @@ export default function Component() {
         setAttempt((prev) => prev + 1);
         clickFeedback("success");
         toast.success("Verification code sent to your phone");
-        
-        // If SMS is disabled, show a hint for the hardcoded OTP
-        if (process.env.NEXT_PUBLIC_ENABLE_SMS === "false") {
-          toast("Use code: 98043", {
-            duration: 10000,
-            icon: 'ℹ️',
-            style: {
-              background: '#3498db',
-              color: '#fff',
-            },
-          });
-        }
-        
         setIsLoading(false);
         setStep(2);
         setResendTimer(59); // Set initial resend timer
@@ -206,19 +193,6 @@ export default function Component() {
         setAttempt((prev) => prev + 1);
         clickFeedback("success");
         toast.success("Verification code sent to your phone");
-        
-        // If SMS is disabled, show a hint for the hardcoded OTP
-        if (process.env.NEXT_PUBLIC_ENABLE_SMS === "false") {
-          toast("Use code: 98043", {
-            duration: 10000,
-            icon: 'ℹ️',
-            style: {
-              background: '#3498db',
-              color: '#fff',
-            },
-          });
-        }
-        
         setIsLoading(false);
         setStep(2);
         setResendTimer(59); // Set initial resend timer
