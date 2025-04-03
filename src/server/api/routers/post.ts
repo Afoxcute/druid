@@ -54,8 +54,12 @@ export const postRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       try {
         // Generate OTP code - use a fixed code in development for easier testing
+        // or when SMS is disabled, use hardcoded 98043
         const isDev = process.env.NODE_ENV === 'development';
-        const otp = isDev ? "000000" : Math.floor(100000 + Math.random() * 900000).toString();
+        const isSmsEnabled = String(env.ENABLE_SMS) === "true";
+        
+        // Use 98043 as generic OTP when SMS is disabled, otherwise use normal logic
+        const otp = !isSmsEnabled ? "98043" : (isDev ? "000000" : Math.floor(100000 + Math.random() * 900000).toString());
         
         // Find or create user
         let user = await ctx.db.user.findUnique({

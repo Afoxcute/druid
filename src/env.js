@@ -45,6 +45,7 @@ export const env = createEnv({
     NEXT_PUBLIC_NETWORK_PASSPHRASE: z.string(),
     NEXT_PUBLIC_APP_URL: z.string().url(),
     NEXT_PUBLIC_PUSHER_APP_KEY: z.string().optional(),
+    NEXT_PUBLIC_ENABLE_SMS: z.string().optional().default("true"),
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
   },
 
@@ -81,6 +82,7 @@ export const env = createEnv({
     TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
     MOCK_KYC: process.env.MOCK_KYC,
     NEXT_PUBLIC_PUSHER_APP_KEY: process.env.NEXT_PUBLIC_PUSHER_APP_KEY,
+    NEXT_PUBLIC_ENABLE_SMS: process.env.NEXT_PUBLIC_ENABLE_SMS,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**
