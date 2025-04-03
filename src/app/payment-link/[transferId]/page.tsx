@@ -107,8 +107,8 @@ export default function Component() {
             >
               <Banknote className="h-6 w-6" />
               <div className="text-left">
-                <h3 className="font-semibold">Bank Transfer</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="text-base sm:text-lg font-semibold">Bank Transfer</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {isReceiver
                     ? "Receive funds directly to your bank account"
                     : "Pay using online banking or wire transfer"}
@@ -126,7 +126,7 @@ export default function Component() {
             >
               <Banknote className="h-6 w-6" />
               <div className="text-left">
-                <h3 className="font-semibold">
+                <h3 className="text-base sm:text-lg font-semibold">
                   Cash {isReceiver ? "Collection" : "Payment"}
                   <Badge
                     className="ml-2 border-none bg-gradient-to-br from-[#3390EC] to-blue-300"
@@ -135,7 +135,7 @@ export default function Component() {
                     Coming Soon
                   </Badge>
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {isReceiver
                     ? "Pick up cash at a local collection point"
                     : "Pay with cash at a local payment point"}
