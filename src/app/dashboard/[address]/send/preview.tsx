@@ -114,6 +114,16 @@ export default function SendPreview({
       if (process.env.NEXT_PUBLIC_ENABLE_SMS === "false") {
         console.log('SMS DISABLED: Using hardcoded OTP: 98043');
         setOtpCode("98043");
+        
+        // Also notify the user that a hardcoded OTP is being used
+        toast("Using test code: 98043", {
+          duration: 10000,
+          icon: 'ℹ️',
+          style: {
+            background: '#3498db',
+            color: '#fff',
+          },
+        });
       } 
       // In development mode, use the returned OTP for easier testing
       else if (isDev && typeof data === 'string' && data.length === 6) {

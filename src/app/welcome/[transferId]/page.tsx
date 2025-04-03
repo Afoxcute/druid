@@ -185,7 +185,14 @@ export default function Component() {
         
         // If SMS is disabled, show a hint for the hardcoded OTP
         if (process.env.NEXT_PUBLIC_ENABLE_SMS === "false") {
-          toast.info("Use code: 98043", { duration: 10000 });
+          toast("Use code: 98043", {
+            duration: 10000,
+            icon: 'ℹ️',
+            style: {
+              background: '#3498db',
+              color: '#fff',
+            },
+          });
         }
         
         setIsLoading(false);
@@ -202,7 +209,14 @@ export default function Component() {
         
         // If SMS is disabled, show a hint for the hardcoded OTP
         if (process.env.NEXT_PUBLIC_ENABLE_SMS === "false") {
-          toast.info("Use code: 98043", { duration: 10000 });
+          toast("Use code: 98043", {
+            duration: 10000,
+            icon: 'ℹ️',
+            style: {
+              background: '#3498db',
+              color: '#fff',
+            },
+          });
         }
         
         setIsLoading(false);
