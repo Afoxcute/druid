@@ -83,6 +83,61 @@ Druid is a modern financial application that bridges traditional banking with bl
 - **bcryptjs**: Secure password hashing
 - **Custom PIN verification**: 6-digit PIN security
 
+### System Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        A[Next.js Client App] --> B[React Components]
+        B --> C1[Authentication]
+        B --> C2[Wallet UI]
+        B --> C3[Transfer UI]
+        B --> C4[Bill Payments UI]
+        B --> C5[KYC UI]
+    end
+    
+    subgraph "API Layer"
+        D[tRPC API Routes] --> E1[User Router]
+        D --> E2[Transfer Router]
+        D --> E3[Stellar Router]
+        D --> E4[Payment Router]
+    end
+    
+    subgraph "Service Layer"
+        F1[User Service] --> G1[Authentication]
+        F2[Transfer Service] --> G2[Payment Processing]
+        F3[Stellar Service] --> G3[Blockchain Integration]
+        F4[KYC Service] --> G4[Identity Verification]
+    end
+    
+    subgraph "Data Layer"
+        H1[Prisma ORM]
+        H2[PostgreSQL Database]
+        H1 --> H2
+    end
+    
+    subgraph "External Integrations"
+        I1[Stellar Network]
+        I2[Anchor Services]
+        I3[Self Protocol]
+        I4[SMS Services]
+    end
+    
+    A <--> D
+    E1 <--> F1
+    E2 <--> F2
+    E3 <--> F3
+    E4 <--> F4
+    F1 <--> H1
+    F2 <--> H1
+    F3 <--> H1
+    F4 <--> H1
+    F3 <--> I1
+    F2 <--> I2
+    F4 <--> I3
+    F1 <--> I4
+```
+
 ## Technical Infrastructure
 
 ### API Structure
@@ -106,6 +161,116 @@ Druid is a modern financial application that bridges traditional banking with bl
 - **Front-end SDK**: QR code generation for verification requests
 - **Back-end SDK**: Verification of ZK proofs with customizable compliance rules
 - **OFAC Compliance**: Built-in screening while preserving user privacy
+
+### Infrastructure Diagram
+
+```mermaid
+flowchart TB
+    subgraph "User Devices"
+        A1[Mobile Browser]
+        A2[Desktop Browser]
+    end
+    
+    subgraph "Hosting Infrastructure"
+        B[Next.js Application]
+        C[Node.js Server]
+        D[PostgreSQL Database]
+    end
+    
+    subgraph "Blockchain Infrastructure"
+        E1[Stellar Network]
+        E2[Soroban Smart Contracts]
+        E3[Stellar Anchors]
+        E4[Self Protocol]
+    end
+    
+    subgraph "External Services"
+        F1[Twilio SMS]
+        F2[Passkey Authentication]
+        F3[KYC Providers]
+    end
+    
+    subgraph "Security Layer"
+        G1[HTTPS/TLS]
+        G2[WebAuthn]
+        G3[Zero-Knowledge Proofs]
+        G4[PIN Encryption]
+    end
+    
+    A1 & A2 <-->|HTTPS| G1
+    G1 <--> B
+    B <--> C
+    C <--> D
+    C <-->|API| E1
+    C <-->|Contracts| E2
+    C <-->|Anchor API| E3
+    C <-->|ZK Proofs| E4
+    C <-->|SMS API| F1
+    C <-->|WebAuthn API| F2
+    C <-->|KYC API| F3
+    
+    F2 <--> G2
+    E4 <--> G3
+    C <--> G4
+    
+    classDef client fill:#D4F1F9,stroke:#05445E
+    classDef server fill:#FFCAAF,stroke:#A75D5D
+    classDef blockchain fill:#C1FFD7,stroke:#5DA75D
+    classDef external fill:#FFFFD1,stroke:#8B8000
+    classDef security fill:#FFC0CB,stroke:#FF1493
+    
+    class A1,A2 client
+    class B,C,D server
+    class E1,E2,E3,E4 blockchain
+    class F1,F2,F3 external
+    class G1,G2,G3,G4 security
+```
+
+### Data Flow Diagram
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Frontend as Next.js Client
+    participant API as tRPC API
+    participant Service as Service Layer
+    participant DB as PostgreSQL
+    participant Stellar as Stellar Network
+    participant Self as Self Protocol
+    
+    User->>Frontend: Authenticates (Email/Phone + Passkey)
+    Frontend->>API: Authentication Request
+    API->>Service: Validate Credentials
+    Service->>DB: Query User Record
+    DB-->>Service: User Data
+    alt New User
+        Service->>Stellar: Create Stellar Account
+        Stellar-->>Service: Account Created
+    end
+    Service-->>API: Auth Response
+    API-->>Frontend: Auth Token & User Data
+    
+    User->>Frontend: Initiates Money Transfer
+    Frontend->>API: Transfer Request
+    API->>Service: Process Transfer
+    Service->>DB: Record Transfer
+    Service->>Stellar: Execute Blockchain Transaction
+    Stellar-->>Service: Transaction Result
+    Service->>DB: Update Transfer Status
+    Service-->>API: Transfer Result
+    API-->>Frontend: Display Confirmation
+    
+    User->>Frontend: KYC Verification
+    Frontend->>API: KYC Request
+    API->>Service: Process Verification
+    opt ZK Verification
+        Service->>Self: Verify Identity with ZK Proofs
+        Self-->>Service: Verification Result
+    end
+    Service->>DB: Update KYC Status
+    Service-->>API: Verification Result
+    API-->>Frontend: Display Verification Status
+```
 
 ### Environment Configuration
 - Type-safe environment variables via `@t3-oss/env-nextjs`
@@ -366,10 +531,80 @@ yarn start
 ## Presentation
 
 ### Project Pitch
-- **Value Proposition**: Clear articulation of the problem and solution
-- **Demo Quality**: Polished demonstration of core functionality
-- **Technical Insight**: Highlighting innovative technical approaches
-- **Vision Communication**: Compelling narrative about future development
+
+Druid represents a transformative approach to global financial inclusion, solving critical problems in cross-border payments while leveraging cutting-edge blockchain technology in a user-friendly interface.
+
+#### The Problem We're Solving
+
+Today, over 1.7 billion adults remain unbanked worldwide, while existing remittance services charge exorbitant fees (averaging 6-8%) that cost migrants $50 billion annually. Cross-border payments remain slow (2-5 days), expensive, and lack transparency, particularly affecting vulnerable populations who need these services most.
+
+Traditional financial systems create barriers through:
+- High fees and unfavorable exchange rates
+- Extensive paperwork and documentation requirements
+- Limited accessibility in rural or underserved areas
+- Lack of transparency in transaction status and fees
+- Exclusion of individuals without formal banking relationships
+
+#### Our Solution: Druid
+
+Druid provides a comprehensive digital financial platform that bridges traditional and blockchain technologies to enable:
+
+1. **Instant & Low-Cost Transfers**: Reduce remittance costs by up to 70% and settlement time from days to seconds using Stellar's high-throughput blockchain.
+
+2. **Multiple Access Points**: Cash deposits, bank transfers, or mobile money - users can access funds through their preferred method without requiring a bank account.
+
+3. **Transparent & Secure**: Every transaction is recorded on the blockchain with real-time tracking and military-grade encryption, while maintaining regulatory compliance.
+
+4. **Privacy-Preserving Compliance**: Our integration of Zero-Knowledge proofs through Self Protocol allows for regulatory compliance without compromising user privacy.
+
+5. **True Financial Inclusion**: By combining the accessibility of cash-based systems with the efficiency of blockchain, we serve both banked and unbanked populations.
+
+#### Competitive Advantage
+
+Druid stands apart from both traditional remittance services and crypto-native solutions:
+
+| Feature | Traditional Services | Crypto-Only Solutions | Druid |
+|---------|----------------------|------------------------|-------|
+| **Cost** | 6-8% average fees | 1-2% fees but complex | **1-2% transparent fees** |
+| **Speed** | 2-5 days | Minutes to hours | **Seconds to minutes** |
+| **Accessibility** | Requires documentation | Requires technical knowledge | **Multiple options for all users** |
+| **Compliance** | High but invasive | Often lacking | **Strong but privacy-preserving** |
+| **User Experience** | Varies but improving | Often complex | **Simple, intuitive design** |
+
+#### Market Opportunity
+
+The global remittance market exceeds $700 billion annually and is growing at 4-5% per year, while digital wallet adoption is projected to reach 60% of the global population by 2026. By targeting key remittance corridors (US-Mexico, US-Philippines, EU-Africa) initially, Druid addresses an immediate $200+ billion market with our differentiated solution.
+
+#### Business Model
+
+Our sustainable revenue model includes:
+- Small transaction fees (1-2%, significantly lower than industry standard)
+- Premium features for power users and businesses
+- Currency exchange margin (minimal and transparent)
+- Ecosystem partnerships with merchants and service providers
+
+#### Why Now?
+
+Three converging factors make this the perfect time for Druid:
+1. Accelerated digital payment adoption post-pandemic
+2. Maturing blockchain infrastructure (Stellar, Soroban) enabling practical applications
+3. Regulatory frameworks evolving to support responsible innovation in financial services
+
+#### Vision & Impact
+
+Beyond remittances, Druid is building toward a future where financial services are:
+- **Universal**: Available to everyone regardless of geography or economic status
+- **Fair**: Transparent fees and access conditions
+- **Sovereign**: Users control their own data and financial information
+- **Interoperable**: Working seamlessly across various financial systems
+
+By removing financial barriers, we enable economic empowerment for millions globally, helping families increase discretionary income, build savings, and ultimately break cycles of poverty.
+
+#### Team Commitment
+
+Our team combines expertise in blockchain development, financial inclusion, regulatory compliance, and user experience design. We're committed to building a platform that makes a meaningful difference in people's lives while establishing a sustainable business that can scale globally.
+
+Join us in transforming the future of global finance with Druid - where traditional finance meets cutting-edge technology to create true financial inclusion.
 
 ## Roadmap
 
