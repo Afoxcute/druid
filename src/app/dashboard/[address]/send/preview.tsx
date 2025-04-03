@@ -119,23 +119,7 @@ export default function SendPreview({
     },
     onError: (error) => {
       setIsLoading(false);
-      // If in development mode, proceed anyway with a mock OTP
-      if (process.env.NODE_ENV === 'development') {
-        console.log('DEV MODE: Using mock OTP despite error:', error);
-        setOtpSent(true);
-        setOtpCode("000000"); // Use fixed code in dev
-        toast.success("Using test verification code: 000000");
-        return;
-      }
-      
-      // Handle specific error messages
-      if (error.message.includes("not a valid phone number")) {
-        toast.error("The phone number format is invalid. Please check and try again.");
-      } else if (error.message.includes("not configured")) {
-        toast.error("Verification service is unavailable. Please try again later.");
-      } else {
-        toast.error(`Verification failed: ${error.message}`);
-      }
+      toast.error(`Failed to send verification code: ${error.message}`);
     }
   });
   
@@ -347,14 +331,8 @@ export default function SendPreview({
       setShowOtpVerification(true);
       setIsLoading(false);
     } catch (error) {
-      // Error handling is already done in the mutation callbacks
       setIsLoading(false);
-      
-      // In development mode, proceed despite errors
-      if (process.env.NODE_ENV === 'development') {
-        console.log('DEV MODE: Proceeding to OTP verification despite error');
-        setShowOtpVerification(true);
-      }
+      toast.error("Failed to initiate verification. Please try again.");
     }
   };
   

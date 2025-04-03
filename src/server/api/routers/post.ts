@@ -25,20 +25,16 @@ async function sendSms(to: string, text: string) {
     return { success: true, messageId: 'disabled', disabled: true };
   }
   
-  // If credentials are missing in production, log error but don't throw in development
+  // If credentials are missing in production, log error
   if (!accountSid || !authToken) {
     console.error("Twilio credentials are not configured");
-    if (!isDev) {
-      throw new Error("Twilio credentials are not configured");
-    } else {
-      console.log("Development mode: Continuing without Twilio credentials");
-      return { success: true, messageId: 'mock-message-id', mock: true };
-    }
+    throw new Error("Twilio credentials are not configured");
   }
   
   // Proceed with real SMS sending
+  const client = new Twilio(accountSid, authToken);
+
   try {
-    const client = new Twilio(accountSid, authToken);
     const message = await client.messages.create({
       to,
       from: process.env.TWILIO_PHONE_NUMBER || "+12135148760", // Fallback to hardcoded number if env not set
@@ -48,11 +44,6 @@ async function sendSms(to: string, text: string) {
     return { success: true, messageId: message.sid };
   } catch (error) {
     console.error("Error sending message:", error);
-    // In development, we'll just mock success even if Twilio fails
-    if (isDev) {
-      console.log("Development mode: Mocking SMS success despite Twilio error");
-      return { success: true, messageId: 'mock-message-id', mock: true, error };
-    }
     throw error;
   }
 }
@@ -82,25 +73,19 @@ export const postRouter = createTRPCRouter({
         }
         
         // Try to send SMS, but handle errors gracefully
-        let smsResult;
         try {
-          smsResult = await sendSms(input.phone, `Your Druid OTP is: ${otp}`);
+          await sendSms(input.phone, `Your Druid OTP is: ${otp}`);
         } catch (error) {
           console.error("Failed to send SMS:", error);
-          
           // In development, continue even if SMS fails
-          if (isDev) {
-            console.log("Development mode: Continuing despite SMS failure");
-            smsResult = { success: true, messageId: 'mock-error-recovery', mock: true };
-          } else {
-            // In production, be more specific about the error
+          if (process.env.NODE_ENV !== 'development') {
             if (error instanceof Error && error.message.includes("not configured")) {
               throw new Error("SMS service is not properly configured. Please contact support.");
-            } else if (error instanceof Error && error.message.includes("not a valid phone number")) {
-              throw new Error("The provided phone number is not valid. Please check and try again.");
             } else {
               throw new Error("Failed to send verification code. Please try again.");
             }
+          } else {
+            console.log("Development mode: Continuing despite SMS failure");
           }
         }
         
