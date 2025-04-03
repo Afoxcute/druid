@@ -608,74 +608,82 @@ Join us in transforming the future of global finance with Druid - where traditio
 
 ## Roadmap
 
-### Q3 2023 (Completed)
+### 2023 (Completed)
 - Initial platform launch
 - Basic wallet functionality
 - Payment integration (Bank transfer, Cash)
 - Security foundation with PIN verification
-
-### Q4 2023 (Completed)
 - KYC integration
 - Bill payment services
+
+### 2024 (Completed)
 - Enhanced security with passkeys
 - MoneyGram collection integration
-
-### Q1-Q2 2024 (Current)
 - Multi-currency support
 - User experience improvements
 - Transaction history and analytics
-- Enhanced security features
-
-### Q3-Q4 2024 (Planned)
-- **Soroban Escrow Contract Integration**: Implementing trustless escrow services using Soroban smart contracts
-- **Buy Now, Pay Later (BNPL) Service**: Introducing BNPL functionality allowing users to split payments into installments with transparent terms
-- **ZK Self Protocol Integration**: Implementing privacy-preserving identity verification using Zero-Knowledge proofs via Self protocol
 - Mobile application development
 - Merchant payment solutions
 - Enhanced notification system
 
-### 2025 (Future)
-- **AI-Powered Financial Assistant**: Integration of AI prompts to help users with financial decisions and transaction analysis
-- **Voice Command System**: Implementation of voice prompts for hands-free operation and accessibility
-- **Advanced ZK Verification Features**: Expanding Self protocol integration with additional identity verification options
-- International expansion
-- DeFi features and services
-- Cross-chain integration
+### 2025 (Current)
+- **Soroban Escrow Contract Integration**: Trustless escrow services using Soroban smart contracts
+- **Buy Now, Pay Later (BNPL) Service**: BNPL functionality allowing users to split payments into installments
+- **ZK Self Protocol Integration**: Privacy-preserving identity verification using Self protocol's Zero-Knowledge proofs
+- **Enhanced Security Features**: Advanced fraud detection and prevention systems
+- **Cross-Border Optimization**: Improved routing for international transfers
+- **Regulatory Compliance Updates**: Adapting to evolving global financial regulations
 
-### Market Acquisition Strategy (10,000 Users)
+### 2026 (Planned)
+- **AI-Powered Financial Assistant**: Integration of AI prompts to help users with financial decisions
+- **Voice Command System**: Implementation of voice prompts for hands-free operation
+- **Advanced ZK Verification Features**: Expanding Self protocol integration with additional verification options
+- **International Expansion**: Strategic entry into new markets in Asia and Latin America
+- **DeFi Integration**: Smart yield generation options for wallet balances
+- **Merchant Ecosystem Development**: Enhanced tools for businesses to accept and manage payments
 
-Our plan to target the market and acquire our first 10,000 users:
+### 2027-2028 (Future Vision)
+- **Cross-Chain Interoperability**: Seamless transfers between multiple blockchain networks
+- **Central Bank Digital Currency (CBDC) Integration**: Support for emerging government-backed digital currencies
+- **Advanced Smart Contract Solutions**: Programmable money features for businesses and institutions
+- **Embedded Finance API**: Allow third-party applications to leverage Druid's infrastructure
+- **Financial Education Platform**: Built-in learning resources to improve financial literacy
+- **Institutional-Grade Services**: Solutions designed for banks and financial institutions
 
-1. **Geographic Focus**:
-   - Initial concentration on high-remittance corridors (e.g., US-Mexico, US-Philippines, Europe-Africa)
-   - University campuses with high international student populations
-   - Urban areas with diverse immigrant communities
+### Market Acquisition Strategy (100,000 Users by End of 2026)
 
-2. **Growth Tactics**:
-   - **Referral Program**: Reward users with fee-free transfers for successful referrals
-   - **Community Partnerships**: Collaborate with community organizations and cultural associations
-   - **Merchant Onboarding**: Partner with 500+ local businesses to accept Druid payments
-   - **Campus Ambassadors**: Recruit student representatives at 50+ universities
+Our plan to scale from our current user base to 100,000 users by the end of 2026:
 
-3. **Marketing Channels**:
-   - Targeted social media campaigns on platforms popular with diaspora communities
-   - Influencer partnerships with trusted community voices
-   - Location-based advertising in high-traffic remittance areas
-   - Educational webinars on financial literacy and blockchain benefits
+1. **Geographic Expansion**:
+   - Deepen penetration in existing high-remittance corridors (US-Mexico, US-Philippines, Europe-Africa)
+   - Expand into emerging markets in Southeast Asia and Latin America
+   - Target diaspora communities in major global cities
 
-4. **Incentive Structure**:
-   - First transfer free (up to $1,000)
-   - No fees for the first month for new users
-   - Cashback rewards for early adopters
-   - Special promotions for BNPL early access
+2. **Growth Acceleration**:
+   - **Enhanced Referral Program**: Multi-tiered rewards with permanent fee reductions
+   - **Strategic Partnerships**: Collaborate with universities, employers of migrant workers, and community organizations
+   - **Business Platform**: Dedicated solutions for small businesses serving immigrant communities
+   - **Financial Institution Partnerships**: White-label solutions for banks and credit unions
 
-5. **Retention Strategy**:
-   - Regular engagement through personalized offers
-   - Early access to new features for active users
-   - Community building through user groups and forums
-   - Continuous education on platform benefits and financial management
+3. **Advanced Marketing Strategy**:
+   - Targeted digital campaigns focused on key use cases and pain points
+   - Content marketing highlighting real user success stories
+   - Community-driven growth through ambassador programs
+   - Educational initiatives addressing specific financial needs of target demographics
 
-Our target is to reach 10,000 active users within the first six months of full launch, establishing a solid foundation for exponential growth thereafter.
+4. **Innovation-Driven Acquisition**:
+   - Early access to new BNPL features for qualified users
+   - Privacy-focused marketing highlighting ZK verification benefits
+   - AI-powered personalization to improve user retention and engagement
+   - Cross-product incentives linking remittances with other financial services
+
+5. **Enterprise Strategy**:
+   - B2B solutions for companies with global workforces
+   - Integration with payroll systems for direct deposit options
+   - APIs for third-party application developers
+   - Customized compliance solutions for businesses in regulated sectors
+
+Our growth strategy balances organic user acquisition with strategic partnerships, with quarterly targets and clear metrics for success tracking across all channels and markets.
 
 ## Contributing
 
