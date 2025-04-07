@@ -71,7 +71,31 @@ function PinAuthenticationContent() {
     if (user && user.id) {
       try {
         console.log("Refreshing user data after PIN verification");
-        await refreshUserData(user.id);
+        const refreshedUser = await refreshUserData(user.id);
+        
+        // Copy over PIN if it exists in localStorage but not in refreshed user data
+        try {
+          // Get the PIN from localStorage
+          const storedPinData = localStorage.getItem("user_pin");
+          if (storedPinData) {
+            const parsedPinData = JSON.parse(storedPinData);
+            
+            // Get the refreshed user data
+            const userData = localStorage.getItem("auth_user");
+            if (userData) {
+              const parsedUserData = JSON.parse(userData);
+              
+              // Only add PIN if it doesn't exist in user data
+              if (!parsedUserData.pin && parsedPinData && parsedPinData.pin) {
+                parsedUserData.pin = parsedPinData.pin;
+                localStorage.setItem("auth_user", JSON.stringify(parsedUserData));
+                console.log("Added PIN to auth_user from direct storage");
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Error syncing PIN between storages:", err);
+        }
       } catch (err) {
         console.error("Error refreshing user data:", err);
         

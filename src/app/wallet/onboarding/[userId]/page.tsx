@@ -180,23 +180,22 @@ export default function OnboardingMobile() {
     } else if (confirmPin.length === 6 && step === "confirm-pin") {
       // Compare pins
       if (pin === confirmPin) {
-        // Store the PIN locally for validation
+        // Store the PIN in multiple locations for reliable validation
         try {
-          // Store the PIN with proper error handling
-          const pinData = { pin: pin, created: new Date().toISOString() };
-          localStorage.setItem("user_pin", JSON.stringify(pinData));
+          // 1. Store in dedicated user_pin storage
+          localStorage.setItem("user_pin", JSON.stringify({ 
+            pin: pin, 
+            created: new Date().toISOString() 
+          }));
+          console.log("PIN saved in dedicated storage for validation");
           
-          // Verify the PIN was stored correctly
-          const storedData = localStorage.getItem("user_pin");
-          if (storedData) {
-            const parsedData = JSON.parse(storedData);
-            if (parsedData && parsedData.pin === pin) {
-              console.log("Successfully stored user's custom PIN for validation");
-            } else {
-              console.error("PIN verification failed after storage");
-            }
-          } else {
-            console.error("Failed to retrieve PIN after storage");
+          // 2. Also store in auth_user as a fallback
+          const userData = localStorage.getItem("auth_user");
+          if (userData) {
+            const user = JSON.parse(userData);
+            user.pin = pin; // Add PIN to user object
+            localStorage.setItem("auth_user", JSON.stringify(user));
+            console.log("PIN also saved in auth_user for redundancy");
           }
         } catch (err) {
           console.error("Failed to store PIN in localStorage:", err);
