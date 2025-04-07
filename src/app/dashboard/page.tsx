@@ -65,6 +65,10 @@ function DashboardContent() {
   const pinVerified = searchParams.get("pinVerified") === "true";
   
   useEffect(() => {
+    console.log("Wallet address state:", walletAddress);
+  }, [walletAddress]);
+  
+  useEffect(() => {
     // If coming from the PIN verification page with success
     if (pinVerified) {
       setIsPinVerified(true);
@@ -109,9 +113,25 @@ function DashboardContent() {
                 return;
               }
               
-              // Set wallet address if available
+              // Set wallet address if available or generate one if not
               if (freshUser.walletAddress) {
                 setWalletAddress(freshUser.walletAddress);
+              } else {
+                // Generate a wallet address if server doesn't provide one
+                const newAddress = `stellar:${Math.random().toString(36).substring(2, 15)}`;
+                console.log("Server data missing wallet address, generating one:", newAddress);
+                
+                // Update state immediately
+                setWalletAddress(newAddress);
+                
+                // Try to update the user record
+                try {
+                  // Update our local copy of the user data
+                  freshUser.walletAddress = newAddress;
+                  localStorage.setItem("auth_user", JSON.stringify(freshUser));
+                } catch (updateErr) {
+                  console.error("Error updating local user data with new wallet address:", updateErr);
+                }
               }
               
               // All checks passed
@@ -162,6 +182,7 @@ function DashboardContent() {
               console.log("Generated new wallet address:", newAddress);
             } else {
               setWalletAddress(refreshedUser.walletAddress);
+              console.log("Using existing wallet address:", refreshedUser.walletAddress);
             }
             
             // PIN and passkey verification passed
