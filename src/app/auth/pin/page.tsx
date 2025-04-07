@@ -85,6 +85,15 @@ function PinAuthenticationContent() {
               localStorage.setItem("auth_user", JSON.stringify(localUser));
               console.log("Updated local user data for PIN verification");
             }
+            
+            // Ensure wallet address is set
+            if (!localUser.walletAddress) {
+              // Generate a unique wallet address for the user
+              const newAddress = `stellar:${Math.random().toString(36).substring(2, 15)}`;
+              localUser.walletAddress = newAddress;
+              localStorage.setItem("auth_user", JSON.stringify(localUser));
+              console.log("Generated new wallet address after PIN verification:", newAddress);
+            }
           }
         } catch (localErr) {
           console.error("Error updating local user data:", localErr);
