@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff, Receipt } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff, Receipt, TrendingUp } from "lucide-react";
 import { useAuth } from "~/providers/auth-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { shortStellarAddress } from "~/lib/utils";
@@ -57,6 +57,9 @@ function DashboardContent() {
   
   // Check if user is coming from bank connection flow
   const bankConnected = searchParams.get("bankConnected") === "true";
+  
+  // Check if user is coming from investment success
+  const investmentSuccess = searchParams.get("investmentSuccess") === "true";
   
   // Check if the pin was already verified in this session
   const pinVerified = searchParams.get("pinVerified") === "true";
@@ -182,6 +185,12 @@ function DashboardContent() {
         </div>
       )}
 
+      {investmentSuccess && (
+        <div className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-600">
+          Your investment was successful! You can track it in your portfolio.
+        </div>
+      )}
+
       <Card className="overflow-hidden bg-blue-600 text-white">
         <CardContent className="p-6">
           <div className="space-y-1">
@@ -236,7 +245,7 @@ function DashboardContent() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Card className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/dashboard/${walletAddress}/send`)}>
           <CardContent className="flex items-center space-x-4 p-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
@@ -244,19 +253,7 @@ function DashboardContent() {
             </div>
             <div>
               <h3 className="font-semibold">Send Money</h3>
-              <p className="text-sm text-gray-500">Transfer money to other users</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/dashboard/${walletAddress}/bills`)}>
-          <CardContent className="flex items-center space-x-4 p-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-              <Receipt className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold">Pay Bills</h3>
-              <p className="text-sm text-gray-500">Pay your utility bills and more</p>
+              <p className="text-sm text-gray-500">Transfer to others</p>
             </div>
           </CardContent>
         </Card>
@@ -268,16 +265,41 @@ function DashboardContent() {
             </div>
             <div>
               <h3 className="font-semibold">Receive Money</h3>
-              <p className="text-sm text-gray-500">Get paid by other users</p>
+              <p className="text-sm text-gray-500">Get paid by others</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/dashboard/${walletAddress}/bills`)}>
+          <CardContent className="flex items-center space-x-4 p-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+              <Receipt className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Pay Bills</h3>
+              <p className="text-sm text-gray-500">Pay utilities & more</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/dashboard/${walletAddress}/investments`)}>
+          <CardContent className="flex items-center space-x-4 p-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
+              <TrendingUp className="h-6 w-6 text-amber-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Invest</h3>
+              <p className="text-sm text-gray-500">Grow your money</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="transactions">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="banking">Banking</TabsTrigger>
+          <TabsTrigger value="investments">Investments</TabsTrigger>
         </TabsList>
         
         <TabsContent value="transactions" className="space-y-4 pt-4">
@@ -334,6 +356,47 @@ function DashboardContent() {
                 onClick={() => router.push("/banking/connect")}
               >
                 Connect Bank
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="investments" className="space-y-4 pt-4">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
+                  <TrendingUp className="h-6 w-6 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium">Investment Portfolio</h3>
+                  <p className="text-sm text-gray-500">
+                    Invest your money and watch it grow
+                  </p>
+                </div>
+              </div>
+
+              {/* Investment Growth Overview */}
+              <div className="mb-6 bg-gray-50 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-600">Total Invested</span>
+                  <span className="font-bold">$1,250.00</span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-600">Current Value</span>
+                  <span className="font-bold text-green-600">$1,387.50</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total Return</span>
+                  <span className="font-bold text-green-600">+$137.50 (11%)</span>
+                </div>
+              </div>
+
+              <Button 
+                className="w-full"
+                onClick={() => router.push(`/dashboard/${walletAddress}/investments`)}
+              >
+                View Investment Options
               </Button>
             </CardContent>
           </Card>
