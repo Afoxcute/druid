@@ -402,7 +402,7 @@ function DashboardContent() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/dashboard/${walletAddress}/receive`)}>
+        <Card className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/wallet/${walletAddress}/receive`)}>
           <CardContent className="flex items-center space-x-4 p-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
               <ArrowDownToLine className="h-6 w-6 text-purple-600" />
