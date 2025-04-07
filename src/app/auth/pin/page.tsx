@@ -67,6 +67,22 @@ function PinAuthenticationContent() {
     setHasRedirected(true);
     console.log("PIN verification successful, redirecting to:", redirectTo);
     
+    // Ensure we're maintaining the hashedPin value in localStorage
+    try {
+      const userData = localStorage.getItem("auth_user");
+      if (userData) {
+        const user = JSON.parse(userData);
+        // If hashedPin is still null or undefined, set it to a non-null value
+        if (user.hashedPin === null || user.hashedPin === undefined) {
+          user.hashedPin = "pin-verified"; // Add a placeholder value to prevent redirects
+          localStorage.setItem("auth_user", JSON.stringify(user));
+          console.log("Updated user data with hashedPin placeholder");
+        }
+      }
+    } catch (err) {
+      console.error("Error updating user data in localStorage:", err);
+    }
+    
     // In a real app, we'd set a session token or something similar
     // For now, just redirect to the specified path
     setTimeout(() => {

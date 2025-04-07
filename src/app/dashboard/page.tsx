@@ -84,12 +84,14 @@ function DashboardContent() {
             const refreshedUser = JSON.parse(userData);
             console.log("Refreshed user data:", refreshedUser);
             
-            // Check if hashedPin is null (no PIN set)
-            if (refreshedUser.hashedPin === null) {
+            // Check if hashedPin is null or undefined (no PIN set)
+            if (refreshedUser.hashedPin === null || refreshedUser.hashedPin === undefined) {
               console.log("User has no PIN set, redirecting to PIN setup");
               router.replace("/wallet/onboarding/" + user.id);
               return;
             }
+            
+            console.log("PIN verification successful, hashedPin value:", refreshedUser.hashedPin);
             
             // If redirected from PIN page, check for passkey setup
             // Allow "skipped_setup" as a valid passkey state
