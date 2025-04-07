@@ -76,7 +76,7 @@ export default function SendPage() {
 
   const handleSuccess = () => {
     clickFeedback("success");
-    router.push("/dashboard?pinVerified=true");
+    router.push("/dashboard");
   };
 
   if (showPreview) {

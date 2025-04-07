@@ -18,7 +18,6 @@ interface User {
   passkeyCAddress?: string | null;
   passkeyKey?: string | null;
   hashedPin?: string | null;
-  hasPin?: boolean;
   name?: string | null;
   walletAddress?: string | null;
 }
