@@ -4,11 +4,12 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff, Receipt } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, ArrowUpRight, Eye, EyeOff, Receipt, TrendingUp } from "lucide-react";
 import { useAuth } from "~/providers/auth-provider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { shortStellarAddress } from "~/lib/utils";
 import { toast } from "react-hot-toast";
+import Investments from "./investments";
 
 interface Transaction {
   id: string;
@@ -159,184 +160,170 @@ function DashboardContent() {
   }
 
   return (
-    <div className="container mx-auto max-w-md space-y-6 p-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
-          Welcome, {user.firstName || "User"}
-        </h1>
-        <Button variant="ghost" onClick={() => {
-          // Clear any session/verification data
-          setIsPinVerified(false);
-          // Log the user out
-          logout();
-          // Redirect to sign in
-          router.push("/auth/signin");
-        }}>
-          Logout
-        </Button>
-      </div>
-
-      {bankConnected && (
-        <div className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-600">
-          Bank account successfully connected! You can now make transfers.
+    <div className="container mx-auto py-8">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back, {user?.name || "User"}
+          </p>
         </div>
-      )}
+        <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={() => setShowBalance(!showBalance)}>
+            {showBalance ? (
+              <EyeOff className="mr-2 h-4 w-4" />
+            ) : (
+              <Eye className="mr-2 h-4 w-4" />
+            )}
+            {showBalance ? "Hide Balance" : "Show Balance"}
+          </Button>
+          <Button onClick={logout}>Logout</Button>
+        </div>
+      </div>
 
-      <Card className="overflow-hidden bg-blue-600 text-white">
-        <CardContent className="p-6">
-          <div className="space-y-1">
-            <h2 className="text-sm font-medium text-blue-100">Current Balance</h2>
-            <div className="flex items-center gap-2">
-              <p className="text-3xl font-bold">
-                ${showBalance ? balance : "••••••"}
-              </p>
-              <button 
-                onClick={() => setShowBalance(!showBalance)}
-                className="rounded-full p-1 hover:bg-blue-500"
-              >
-                {showBalance ? (
-                  <EyeOff className="h-4 w-4 text-blue-100" />
-                ) : (
-                  <Eye className="h-4 w-4 text-blue-100" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-6 grid grid-cols-2 gap-2">
-            <Button 
-              variant="outline" 
-              className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => {
-                if (walletAddress) {
-                  router.push(`/dashboard/${walletAddress}/send`);
-                } else {
-                  toast.error("Please wait while we set up your wallet address");
-                }
-              }}
-              disabled={!walletAddress}
-            >
-              <ArrowUpRight className="mr-2 h-4 w-4" />
-              Send
-            </Button>
-            <Button 
-              variant="outline" 
-              className="bg-blue-500 text-white hover:bg-blue-400 border-blue-400"
-              onClick={() => router.push(`/wallet/${walletAddress}/receive`)}
-            >
-              <ArrowDownToLine className="mr-2 h-4 w-4" />
-              Receive
-            </Button>
-          </div>
-          {walletAddress && (
-            <div className="mt-4 text-center text-sm text-blue-100">
-              Wallet Address: {shortStellarAddress(walletAddress)}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-4">
-        <Card className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/dashboard/${walletAddress}/send`)}>
-          <CardContent className="flex items-center space-x-4 p-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-              <ArrowUpRight className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold">Send Money</h3>
-              <p className="text-sm text-gray-500">Transfer money to other users</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/dashboard/${walletAddress}/bills`)}>
-          <CardContent className="flex items-center space-x-4 p-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-              <Receipt className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold">Pay Bills</h3>
-              <p className="text-sm text-gray-500">Pay your utility bills and more</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/dashboard/${walletAddress}/receive`)}>
-          <CardContent className="flex items-center space-x-4 p-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
-              <ArrowDownToLine className="h-6 w-6 text-purple-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold">Receive Money</h3>
-              <p className="text-sm text-gray-500">Get paid by other users</p>
+      <div className="mb-8">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Balance</p>
+                <h2 className="text-3xl font-bold">
+                  {showBalance ? `$${balance}` : "****"}
+                </h2>
+              </div>
+              <div className="flex gap-2">
+                <Button>
+                  <ArrowDownToLine className="mr-2 h-4 w-4" />
+                  Receive
+                </Button>
+                <Button>
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  Send
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="transactions">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          <TabsTrigger value="banking">Banking</TabsTrigger>
+          <TabsTrigger value="investments">
+            <TrendingUp className="mr-2 h-4 w-4" />
+            Investments
+          </TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="transactions" className="space-y-4 pt-4">
-          {mockTransactions.length === 0 ? (
-            <div className="rounded-lg border border-dashed p-8 text-center">
-              <p className="text-gray-500">No transactions yet</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {mockTransactions.map((tx) => (
-                <Card key={tx.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-full ${tx.type === "receive" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
-                          {tx.type === "receive" ? (
-                            <ArrowDownToLine className="h-5 w-5" />
-                          ) : (
-                            <ArrowUpRight className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">{tx.recipient}</p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(tx.date).toLocaleDateString()}
-                          </p>
-                        </div>
+        <TabsContent value="overview" className="space-y-4">
+          {/* Overview content */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Sent</p>
+                    <h3 className="text-2xl font-bold">$1,250.00</h3>
+                  </div>
+                  <div className="rounded-full bg-red-100 p-2">
+                    <ArrowUpRight className="h-5 w-5 text-red-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Received</p>
+                    <h3 className="text-2xl font-bold">$3,750.00</h3>
+                  </div>
+                  <div className="rounded-full bg-green-100 p-2">
+                    <ArrowDownToLine className="h-5 w-5 text-green-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Transaction Count</p>
+                    <h3 className="text-2xl font-bold">24</h3>
+                  </div>
+                  <div className="rounded-full bg-blue-100 p-2">
+                    <Receipt className="h-5 w-5 text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        <TabsContent value="transactions" className="space-y-4">
+          {/* Transactions content */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                {mockTransactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`rounded-full p-2 ${
+                          transaction.type === "send"
+                            ? "bg-red-100"
+                            : "bg-green-100"
+                        }`}
+                      >
+                        {transaction.type === "send" ? (
+                          <ArrowUpRight
+                            className={`h-5 w-5 ${
+                              transaction.type === "send"
+                                ? "text-red-600"
+                                : "text-green-600"
+                            }`}
+                          />
+                        ) : (
+                          <ArrowDownToLine
+                            className={`h-5 w-5 ${
+                              transaction.type === "receive"
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          />
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <p className={`font-semibold ${tx.type === "receive" ? "text-green-600" : "text-red-600"}`}>
-                          {tx.type === "receive" ? "+" : "-"}${tx.amount}
+                      <div>
+                        <p className="font-medium">
+                          {transaction.type === "send"
+                            ? `Sent to ${transaction.recipient}`
+                            : `Received from ${transaction.recipient}`}
                         </p>
-                        <ArrowRight className="h-4 w-4 text-gray-400" />
+                        <p className="text-sm text-muted-foreground">
+                          {transaction.date}
+                        </p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="banking" className="space-y-4 pt-4">
-          <Card>
-            <CardContent className="p-6 text-center">
-              <div className="mb-4">
-                <p className="text-lg font-medium">Connect your bank account</p>
-                <p className="text-sm text-gray-500">
-                  Link your bank for faster transfers and withdrawals
-                </p>
+                    <div
+                      className={`font-medium ${
+                        transaction.type === "send"
+                          ? "text-red-600"
+                          : "text-green-600"
+                      }`}
+                    >
+                      {transaction.type === "send" ? "-" : "+"}$
+                      {transaction.amount.toFixed(2)}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <Button 
-                className="w-full"
-                onClick={() => router.push("/banking/connect")}
-              >
-                Connect Bank
-              </Button>
             </CardContent>
           </Card>
+        </TabsContent>
+        <TabsContent value="investments">
+          <Investments />
         </TabsContent>
       </Tabs>
     </div>
