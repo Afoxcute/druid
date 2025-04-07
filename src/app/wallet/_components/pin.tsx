@@ -46,13 +46,31 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
     setLoading(true);
     setError(null);
     
+    // Check for locally stored PIN
+    let storedUserPin: string | null = null;
+    try {
+      const storedData = localStorage.getItem("user_pin");
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        if (parsedData && parsedData.pin) {
+          storedUserPin = parsedData.pin;
+          console.log("Found stored PIN for validation");
+        }
+      }
+    } catch (err) {
+      console.error("Error retrieving PIN from localStorage:", err);
+    }
+    
     try {
       // In a real app, you would call an API to validate the PIN
       // For now, just simulate a successful validation after a delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Simulating PIN validation (PIN 123456 is considered valid for demo)
-      const isValid = pin === "123456";
+      // Validate against demo PIN or user's stored PIN
+      const demoPin = "123456";
+      const isDemoPinValid = pin === demoPin;
+      const isUserPinValid = storedUserPin !== null && pin === storedUserPin;
+      const isValid = isDemoPinValid || isUserPinValid;
       
       if (isValid) {
         clickFeedback("medium");
@@ -83,17 +101,14 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
         clickFeedback("medium");
         setError("Incorrect PIN. Please try again.");
         setPin("");
+        setLoading(false);
       }
     } catch (err) {
       setShake(true);
       clickFeedback("medium");
       setError("An error occurred. Please try again.");
       setPin("");
-    } finally {
-      // Keep loading true if successful to prevent more validation attempts
-      if (pin !== "123456") {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 

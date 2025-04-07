@@ -180,6 +180,14 @@ export default function OnboardingMobile() {
     } else if (confirmPin.length === 6 && step === "confirm-pin") {
       // Compare pins
       if (pin === confirmPin) {
+        // Store the PIN locally for validation
+        try {
+          localStorage.setItem("user_pin", JSON.stringify({ pin: pin }));
+          console.log("Stored user PIN in localStorage for validation");
+        } catch (err) {
+          console.error("Failed to store PIN in localStorage:", err);
+        }
+        
         // Use the actual persistPin API
         setIsLoading(true);
         console.log("Setting PIN for user:", userId);
