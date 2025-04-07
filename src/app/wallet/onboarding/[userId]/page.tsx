@@ -18,6 +18,7 @@ import { ClientTRPCErrorHandler, cn } from "~/lib/utils";
 import Link from "next/link";
 import { api } from "~/trpc/react";
 import { useParams } from "next/navigation";
+import { useAuth } from "~/providers/auth-provider";
 
 type Step = "create-pin" | "confirm-pin" | "passkey";
 
@@ -26,6 +27,7 @@ export default function OnboardingMobile() {
   const userId = params.userId as string;
   const { clickFeedback } = useHapticFeedback();
   const [isExpanded, setIsExpanded] = useState(true);
+  const { refreshUserData } = useAuth();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [pin, setPin] = useState("");
@@ -36,7 +38,7 @@ export default function OnboardingMobile() {
 
   // tRPC procedures
   const persistPin = api.users.setPin.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (!data.success) {
         setIsLoading(false);
         setError(data.message || "Failed to save PIN. Please try again.");
@@ -45,18 +47,50 @@ export default function OnboardingMobile() {
         return;
       }
       
-      // Update the local user data
+      // Fetch the latest user data from the server to get the actual hashedPin status
       try {
-        const userData = localStorage.getItem("auth_user");
-        if (userData) {
-          const user = JSON.parse(userData);
-          user.hasPin = true; // Flag that user has a pin now
-          user.hashedPin = "pin-set"; // Add a non-null value to prevent redirect loops
-          localStorage.setItem("auth_user", JSON.stringify(user));
-          console.log("Updated local user data with hasPin flag and hashedPin value");
+        console.log("PIN set successfully on server, fetching latest user data");
+        const updatedUser = await refreshUserData(Number(userId));
+        
+        if (!updatedUser) {
+          console.warn("Could not fetch updated user data, using local fallback");
+          
+          // Update the local user data to reflect that hashedPin is now set
+          try {
+            const userData = localStorage.getItem("auth_user");
+            if (userData) {
+              const user = JSON.parse(userData);
+              // Instead of setting an arbitrary value, fetch the updated user data
+              // This ensures we're maintaining proper state synchronization
+              console.log("PIN set successfully on server, updating local state");
+              
+              // For now, just mark that the user has a PIN without overriding the actual hash
+              // The actual hash should remain server-side only for security
+              user.hashedPin = "PIN_SET"; // Use a string value, not a boolean
+              localStorage.setItem("auth_user", JSON.stringify(user));
+              console.log("Updated local user data to reflect PIN creation");
+            }
+          } catch (err) {
+            console.error("Failed to update local user data:", err);
+          }
+        } else {
+          console.log("Successfully fetched and updated user data with PIN status");
         }
       } catch (err) {
-        console.error("Failed to update local user data:", err);
+        console.error("Failed to refresh user data:", err);
+        
+        // Fallback to local update
+        try {
+          const userData = localStorage.getItem("auth_user");
+          if (userData) {
+            const user = JSON.parse(userData);
+            user.hashedPin = "PIN_SET";
+            localStorage.setItem("auth_user", JSON.stringify(user));
+            console.log("Updated local user data with fallback after refresh error");
+          }
+        } catch (localErr) {
+          console.error("Failed to update local user data:", localErr);
+        }
       }
       
       // Show success toast
@@ -283,30 +317,34 @@ export default function OnboardingMobile() {
                 <Button 
                   variant="outline" 
                   className="w-full"
-                  onClick={() => {
-                    // Mark that user consciously skipped passkey setup
+                  onClick={async () => {
                     try {
+                      // Make sure we have the latest user data first
+                      await refreshUserData(Number(userId));
+                      
+                      // Then update the local storage
                       const userData = localStorage.getItem("auth_user");
                       if (userData) {
                         const user = JSON.parse(userData);
                         // Add a temporary placeholder value to avoid future redirects
                         user.passkeyCAddress = "skipped_setup"; 
                         
-                        // Ensure hashedPin is also set if it's still null
+                        // Ensure user.hashedPin is set
                         if (user.hashedPin === null || user.hashedPin === undefined) {
-                          user.hashedPin = "pin-set";
+                          user.hashedPin = "PIN_SET";
                         }
                         
                         localStorage.setItem("auth_user", JSON.stringify(user));
-                        console.log("Updated user data: passkey setup skipped and PIN set");
+                        console.log("Updated user data: passkey setup skipped and PIN status updated");
                         toast.success("PIN setup complete. You can set up passkey later.");
                       }
+                      
+                      // Navigate to dashboard
+                      window.location.href = "/dashboard?pinVerified=true";
                     } catch (err) {
-                      console.error("Failed to update local user data:", err);
+                      console.error("Error updating user data:", err);
+                      toast.error("Something went wrong. Please try again.");
                     }
-                    
-                    // Navigate to dashboard
-                    window.location.href = "/dashboard?pinVerified=true";
                   }}
                 >
                   Skip for now and go to Dashboard

@@ -11,7 +11,7 @@ function PinAuthenticationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
-  const { user } = useAuth();
+  const { user, refreshUserData } = useAuth();
   const [isVerifying, setIsVerifying] = useState(false);
   const [hasRedirected, setHasRedirected] = useState(false);
   const [needsSetup, setNeedsSetup] = useState(false);
@@ -61,26 +61,35 @@ function PinAuthenticationContent() {
     }
   }, [user, router]);
 
-  const handlePinSuccess = () => {
+  const handlePinSuccess = async () => {
     if (hasRedirected) return; // Prevent double redirects
     
     setHasRedirected(true);
     console.log("PIN verification successful, redirecting to:", redirectTo);
     
-    // Ensure we're maintaining the hashedPin value in localStorage
-    try {
-      const userData = localStorage.getItem("auth_user");
-      if (userData) {
-        const user = JSON.parse(userData);
-        // If hashedPin is still null or undefined, set it to a non-null value
-        if (user.hashedPin === null || user.hashedPin === undefined) {
-          user.hashedPin = "pin-verified"; // Add a placeholder value to prevent redirects
-          localStorage.setItem("auth_user", JSON.stringify(user));
-          console.log("Updated user data with hashedPin placeholder");
+    // Refresh user data from server to ensure we have the latest state
+    if (user && user.id) {
+      try {
+        console.log("Refreshing user data after PIN verification");
+        await refreshUserData(user.id);
+      } catch (err) {
+        console.error("Error refreshing user data:", err);
+        
+        // Fallback to local update if server refresh fails
+        try {
+          const userData = localStorage.getItem("auth_user");
+          if (userData) {
+            const localUser = JSON.parse(userData);
+            if (localUser.hashedPin === null || localUser.hashedPin === undefined) {
+              localUser.hashedPin = "PIN_VERIFIED"; // Use a string value, not a boolean
+              localStorage.setItem("auth_user", JSON.stringify(localUser));
+              console.log("Updated local user data for PIN verification");
+            }
+          }
+        } catch (localErr) {
+          console.error("Error updating local user data:", localErr);
         }
       }
-    } catch (err) {
-      console.error("Error updating user data in localStorage:", err);
     }
     
     // In a real app, we'd set a session token or something similar

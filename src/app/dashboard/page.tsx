@@ -45,7 +45,7 @@ const mockTransactions: Transaction[] = [
 
 // Create a separate component that uses useSearchParams
 function DashboardContent() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUserData } = useAuth();
   const [showBalance, setShowBalance] = useState(true);
   const [balance] = useState("673,000.56"); // Mock balance
   const router = useRouter();
@@ -77,21 +77,69 @@ function DashboardContent() {
       if (user) {
         console.log("Checking if user has PIN set:", user);
         
-        // Force reload user data from localStorage to get the latest changes
         try {
+          // First, try to get fresh data from the server
+          if (user.id) {
+            console.log("Refreshing user data from server");
+            const freshUser = await refreshUserData(user.id);
+            
+            if (freshUser) {
+              console.log("Got fresh user data:", freshUser);
+              
+              // Check if hashedPin is set in the fresh data
+              const hasPinSet = freshUser.hashedPin !== null && 
+                                freshUser.hashedPin !== undefined &&
+                                freshUser.hashedPin !== '';
+              
+              if (!hasPinSet) {
+                console.log("Server data shows no PIN set, redirecting to PIN setup");
+                router.replace("/wallet/onboarding/" + user.id);
+                return;
+              }
+              
+              console.log("Server data confirms PIN is set");
+              
+              // Check for passkey if needed
+              if (pinVerified && 
+                  (!freshUser.passkeyCAddress || 
+                  freshUser.passkeyCAddress === null) && 
+                  freshUser.passkeyCAddress !== "skipped_setup") {
+                console.log("Server data shows no passkey set, redirecting to passkey setup");
+                router.replace(`/wallet/onboarding/${user.id}/passkey`);
+                return;
+              }
+              
+              // Set wallet address if available
+              if (freshUser.walletAddress) {
+                setWalletAddress(freshUser.walletAddress);
+              }
+              
+              // All checks passed
+              setIsPinVerified(true);
+              setIsVerifying(false);
+              return;
+            }
+          }
+          
+          // If server refresh fails or returns no data, fallback to localStorage
+          console.log("Falling back to localStorage check");
           const userData = localStorage.getItem("auth_user");
           if (userData) {
             const refreshedUser = JSON.parse(userData);
-            console.log("Refreshed user data:", refreshedUser);
+            console.log("Local storage user data:", refreshedUser);
             
-            // Check if hashedPin is null or undefined (no PIN set)
-            if (refreshedUser.hashedPin === null || refreshedUser.hashedPin === undefined) {
-              console.log("User has no PIN set, redirecting to PIN setup");
+            // Check if PIN is set - hashedPin could be null/undefined or empty string if not set
+            const hasPinSet = refreshedUser.hashedPin !== null && 
+                              refreshedUser.hashedPin !== undefined && 
+                              refreshedUser.hashedPin !== '';
+            
+            if (!hasPinSet) {
+              console.log("Local data shows no PIN set, redirecting to PIN setup");
               router.replace("/wallet/onboarding/" + user.id);
               return;
             }
             
-            console.log("PIN verification successful, hashedPin value:", refreshedUser.hashedPin);
+            console.log("Local data confirms PIN is set, hashedPin present:", !!refreshedUser.hashedPin);
             
             // If redirected from PIN page, check for passkey setup
             // Allow "skipped_setup" as a valid passkey state
@@ -99,7 +147,7 @@ function DashboardContent() {
                 (!refreshedUser.passkeyCAddress || 
                 refreshedUser.passkeyCAddress === null) && 
                 refreshedUser.passkeyCAddress !== "skipped_setup") {
-              console.log("User has no passkey set, redirecting to passkey setup");
+              console.log("Local data shows no passkey set, redirecting to passkey setup");
               router.replace(`/wallet/onboarding/${user.id}/passkey`);
               return;
             }
@@ -111,6 +159,7 @@ function DashboardContent() {
               refreshedUser.walletAddress = newAddress;
               localStorage.setItem("auth_user", JSON.stringify(refreshedUser));
               setWalletAddress(newAddress);
+              console.log("Generated new wallet address:", newAddress);
             } else {
               setWalletAddress(refreshedUser.walletAddress);
             }
@@ -120,8 +169,8 @@ function DashboardContent() {
             setIsVerifying(false);
           }
         } catch (err) {
-          console.error("Error refreshing user data:", err);
-          // PIN is set, proceed with verification
+          console.error("Error checking user PIN status:", err);
+          // On error, assume PIN is set to prevent redirect loops
           setIsPinVerified(true);
           setIsVerifying(false);
         }

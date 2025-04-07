@@ -27,6 +27,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (identifier: string, passkeyCAddress: string) => Promise<void>;
   logout: () => void;
+  refreshUserData: (userId: number) => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,6 +55,72 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
     setIsLoading(false);
   }, []);
+
+  // Function to fetch the latest user data from server if needed
+  const refreshUserData = async (userId: number) => {
+    if (!userId) return;
+    
+    try {
+      setIsLoading(true);
+      console.log("Fetching latest user data for ID:", userId);
+      
+      const url = `/api/trpc/users.getUserById?batch=1&input=${encodeURIComponent(JSON.stringify({
+        "0": { json: { userId } }
+      }))}`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'x-trpc-source': 'nextjs-react',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to refresh user data: ${response.status}`);
+      }
+      
+      const json = await response.json();
+      console.log("Latest user data response:", json);
+      
+      if (Array.isArray(json) && json[0]?.result?.data) {
+        let refreshedUser: User | null = null;
+        
+        // Extract user data from response
+        let rawUserData = json[0].result.data;
+        if (rawUserData.json && typeof rawUserData.json === 'object') {
+          refreshedUser = rawUserData.json;
+        } else {
+          refreshedUser = rawUserData;
+        }
+        
+        if (refreshedUser) {
+          // Update localStorage and state with fresh data
+          const existingData = localStorage.getItem("auth_user");
+          if (existingData) {
+            // Merge with existing data to preserve client-side flags
+            const existingUser = JSON.parse(existingData);
+            const mergedUser = { ...existingUser, ...refreshedUser };
+            localStorage.setItem("auth_user", JSON.stringify(mergedUser));
+            setUser(mergedUser);
+            console.log("Updated user data with fresh server data:", mergedUser);
+            return mergedUser;
+          } else {
+            localStorage.setItem("auth_user", JSON.stringify(refreshedUser));
+            setUser(refreshedUser);
+            console.log("Set fresh user data from server:", refreshedUser);
+            return refreshedUser;
+          }
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error("Error refreshing user data:", error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const login = async (identifier: string, passkeyCAddress: string) => {
     setIsLoading(true);
@@ -360,7 +427,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [user, isLoading, pathname, router]);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, refreshUserData }}>
       {children}
     </AuthContext.Provider>
   );
