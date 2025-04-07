@@ -153,7 +153,7 @@ export default function InvestmentsPage() {
 
   const renderInvestmentOptions = (options: InvestmentOption[]) => {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {options.map((option) => (
           <Card key={option.id} className="cursor-pointer hover:shadow-lg transition-shadow">
             <CardHeader className="pb-2">
@@ -163,10 +163,10 @@ export default function InvestmentsPage() {
                   {option.risk} Risk
                 </div>
               </div>
-              <CardTitle className="text-lg">{option.title}</CardTitle>
-              <CardDescription className="line-clamp-2">{option.description}</CardDescription>
+              <CardTitle className="text-base sm:text-lg">{option.title}</CardTitle>
+              <CardDescription className="text-xs sm:text-sm line-clamp-2">{option.description}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm pb-2">
+            <CardContent className="space-y-2 text-xs sm:text-sm pb-2">
               <div className="flex justify-between">
                 <span className="text-gray-500">Return Rate:</span>
                 <span className="font-medium">{option.returnRate}</span>
@@ -182,7 +182,7 @@ export default function InvestmentsPage() {
             </CardContent>
             <CardFooter>
               <Button 
-                className="w-full" 
+                className="w-full text-sm" 
                 onClick={() => handleInvestmentSelect(option)}
               >
                 Invest Now
@@ -195,12 +195,12 @@ export default function InvestmentsPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-4xl space-y-6 p-4">
-      <div className="flex items-center mb-6">
+    <div className="container mx-auto max-w-4xl space-y-4 sm:space-y-6 p-3 sm:p-4">
+      <div className="flex items-center mb-4 sm:mb-6">
         <Button variant="ghost" onClick={handleBack} className="mr-2">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-bold">Investments</h1>
+        <h1 className="text-xl sm:text-2xl font-bold">Investments</h1>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -209,53 +209,53 @@ export default function InvestmentsPage() {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p className="max-w-xs">Investment products involve risk and may not be suitable for all investors. Past performance is not indicative of future results.</p>
+              <p className="max-w-xs text-xs sm:text-sm">Investment products involve risk and may not be suitable for all investors. Past performance is not indicative of future results.</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
 
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-6 mb-8">
-        <h2 className="text-xl font-bold flex items-center">
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
+        <h2 className="text-lg sm:text-xl font-bold flex items-center">
           <TrendingUp className="mr-2 h-5 w-5" />
           Grow Your Money
         </h2>
-        <p className="mt-2">
+        <p className="mt-2 text-sm sm:text-base">
           Invest your funds and watch them grow over time. Choose from various investment options based on your risk tolerance and financial goals.
         </p>
       </div>
 
-      <Tabs defaultValue="savings" value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="savings">Savings</TabsTrigger>
-          <TabsTrigger value="stocks">Stocks</TabsTrigger>
-          <TabsTrigger value="crypto">Crypto</TabsTrigger>
+      <Tabs defaultValue="savings" value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-2">
+          <TabsTrigger value="savings" className="text-xs sm:text-sm py-1.5 sm:py-2">Savings</TabsTrigger>
+          <TabsTrigger value="stocks" className="text-xs sm:text-sm py-1.5 sm:py-2">Stocks</TabsTrigger>
+          <TabsTrigger value="crypto" className="text-xs sm:text-sm py-1.5 sm:py-2">Crypto</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="savings" className="mt-6">
-          <div className="mb-4">
-            <h2 className="text-lg font-medium">Savings Products</h2>
-            <p className="text-sm text-gray-500">
+        <TabsContent value="savings" className="mt-4 sm:mt-6">
+          <div className="mb-3 sm:mb-4">
+            <h2 className="text-base sm:text-lg font-medium">Savings Products</h2>
+            <p className="text-xs sm:text-sm text-gray-500">
               Secure and stable ways to grow your money with minimal risk
             </p>
           </div>
           {renderInvestmentOptions(savingsOptions)}
         </TabsContent>
         
-        <TabsContent value="stocks" className="mt-6">
-          <div className="mb-4">
-            <h2 className="text-lg font-medium">Stock Market Investments</h2>
-            <p className="text-sm text-gray-500">
+        <TabsContent value="stocks" className="mt-4 sm:mt-6">
+          <div className="mb-3 sm:mb-4">
+            <h2 className="text-base sm:text-lg font-medium">Stock Market Investments</h2>
+            <p className="text-xs sm:text-sm text-gray-500">
               Gain exposure to global equity markets with diversified portfolios
             </p>
           </div>
           {renderInvestmentOptions(stockOptions)}
         </TabsContent>
         
-        <TabsContent value="crypto" className="mt-6">
-          <div className="mb-4">
-            <h2 className="text-lg font-medium">Cryptocurrency Investments</h2>
-            <p className="text-sm text-gray-500">
+        <TabsContent value="crypto" className="mt-4 sm:mt-6">
+          <div className="mb-3 sm:mb-4">
+            <h2 className="text-base sm:text-lg font-medium">Cryptocurrency Investments</h2>
+            <p className="text-xs sm:text-sm text-gray-500">
               Digital asset investment options with varying risk profiles
             </p>
           </div>
