@@ -47,6 +47,25 @@ export default function OnboardingMobile() {
         return;
       }
       
+      // Generate wallet address immediately
+      let walletAddressGenerated = false;
+      try {
+        const userData = localStorage.getItem("auth_user");
+        if (userData) {
+          const user = JSON.parse(userData);
+          if (!user.walletAddress) {
+            // Generate a unique wallet address for the user
+            const newAddress = `stellar:${Math.random().toString(36).substring(2, 15)}`;
+            user.walletAddress = newAddress;
+            localStorage.setItem("auth_user", JSON.stringify(user));
+            console.log("Generated new wallet address immediately after PIN set:", newAddress);
+            walletAddressGenerated = true;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to generate wallet address:", err);
+      }
+      
       // Fetch the latest user data from the server to get the actual hashedPin status
       try {
         console.log("PIN set successfully on server, fetching latest user data");
@@ -67,6 +86,14 @@ export default function OnboardingMobile() {
               // For now, just mark that the user has a PIN without overriding the actual hash
               // The actual hash should remain server-side only for security
               user.hashedPin = "PIN_SET"; // Use a string value, not a boolean
+              
+              // If we haven't generated a wallet address yet, do it now
+              if (!walletAddressGenerated && !user.walletAddress) {
+                const newAddress = `stellar:${Math.random().toString(36).substring(2, 15)}`;
+                user.walletAddress = newAddress;
+                console.log("Generated wallet address after local user update:", newAddress);
+              }
+              
               localStorage.setItem("auth_user", JSON.stringify(user));
               console.log("Updated local user data to reflect PIN creation");
             }
@@ -75,6 +102,24 @@ export default function OnboardingMobile() {
           }
         } else {
           console.log("Successfully fetched and updated user data with PIN status");
+          
+          // If the server didn't provide a wallet address, ensure we have one locally
+          if (!updatedUser.walletAddress && !walletAddressGenerated) {
+            try {
+              const userData = localStorage.getItem("auth_user");
+              if (userData) {
+                const user = JSON.parse(userData);
+                if (!user.walletAddress) {
+                  const newAddress = `stellar:${Math.random().toString(36).substring(2, 15)}`;
+                  user.walletAddress = newAddress;
+                  localStorage.setItem("auth_user", JSON.stringify(user));
+                  console.log("Generated wallet address after server refresh:", newAddress);
+                }
+              }
+            } catch (err) {
+              console.error("Failed to update local wallet address:", err);
+            }
+          }
         }
       } catch (err) {
         console.error("Failed to refresh user data:", err);
@@ -85,6 +130,14 @@ export default function OnboardingMobile() {
           if (userData) {
             const user = JSON.parse(userData);
             user.hashedPin = "PIN_SET";
+            
+            // Ensure wallet address is set if not already generated
+            if (!walletAddressGenerated && !user.walletAddress) {
+              const newAddress = `stellar:${Math.random().toString(36).substring(2, 15)}`;
+              user.walletAddress = newAddress;
+              console.log("Generated wallet address in fallback handler:", newAddress);
+            }
+            
             localStorage.setItem("auth_user", JSON.stringify(user));
             console.log("Updated local user data with fallback after refresh error");
           }
@@ -97,23 +150,6 @@ export default function OnboardingMobile() {
       toast.success(data.message || "PIN set successfully!");
       setIsLoading(false);
       setStep("passkey");
-
-      // Ensure wallet address is set after PIN is created
-      try {
-        const userData = localStorage.getItem("auth_user");
-        if (userData) {
-          const user = JSON.parse(userData);
-          if (!user.walletAddress) {
-            // Generate a unique wallet address for the user
-            const newAddress = `stellar:${Math.random().toString(36).substring(2, 15)}`;
-            user.walletAddress = newAddress;
-            localStorage.setItem("auth_user", JSON.stringify(user));
-            console.log("Generated new wallet address after PIN creation:", newAddress);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to generate wallet address:", err);
-      }
     },
     onError: (error) => {
       console.error("Error setting PIN:", error);

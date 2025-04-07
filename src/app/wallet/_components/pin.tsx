@@ -56,6 +56,24 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
       
       if (isValid) {
         clickFeedback("medium");
+        
+        // Immediately generate wallet address if not already present
+        try {
+          const userData = localStorage.getItem("auth_user");
+          if (userData) {
+            const user = JSON.parse(userData);
+            if (!user.walletAddress) {
+              // Generate a unique wallet address for the user
+              const newAddress = `stellar:${Math.random().toString(36).substring(2, 15)}`;
+              user.walletAddress = newAddress;
+              localStorage.setItem("auth_user", JSON.stringify(user));
+              console.log("Generated new wallet address on PIN validation:", newAddress);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to generate wallet address:", err);
+        }
+        
         // Call success callback after a short delay to ensure UI updates first
         setTimeout(() => {
           onSuccess();
@@ -106,6 +124,23 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
       // Here you would implement actual biometric authentication
       // For now, just simulate success after a delay
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Immediately generate wallet address if not already present
+      try {
+        const userData = localStorage.getItem("auth_user");
+        if (userData) {
+          const user = JSON.parse(userData);
+          if (!user.walletAddress) {
+            // Generate a unique wallet address for the user
+            const newAddress = `stellar:${Math.random().toString(36).substring(2, 15)}`;
+            user.walletAddress = newAddress;
+            localStorage.setItem("auth_user", JSON.stringify(user));
+            console.log("Generated new wallet address via biometric auth:", newAddress);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to generate wallet address:", err);
+      }
       
       onSuccess();
     } catch (err) {
