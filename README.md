@@ -58,15 +58,6 @@ Druid is a modern financial application that bridges traditional banking with bl
 - Document upload and verification
 - Compliance with financial regulations
 
-### 6. Investment Options
-- Access to various investment products including:
-  - High-Yield Savings (4.5% APY)
-  - Government Bonds (5.2% APY)
-  - Stock Market ETFs (7.8% APY)
-  - Crypto Savings (8.5% APY)
-- Portfolio Tracking
-- Mobile App
-
 ## Architecture
 
 ### Frontend
@@ -170,13 +161,6 @@ graph TB
 - **Front-end SDK**: QR code generation for verification requests
 - **Back-end SDK**: Verification of ZK proofs with customizable compliance rules
 - **OFAC Compliance**: Built-in screening while preserving user privacy
-
-### Investment Integration
-- **Investment Products**: Integration with various investment vehicles
-- **Portfolio Management**: Real-time tracking of investments and returns
-- **Risk Assessment**: Tools for evaluating investment risk and returns
-- **Automated Investing**: Set up recurring investments and dollar-cost averaging
-- **Performance Analytics**: Detailed insights into investment performance
 
 ### Infrastructure Diagram
 
@@ -649,7 +633,6 @@ Join us in transforming the future of global finance with Druid - where traditio
 - **Enhanced Security Features**: Advanced fraud detection and prevention systems
 - **Cross-Border Optimization**: Improved routing for international transfers
 - **Regulatory Compliance Updates**: Adapting to evolving global financial regulations
-- **Investment Platform Expansion**: Additional investment products and automated investing features
 
 ### 2026 (Planned)
 - **AI-Powered Financial Assistant**: Integration of AI prompts to help users with financial decisions
@@ -658,7 +641,6 @@ Join us in transforming the future of global finance with Druid - where traditio
 - **International Expansion**: Strategic entry into new markets in Asia and Latin America
 - **DeFi Integration**: Smart yield generation options for wallet balances
 - **Merchant Ecosystem Development**: Enhanced tools for businesses to accept and manage payments
-- **Advanced Investment Tools**: Portfolio rebalancing, tax-loss harvesting, and personalized investment strategies
 
 ### 2027-2028 (Future Vision)
 - **Cross-Chain Interoperability**: Seamless transfers between multiple blockchain networks
