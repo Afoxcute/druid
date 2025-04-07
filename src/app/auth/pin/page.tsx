@@ -26,7 +26,8 @@ function PinAuthenticationContent() {
           const freshUser = JSON.parse(userData);
           console.log("Fresh user data from localStorage:", freshUser);
           
-          if (freshUser.hashedPin === null) {
+          // Check for any indication that the PIN has been set
+          if (freshUser.hashedPin === null && !freshUser.hasPin) {
             console.log("User has no PIN set, redirecting to PIN setup");
             setNeedsSetup(true);
             
@@ -34,8 +35,10 @@ function PinAuthenticationContent() {
             setTimeout(() => {
               router.replace(`/wallet/onboarding/${user.id}`);
             }, 300);
+          } else {
+            console.log("User has a PIN set, allowing verification");
           }
-        } else if (user.hashedPin === null) {
+        } else if (user.hashedPin === null && !user.hasPin) {
           // Fallback to context user object
           console.log("User has no PIN set (fallback check), redirecting to PIN setup");
           setNeedsSetup(true);
@@ -48,7 +51,7 @@ function PinAuthenticationContent() {
       } catch (err) {
         console.error("Error checking localStorage:", err);
         // Fallback to context user object
-        if (user.hashedPin === null) {
+        if (user.hashedPin === null && !user.hasPin) {
           console.log("User has no PIN set (after error), redirecting to PIN setup");
           setNeedsSetup(true);
           
@@ -66,6 +69,21 @@ function PinAuthenticationContent() {
     
     setHasRedirected(true);
     console.log("PIN verification successful, redirecting to:", redirectTo);
+    
+    // Update the user data in localStorage to ensure it has the hashedPin property
+    try {
+      const userData = localStorage.getItem("auth_user");
+      if (userData) {
+        const user = JSON.parse(userData);
+        if (!user.hashedPin) {
+          console.log("Setting hashedPin property after successful verification");
+          user.hashedPin = "pin_verified"; // Set a placeholder value
+          localStorage.setItem("auth_user", JSON.stringify(user));
+        }
+      }
+    } catch (err) {
+      console.error("Error updating user data in localStorage:", err);
+    }
     
     // In a real app, we'd set a session token or something similar
     // For now, just redirect to the specified path

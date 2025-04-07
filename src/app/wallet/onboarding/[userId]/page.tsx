@@ -50,9 +50,10 @@ export default function OnboardingMobile() {
         const userData = localStorage.getItem("auth_user");
         if (userData) {
           const user = JSON.parse(userData);
-          user.hasPin = true; // Just flag that user has a pin now
+          // Set the hashedPin property to indicate PIN has been set
+          user.hashedPin = "pin_created"; // Use a placeholder value since we don't store the actual hash client-side
           localStorage.setItem("auth_user", JSON.stringify(user));
-          console.log("Updated local user data with hasPin flag");
+          console.log("Updated local user data with hashedPin property");
         }
       } catch (err) {
         console.error("Failed to update local user data:", err);
@@ -290,8 +291,12 @@ export default function OnboardingMobile() {
                         const user = JSON.parse(userData);
                         // Add a temporary placeholder value to avoid future redirects
                         user.passkeyCAddress = "skipped_setup"; 
+                        // Ensure hashedPin is set even when skipping passkey setup
+                        if (!user.hashedPin) {
+                          user.hashedPin = "pin_created";
+                        }
                         localStorage.setItem("auth_user", JSON.stringify(user));
-                        console.log("Updated user data: passkey setup skipped");
+                        console.log("Updated user data: passkey setup skipped, PIN setup verified");
                         toast.success("PIN setup complete. You can set up passkey later.");
                       }
                     } catch (err) {

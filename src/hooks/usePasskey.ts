@@ -1,10 +1,10 @@
 import base64url from "base64url";
-	import { Buffer } from "buffer";
+import { Buffer } from "buffer";
 
-	import { Keypair } from "@stellar/stellar-sdk/minimal";
-    import { SignerStore, SignerKey, type SignerLimits, type Signer } from "passkey-kit";
+import { Keypair } from "@stellar/stellar-sdk/minimal";
+import { SignerStore, SignerKey, type SignerLimits, type Signer } from "passkey-kit";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "~/trpc/react";
 import { useContractStore } from "~/hooks/stores/useContractStore";
 import { useKeyStore } from "~/hooks/stores/useKeyStore";
@@ -12,17 +12,34 @@ import { ClientTRPCErrorHandler } from "~/lib/utils";
 import toast from "react-hot-toast";
 import {
   account,
-  fundPubkey,
-  fundSigner,
-  native,
   server,
+  initializeFundKeypair,
+  initializeNative,
+  getNative,
 } from "~/lib/client-helpers";
+
 export const usePasskey = (identifier: string) => {
   const [loading, setLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const setContractId = useContractStore((state) => state.setContractId);
   const setKeyId = useKeyStore((state) => state.setKeyId);
 
   const { keyId } = useKeyStore.getState();
+
+  // Initialize the required resources
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        await initializeFundKeypair();
+        await initializeNative();
+        setInitialized(true);
+      } catch (error) {
+        console.error("Failed to initialize passkey resources:", error);
+      }
+    };
+
+    initialize();
+  }, []);
 
   const saveSigner = api.stellar.saveSigner.useMutation({
     onError: ClientTRPCErrorHandler,
@@ -37,6 +54,12 @@ export const usePasskey = (identifier: string) => {
   const create = async (): Promise<string> => {
     try {
       setLoading(true);
+      
+      if (!initialized) {
+        await initializeFundKeypair();
+        await initializeNative();
+        setInitialized(true);
+      }
       
       if (!identifier) {
         throw new Error("Email or phone is required to create a passkey");
@@ -64,7 +87,7 @@ export const usePasskey = (identifier: string) => {
       });
       
       toast.success("Successfully created passkey wallet");
-        return cid;
+      return cid;
     } catch (err) {
       toast.error((err as Error)?.message ?? "Failed to create Stellar passkey");
       throw err;
@@ -77,6 +100,12 @@ export const usePasskey = (identifier: string) => {
     try {
       setLoading(true);
       console.log('Attempting to connect wallet with passkey');
+      
+      if (!initialized) {
+        await initializeFundKeypair();
+        await initializeNative();
+        setInitialized(true);
+      }
       
       const result = await account.connectWallet();
       console.log('ConnectWallet result:', result);
@@ -120,6 +149,12 @@ export const usePasskey = (identifier: string) => {
 
   const addSigner = async (name: string) => {
     try {
+      if (!initialized) {
+        await initializeFundKeypair();
+        await initializeNative();
+        setInitialized(true);
+      }
+      
       const { keyId: kid, publicKey } = await account.createKey("druid", name);
       
       // Create an admin transaction to add the signer
@@ -153,6 +188,12 @@ export const usePasskey = (identifier: string) => {
 
   const getWalletBalance = async (contractId: string) => {
     try {
+      if (!initialized) {
+        await initializeNative();
+        setInitialized(true);
+      }
+      
+      const native = getNative();
       const { result } = await native.balance({ id: contractId });
       return result.toString();
     } catch (error) {

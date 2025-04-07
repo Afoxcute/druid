@@ -19,7 +19,8 @@ export default function BillPaymentSuccessPage() {
 
   const handleBack = () => {
     clickFeedback();
-    router.push(`/dashboard`);
+    // Add pinVerified parameter to ensure the dashboard knows PIN verification is complete
+    router.push(`/dashboard?pinVerified=true`);
   };
 
   return (

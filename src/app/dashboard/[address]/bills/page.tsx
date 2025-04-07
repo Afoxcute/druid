@@ -77,7 +77,7 @@ export default function BillsPage() {
 
   const handleBack = () => {
     clickFeedback();
-    router.push(`/dashboard`);
+    router.push(`/dashboard?pinVerified=true`);
   };
 
   const handleBillSelect = (bill: BillType) => {
