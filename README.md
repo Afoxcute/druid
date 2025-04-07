@@ -10,6 +10,7 @@ Druid is a modern financial application that bridges traditional banking with bl
 - [Architecture](#architecture)
 - [Technical Infrastructure](#technical-infrastructure)
 - [How It Works](#how-it-works)
+- [Investments Platform](#investments-platform)
 - [Installation](#installation)
 - [Development](#development)
 - [Production](#production)
@@ -58,6 +59,18 @@ Druid is a modern financial application that bridges traditional banking with bl
 - Document upload and verification
 - Compliance with financial regulations
 
+### 6. Investment Platform
+- Diversified investment options:
+  - **Savings Plans**: Low-risk options with stable returns
+  - **Stock Market**: Medium-risk equity investments
+  - **Cryptocurrency**: High-risk digital asset investments
+- Interactive investment simulator with real-time calculations
+- Detailed investment metrics and performance tracking
+- Customizable investment amounts with minimum thresholds
+- Risk assessment and categorization (Low/Medium/High)
+- Historical performance data for informed decision-making
+- Mobile-responsive investment dashboard
+
 ## Architecture
 
 ### Frontend
@@ -94,6 +107,7 @@ graph TB
         B --> C3[Transfer UI]
         B --> C4[Bill Payments UI]
         B --> C5[KYC UI]
+        B --> C6[Investment UI]
     end
     
     subgraph "API Layer"
@@ -101,6 +115,7 @@ graph TB
         D --> E2[Transfer Router]
         D --> E3[Stellar Router]
         D --> E4[Payment Router]
+        D --> E5[Investment Router]
     end
     
     subgraph "Service Layer"
@@ -108,6 +123,7 @@ graph TB
         F2[Transfer Service] --> G2[Payment Processing]
         F3[Stellar Service] --> G3[Blockchain Integration]
         F4[KYC Service] --> G4[Identity Verification]
+        F5[Investment Service] --> G5[Portfolio Management]
     end
     
     subgraph "Data Layer"
@@ -128,13 +144,14 @@ graph TB
     E2 <--> F2
     E3 <--> F3
     E4 <--> F4
+    E5 <--> F5
     F1 <--> H1
     F2 <--> H1
     F3 <--> H1
     F4 <--> H1
     F3 <--> I1
     F2 <--> I2
-    F4 <--> I3
+    F5 <--> I3
     F1 <--> I4
 ```
 
@@ -150,6 +167,7 @@ graph TB
 - Transfers with transaction history
 - Bills and payment records
 - Currencies and exchange rates
+- Investment portfolios and transaction history
 
 ### Blockchain Integration
 - **Stellar Network**: For secure transactions
@@ -248,8 +266,9 @@ sequenceDiagram
         Stellar-->>Service: Account Created
     end
     Service-->>API: Auth Response
-    API-->>Frontend: Auth Token & User Data
-    
+    API-->>Frontend: Authentication Complete
+    Frontend-->>User: Dashboard Access
+
     User->>Frontend: Initiates Money Transfer
     Frontend->>API: Transfer Request
     API->>Service: Process Transfer
@@ -270,6 +289,15 @@ sequenceDiagram
     Service->>DB: Update KYC Status
     Service-->>API: Verification Result
     API-->>Frontend: Display Verification Status
+    
+    User->>Frontend: Select Investment Option
+    Frontend->>API: Request Investment Details
+    API->>Service: Process Investment Request
+    Service->>DB: Record Investment Transaction
+    DB-->>Service: Confirmation
+    Service-->>API: Investment Status
+    API-->>Frontend: Display Investment Result
+    Frontend-->>User: Investment Confirmation
 ```
 
 ### Environment Configuration
@@ -299,6 +327,69 @@ sequenceDiagram
 3. Verifies payment with PIN
 4. System processes payment
 5. Confirmation is provided to the user
+
+## Investments Platform
+
+### Overview
+Druid's investment platform provides users with a range of investment options across multiple risk categories. The platform is designed to make investing accessible to users with varying levels of financial knowledge and risk tolerance.
+
+### Investment Categories
+1. **Savings**
+   - Flexible Savings (2.5% APY, Low Risk)
+   - Fixed Term Deposit (4.2% APY, Low Risk)
+   - High-Yield Savings (5.8% APY, Medium Risk)
+
+2. **Stocks**
+   - Global ETF Portfolio (8-12% historical returns, Medium Risk)
+   - Tech Growth Fund (12-18% historical returns, High Risk)
+   - Dividend Income Fund (6-9% historical returns, Medium Risk)
+
+3. **Cryptocurrency**
+   - Stablecoin Yield (7-10% APY, Medium Risk)
+   - Blue-Chip Crypto (Variable returns, High Risk)
+   - DeFi Yield Farming (8-20% APY, High Risk)
+
+### Technical Implementation
+- **Client-Side Components**:
+  - Investment dashboard with category selection
+  - Detailed investment cards with risk indicators
+  - Interactive investment simulator with real-time calculations
+  - Mobile-responsive design with adaptive layouts
+
+- **Server-Side Architecture**:
+  - Investment data models and portfolio tracking
+  - Risk calculation algorithms
+  - Return simulation based on historical performance
+  - Transaction recording and portfolio management
+
+- **Data Flow**:
+  1. User browses investment options by category
+  2. User selects specific investment for detailed view
+  3. User simulates investment with adjustable amount
+  4. User confirms investment and receives confirmation
+  5. System records transaction and updates portfolio
+
+### User Experience Features
+- Risk visualization with color-coded indicators
+- Interactive sliders for amount selection
+- Estimated returns calculator for different time horizons
+- Comprehensive details including benefits and considerations
+- Historical performance data where applicable
+- Mobile-optimized interfaces for all screen sizes
+
+### Security Considerations
+- Investment simulator is clearly marked as a demo
+- Real investments would require additional verification
+- Risk disclosures and financial advice disclaimers
+- Secure transaction processing and record-keeping
+
+### Dashboard Integration
+- Investment options accessible directly from the main dashboard
+- Portfolio summary widget showing current investments
+- Performance tracking with visual charts and statistics
+- One-click access to investment details and transaction history
+- Seamless navigation between financial services within the app
+- Notifications for important investment events and opportunities
 
 ## Installation
 
@@ -387,308 +478,4 @@ NEXT_PUBLIC_PUSHER_APP_KEY="your_pusher_app_key"  # Required for real-time featu
 
 6. **Self Protocol Integration** (Coming Soon)
    - Front-end: `npm install @selfxyz/qrcode` or `yarn add @selfxyz/qrcode`
-   - Back-end: `npm install @selfxyz/core` or `yarn add @selfxyz/core`
-   - Required environment variables will include:
-     ```
-     CELO_RPC_URL=https://forno.celo.org
-     SCOPE=druid-app-verification
-     ```
-
-### Installation Steps
-```bash
-# Install dependencies
-yarn install
-
-# Generate Prisma client
-yarn prisma generate
-
-# Set up the database
-yarn db:push
-```
-
-## Development
-
-```bash
-# Start development server
-yarn dev
-
-# With HTTPS (for testing WebAuthn/passkeys)
-yarn dev:https
-```
-
-### Database Management
-```bash
-# Create a new migration
-yarn db:generate
-
-# Apply migrations
-yarn db:migrate
-
-# View database with Prisma Studio
-yarn db:studio
-```
-
-## Production
-
-```bash
-# Build the application
-yarn build
-
-# Start production server
-yarn start
-```
-
-## Security Considerations
-
-- All sensitive data is encrypted
-- PIN and biometric verification for transactions
-- Passkey support for passwordless authentication
-- Stellar blockchain for secure transaction records
-- ZK Self verification for privacy-preserving identity verification
-
-## Technical Innovation
-
-### Code Quality
-- **Type Safety**: Comprehensive TypeScript typing throughout the application
-- **Modular Architecture**: Well-structured component organization with clear separation of concerns
-- **Best Practices**: Adherence to modern React patterns and Next.js conventions
-- **Testing**: Comprehensive test coverage for critical components
-
-### Technical Complexity
-- **Distributed Systems**: Integration of multiple financial services through a unified interface
-- **Financial Logic**: Complex transaction handling with validation and error recovery
-- **State Management**: Sophisticated state management for multi-step processes
-- **Multi-platform Compatibility**: Responsive design working across devices
-
-### Innovative Use of Blockchain
-- **Stellar Integration**: Using Stellar's network for secure, fast, and low-cost transactions
-- **Smart Contract Implementation**: Leveraging Soroban for programmable financial logic
-- **Trustless Operations**: Implementing escrow services without centralized authority
-- **Cross-border Capabilities**: Facilitating international transfers with minimal friction
-- **Zero-Knowledge Proofs**: Utilizing Self protocol for privacy-preserving identity verification
-
-## Real-World Impact
-
-### Problem-Solution Fit
-- **Addressing Underbanking**: Providing financial services to underserved populations
-- **Remittance Challenges**: Reducing costs and delays in cross-border transfers
-- **Financial Inclusion**: Enabling access to banking services without traditional banking infrastructure
-- **Trust Issues**: Building trust through transparent blockchain transactions
-
-### Potential Scale
-- **Global Reach**: Platform designed for international deployment
-- **Scalable Infrastructure**: Cloud-native architecture supporting millions of users
-- **Network Effects**: Increasing value as user base grows
-- **Multi-currency Support**: Ready for deployment across different economic regions
-
-### Market Viability
-- **Competitive Analysis**: Lower fees than traditional remittance services
-- **Target Market**: Clear focus on both banked and underbanked populations
-- **Revenue Model**: Sustainable fee structure with growth opportunities
-- **Regulatory Compliance**: Built with KYC/AML considerations from the ground up
-- **Privacy-Preserving Verification**: Using ZK proofs via Self protocol for compliant yet private identity verification
-
-## User Experience
-
-### Interface Design
-- **Clean Aesthetics**: Modern, minimalist UI that emphasizes content
-- **Visual Hierarchy**: Clear organization of information and actions
-- **Consistency**: Uniform design language across all application sections
-- **Responsive Design**: Optimized for both mobile and desktop experiences
-
-### User Flow
-- **Intuitive Navigation**: Clear pathways through complex financial processes
-- **Reduced Friction**: Minimized steps to complete common actions
-- **Error Prevention**: Proactive validation to prevent user mistakes
-- **Guided Journeys**: Step-by-step flows for complex operations
-
-### Accessibility
-- **WCAG Compliance**: Following web content accessibility guidelines
-- **Screen Reader Support**: Semantic HTML with proper ARIA attributes
-- **Keyboard Navigation**: Full functionality without mouse interaction
-- **Color Contrast**: Ensuring readability for users with visual impairments
-
-## Completion Level
-
-### Working Prototype
-- **Core Functionality**: All essential features implemented and functional
-- **End-to-End Flows**: Complete user journeys from registration to transaction
-- **API Integration**: Connected to all necessary external services
-- **Error Handling**: Robust handling of edge cases and failure scenarios
-
-### Feature Completeness
-- **MVP Features**: All planned features for initial release implemented
-- **Polish Level**: Refined user interactions and visual design
-- **Performance Optimization**: Efficient loading and operation times
-- **Mobile Readiness**: Fully functional on mobile devices
-
-### Documentation Quality
-- **Comprehensive Coverage**: Documentation for all aspects of the application
-- **Technical Depth**: Detailed explanations of architecture and implementation
-- **Onboarding Focus**: Clear guidance for new developers and users
-- **Maintenance Support**: Guidelines for ongoing development and updates
-
-## Presentation
-
-### Project Pitch
-
-Druid represents a transformative approach to global financial inclusion, solving critical problems in cross-border payments while leveraging cutting-edge blockchain technology in a user-friendly interface.
-
-#### The Problem We're Solving
-
-Today, over 1.7 billion adults remain unbanked worldwide, while existing remittance services charge exorbitant fees (averaging 6-8%) that cost migrants $50 billion annually. Cross-border payments remain slow (2-5 days), expensive, and lack transparency, particularly affecting vulnerable populations who need these services most.
-
-Traditional financial systems create barriers through:
-- High fees and unfavorable exchange rates
-- Extensive paperwork and documentation requirements
-- Limited accessibility in rural or underserved areas
-- Lack of transparency in transaction status and fees
-- Exclusion of individuals without formal banking relationships
-
-#### Our Solution: Druid
-
-Druid provides a comprehensive digital financial platform that bridges traditional and blockchain technologies to enable:
-
-1. **Instant & Low-Cost Transfers**: Reduce remittance costs by up to 70% and settlement time from days to seconds using Stellar's high-throughput blockchain.
-
-2. **Multiple Access Points**: Cash deposits, bank transfers, or mobile money - users can access funds through their preferred method without requiring a bank account.
-
-3. **Transparent & Secure**: Every transaction is recorded on the blockchain with real-time tracking and military-grade encryption, while maintaining regulatory compliance.
-
-4. **Privacy-Preserving Compliance**: Our integration of Zero-Knowledge proofs through Self Protocol allows for regulatory compliance without compromising user privacy.
-
-5. **True Financial Inclusion**: By combining the accessibility of cash-based systems with the efficiency of blockchain, we serve both banked and unbanked populations.
-
-#### Competitive Advantage
-
-Druid stands apart from both traditional remittance services and crypto-native solutions:
-
-| Feature | Traditional Services | Crypto-Only Solutions | Druid |
-|---------|----------------------|------------------------|-------|
-| **Cost** | 6-8% average fees | 1-2% fees but complex | **1-2% transparent fees** |
-| **Speed** | 2-5 days | Minutes to hours | **Seconds to minutes** |
-| **Accessibility** | Requires documentation | Requires technical knowledge | **Multiple options for all users** |
-| **Compliance** | High but invasive | Often lacking | **Strong but privacy-preserving** |
-| **User Experience** | Varies but improving | Often complex | **Simple, intuitive design** |
-
-#### Market Opportunity
-
-The global remittance market exceeds $700 billion annually and is growing at 4-5% per year, while digital wallet adoption is projected to reach 60% of the global population by 2026. By targeting key remittance corridors (US-Mexico, US-Philippines, EU-Africa) initially, Druid addresses an immediate $200+ billion market with our differentiated solution.
-
-#### Business Model
-
-Our sustainable revenue model includes:
-- Small transaction fees (1-2%, significantly lower than industry standard)
-- Premium features for power users and businesses
-- Currency exchange margin (minimal and transparent)
-- Ecosystem partnerships with merchants and service providers
-
-#### Why Now?
-
-Three converging factors make this the perfect time for Druid:
-1. Accelerated digital payment adoption post-pandemic
-2. Maturing blockchain infrastructure (Stellar, Soroban) enabling practical applications
-3. Regulatory frameworks evolving to support responsible innovation in financial services
-
-#### Vision & Impact
-
-Beyond remittances, Druid is building toward a future where financial services are:
-- **Universal**: Available to everyone regardless of geography or economic status
-- **Fair**: Transparent fees and access conditions
-- **Sovereign**: Users control their own data and financial information
-- **Interoperable**: Working seamlessly across various financial systems
-
-By removing financial barriers, we enable economic empowerment for millions globally, helping families increase discretionary income, build savings, and ultimately break cycles of poverty.
-
-#### Team Commitment
-
-Our team combines expertise in blockchain development, financial inclusion, regulatory compliance, and user experience design. We're committed to building a platform that makes a meaningful difference in people's lives while establishing a sustainable business that can scale globally.
-
-Join us in transforming the future of global finance with Druid - where traditional finance meets cutting-edge technology to create true financial inclusion.
-
-## Roadmap
-
-### 2023 (Completed)
-- Initial platform launch
-- Basic wallet functionality
-- Payment integration (Bank transfer, Cash)
-- Security foundation with PIN verification
-- KYC integration
-- Bill payment services
-
-### 2024 (Completed)
-- Enhanced security with passkeys
-- MoneyGram collection integration
-- Multi-currency support
-- User experience improvements
-- Transaction history and analytics
-- Mobile application development
-- Merchant payment solutions
-- Enhanced notification system
-
-### 2025 (Current)
-- **Soroban Escrow Contract Integration**: Trustless escrow services using Soroban smart contracts
-- **Buy Now, Pay Later (BNPL) Service**: BNPL functionality allowing users to split payments into installments
-- **ZK Self Protocol Integration**: Privacy-preserving identity verification using Self protocol's Zero-Knowledge proofs
-- **Enhanced Security Features**: Advanced fraud detection and prevention systems
-- **Cross-Border Optimization**: Improved routing for international transfers
-- **Regulatory Compliance Updates**: Adapting to evolving global financial regulations
-
-### 2026 (Planned)
-- **AI-Powered Financial Assistant**: Integration of AI prompts to help users with financial decisions
-- **Voice Command System**: Implementation of voice prompts for hands-free operation
-- **Advanced ZK Verification Features**: Expanding Self protocol integration with additional verification options
-- **International Expansion**: Strategic entry into new markets in Asia and Latin America
-- **DeFi Integration**: Smart yield generation options for wallet balances
-- **Merchant Ecosystem Development**: Enhanced tools for businesses to accept and manage payments
-
-### 2027-2028 (Future Vision)
-- **Cross-Chain Interoperability**: Seamless transfers between multiple blockchain networks
-- **Central Bank Digital Currency (CBDC) Integration**: Support for emerging government-backed digital currencies
-- **Advanced Smart Contract Solutions**: Programmable money features for businesses and institutions
-- **Embedded Finance API**: Allow third-party applications to leverage Druid's infrastructure
-- **Financial Education Platform**: Built-in learning resources to improve financial literacy
-- **Institutional-Grade Services**: Solutions designed for banks and financial institutions
-
-### Market Acquisition Strategy (100,000 Users by End of 2026)
-
-Our plan to scale from our current user base to 100,000 users by the end of 2026:
-
-1. **Geographic Expansion**:
-   - Deepen penetration in existing high-remittance corridors (US-Mexico, US-Philippines, Europe-Africa)
-   - Expand into emerging markets in Southeast Asia and Latin America
-   - Target diaspora communities in major global cities
-
-2. **Growth Acceleration**:
-   - **Enhanced Referral Program**: Multi-tiered rewards with permanent fee reductions
-   - **Strategic Partnerships**: Collaborate with universities, employers of migrant workers, and community organizations
-   - **Business Platform**: Dedicated solutions for small businesses serving immigrant communities
-   - **Financial Institution Partnerships**: White-label solutions for banks and credit unions
-
-3. **Advanced Marketing Strategy**:
-   - Targeted digital campaigns focused on key use cases and pain points
-   - Content marketing highlighting real user success stories
-   - Community-driven growth through ambassador programs
-   - Educational initiatives addressing specific financial needs of target demographics
-
-4. **Innovation-Driven Acquisition**:
-   - Early access to new BNPL features for qualified users
-   - Privacy-focused marketing highlighting ZK verification benefits
-   - AI-powered personalization to improve user retention and engagement
-   - Cross-product incentives linking remittances with other financial services
-
-5. **Enterprise Strategy**:
-   - B2B solutions for companies with global workforces
-   - Integration with payroll systems for direct deposit options
-   - APIs for third-party application developers
-   - Customized compliance solutions for businesses in regulated sectors
-
-Our growth strategy balances organic user acquisition with strategic partnerships, with quarterly targets and clear metrics for success tracking across all channels and markets.
-
-## Contributing
-
-We welcome contributions to Druid! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more information.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE). 
+   - Back-end: `npm install @selfxyz/core`
