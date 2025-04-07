@@ -53,7 +53,58 @@ function DashboardContent() {
   const [isPinVerified, setIsPinVerified] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
   const [redirected, setRedirected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(() => {
+    // Initialize wallet address from localStorage if available
+    if (typeof window !== 'undefined') {
+      try {
+        const userData = localStorage.getItem("auth_user");
+        if (userData) {
+          const user = JSON.parse(userData);
+          if (user.walletAddress) {
+            console.log("INITIALIZING WALLET ADDRESS FROM STORAGE:", user.walletAddress);
+            return user.walletAddress;
+          }
+        }
+      } catch (error) {
+        console.error("Error initializing wallet address from localStorage:", error);
+      }
+    }
+    return null;
+  });
+  
+  // Immediately generate wallet address if needed
+  useEffect(() => {
+    const ensureWalletAddress = () => {
+      try {
+        const userData = localStorage.getItem("auth_user");
+        if (userData) {
+          const localUser = JSON.parse(userData);
+          if (!localUser.walletAddress) {
+            // Generate a unique wallet address for the user
+            const newAddress = `stellar:${Math.random().toString(36).substring(2, 15)}`;
+            localUser.walletAddress = newAddress;
+            localStorage.setItem("auth_user", JSON.stringify(localUser));
+            console.log("IMMEDIATE WALLET ADDRESS GENERATION:", newAddress);
+            setWalletAddress(newAddress);
+            return true;
+          } else if (localUser.walletAddress && !walletAddress) {
+            // If we have a wallet address in local storage but not in state, set it
+            setWalletAddress(localUser.walletAddress);
+            console.log("FOUND EXISTING WALLET ADDRESS:", localUser.walletAddress);
+            return true;
+          }
+        }
+        return false;
+      } catch (error) {
+        console.error("Error ensuring wallet address:", error);
+        return false;
+      }
+    };
+
+    // Try to set wallet address immediately
+    const addressSet = ensureWalletAddress();
+    console.log("Initial wallet address check result:", addressSet);
+  }, [walletAddress]);
   
   // Check if user is coming from bank connection flow
   const bankConnected = searchParams.get("bankConnected") === "true";
@@ -73,6 +124,27 @@ function DashboardContent() {
     if (pinVerified) {
       setIsPinVerified(true);
       setIsVerifying(false);
+      
+      // Check if we need to generate a wallet address
+      try {
+        const userData = localStorage.getItem("auth_user");
+        if (userData) {
+          const user = JSON.parse(userData);
+          if (!user.walletAddress) {
+            const newAddress = `stellar:${Math.random().toString(36).substring(2, 15)}`;
+            user.walletAddress = newAddress;
+            localStorage.setItem("auth_user", JSON.stringify(user));
+            setWalletAddress(newAddress);
+            console.log("PIN VERIFIED, GENERATED NEW WALLET ADDRESS:", newAddress);
+          } else if (!walletAddress) {
+            setWalletAddress(user.walletAddress);
+            console.log("PIN VERIFIED, USING EXISTING WALLET ADDRESS:", user.walletAddress);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking wallet address after PIN verification:", error);
+      }
+      
       return;
     }
     
