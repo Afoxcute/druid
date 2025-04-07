@@ -182,8 +182,22 @@ export default function OnboardingMobile() {
       if (pin === confirmPin) {
         // Store the PIN locally for validation
         try {
-          localStorage.setItem("user_pin", JSON.stringify({ pin: pin }));
-          console.log("Stored user PIN in localStorage for validation");
+          // Store the PIN with proper error handling
+          const pinData = { pin: pin, created: new Date().toISOString() };
+          localStorage.setItem("user_pin", JSON.stringify(pinData));
+          
+          // Verify the PIN was stored correctly
+          const storedData = localStorage.getItem("user_pin");
+          if (storedData) {
+            const parsedData = JSON.parse(storedData);
+            if (parsedData && parsedData.pin === pin) {
+              console.log("Successfully stored user's custom PIN for validation");
+            } else {
+              console.error("PIN verification failed after storage");
+            }
+          } else {
+            console.error("Failed to retrieve PIN after storage");
+          }
         } catch (err) {
           console.error("Failed to store PIN in localStorage:", err);
         }

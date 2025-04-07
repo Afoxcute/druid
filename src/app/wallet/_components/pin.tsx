@@ -66,11 +66,20 @@ const PinEntry: FC<PinEntryProps> = ({ onSuccess, onCancel }) => {
       // For now, just simulate a successful validation after a delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Validate against demo PIN or user's stored PIN
+      // Validate against the user's custom PIN
+      // Only fall back to demo PIN if no custom PIN exists
       const demoPin = "123456";
-      const isDemoPinValid = pin === demoPin;
-      const isUserPinValid = storedUserPin !== null && pin === storedUserPin;
-      const isValid = isDemoPinValid || isUserPinValid;
+      let isValid = false;
+      
+      if (storedUserPin) {
+        // If a custom PIN exists, only accept that one
+        isValid = pin === storedUserPin;
+        console.log("Validating against user's custom PIN");
+      } else {
+        // Only fall back to demo PIN if no custom PIN exists
+        isValid = pin === demoPin;
+        console.log("No custom PIN found, validating against demo PIN");
+      }
       
       if (isValid) {
         clickFeedback("medium");

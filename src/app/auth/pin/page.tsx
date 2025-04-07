@@ -152,7 +152,7 @@ function PinAuthenticationContent() {
         />
       </Card>
       <p className="mt-4 text-center text-sm text-gray-500">
-        Note: For demo purposes, the PIN is 123456
+        Please enter your custom PIN that you created during setup
       </p>
     </div>
   );
