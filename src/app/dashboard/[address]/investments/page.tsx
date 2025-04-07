@@ -163,7 +163,7 @@ export default function InvestmentsPage() {
                   {option.risk} Risk
                 </div>
               </div>
-              <CardTitle className="text-base sm:text-lg">{option.title}</CardTitle>
+              <CardTitle className="text-base sm:text-lg mt-2">{option.title}</CardTitle>
               <CardDescription className="text-xs sm:text-sm line-clamp-2">{option.description}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 text-xs sm:text-sm pb-2">
@@ -197,14 +197,14 @@ export default function InvestmentsPage() {
   return (
     <div className="container mx-auto max-w-4xl space-y-4 sm:space-y-6 p-3 sm:p-4">
       <div className="flex items-center mb-4 sm:mb-6">
-        <Button variant="ghost" onClick={handleBack} className="mr-2">
+        <Button variant="ghost" onClick={handleBack} className="mr-2 p-1 sm:p-2">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-xl sm:text-2xl font-bold">Investments</h1>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="ml-2">
+              <Button variant="ghost" size="icon" className="ml-2 p-1 sm:p-2">
                 <Info className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -215,9 +215,9 @@ export default function InvestmentsPage() {
         </TooltipProvider>
       </div>
 
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-4 sm:p-6 mb-4 sm:mb-8">
         <h2 className="text-lg sm:text-xl font-bold flex items-center">
-          <TrendingUp className="mr-2 h-5 w-5" />
+          <TrendingUp className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
           Grow Your Money
         </h2>
         <p className="mt-2 text-sm sm:text-base">
@@ -225,11 +225,11 @@ export default function InvestmentsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="savings" value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-2">
-          <TabsTrigger value="savings" className="text-xs sm:text-sm py-1.5 sm:py-2">Savings</TabsTrigger>
-          <TabsTrigger value="stocks" className="text-xs sm:text-sm py-1.5 sm:py-2">Stocks</TabsTrigger>
-          <TabsTrigger value="crypto" className="text-xs sm:text-sm py-1.5 sm:py-2">Crypto</TabsTrigger>
+      <Tabs defaultValue="savings" value={selectedTab} onValueChange={setSelectedTab}>
+        <TabsList className="grid w-full grid-cols-3 mb-2 sm:mb-0">
+          <TabsTrigger value="savings" className="text-xs sm:text-sm">Savings</TabsTrigger>
+          <TabsTrigger value="stocks" className="text-xs sm:text-sm">Stocks</TabsTrigger>
+          <TabsTrigger value="crypto" className="text-xs sm:text-sm">Crypto</TabsTrigger>
         </TabsList>
         
         <TabsContent value="savings" className="mt-4 sm:mt-6">
@@ -256,7 +256,7 @@ export default function InvestmentsPage() {
           <div className="mb-3 sm:mb-4">
             <h2 className="text-base sm:text-lg font-medium">Cryptocurrency Investments</h2>
             <p className="text-xs sm:text-sm text-gray-500">
-              Digital asset investment options with varying risk profiles
+              Explore digital asset opportunities with varying risk profiles
             </p>
           </div>
           {renderInvestmentOptions(cryptoOptions)}

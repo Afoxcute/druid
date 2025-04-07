@@ -407,68 +407,68 @@ function InvestmentDetailsContent() {
 
   if (!investment) {
     return (
-      <div className="container mx-auto max-w-md p-8 text-center">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mx-auto mb-4"></div>
-        <p>Loading investment details...</p>
+      <div className="container mx-auto max-w-md p-4 sm:p-8 text-center">
+        <div className="animate-spin h-6 w-6 sm:h-8 sm:w-8 border-4 border-blue-600 rounded-full border-t-transparent mx-auto mb-3 sm:mb-4"></div>
+        <p className="text-sm sm:text-base">Loading investment details...</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto max-w-2xl space-y-6 p-4">
-      <Button variant="ghost" onClick={handleBack} className="mb-4">
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Investments
+    <div className="container mx-auto max-w-2xl space-y-4 sm:space-y-6 p-3 sm:p-4">
+      <Button variant="ghost" onClick={handleBack} className="mb-2 sm:mb-4 p-1 sm:p-2">
+        <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4" />
+        <span className="text-sm sm:text-base">Back to Investments</span>
       </Button>
       
       <Card className="overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-          <div className="flex items-center gap-3">
+        <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3">
             {getInvestmentIcon()}
             <div>
-              <CardTitle className="text-xl md:text-2xl">{investment.title}</CardTitle>
-              <CardDescription className="text-blue-100 text-sm">
+              <CardTitle className="text-xl sm:text-2xl">{investment.title}</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-blue-100">
                 {investment.description}
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         
-        <CardContent className="space-y-6 p-4 sm:p-6">
+        <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
           {/* Investment Details */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Investment Details</h3>
-            <p className="text-gray-700 text-sm sm:text-base">{investment.details}</p>
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-base sm:text-lg font-medium">Investment Details</h3>
+            <p className="text-xs sm:text-sm text-gray-700">{investment.details}</p>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-              <div className="rounded-lg bg-blue-50 p-3">
-                <div className="flex items-center gap-2 text-blue-700 mb-1">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="font-medium text-sm">Return Rate</span>
+            <div className="grid grid-cols-2 gap-2 sm:gap-4 mt-3 sm:mt-4">
+              <div className="rounded-lg bg-blue-50 p-2 sm:p-3">
+                <div className="flex items-center gap-1 sm:gap-2 text-blue-700 mb-1">
+                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="text-xs sm:text-sm font-medium">Return Rate</span>
                 </div>
                 <p className="text-base sm:text-lg font-bold text-blue-900">{investment.returnRate}</p>
               </div>
               
-              <div className="rounded-lg bg-amber-50 p-3">
-                <div className="flex items-center gap-2 text-amber-700 mb-1">
-                  <AlertCircle className="h-4 w-4" />
-                  <span className="font-medium text-sm">Risk Level</span>
+              <div className="rounded-lg bg-amber-50 p-2 sm:p-3">
+                <div className="flex items-center gap-1 sm:gap-2 text-amber-700 mb-1">
+                  <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="text-xs sm:text-sm font-medium">Risk Level</span>
                 </div>
                 <p className="text-base sm:text-lg font-bold text-amber-900">{investment.risk}</p>
               </div>
               
-              <div className="rounded-lg bg-purple-50 p-3">
-                <div className="flex items-center gap-2 text-purple-700 mb-1">
-                  <Calendar className="h-4 w-4" />
-                  <span className="font-medium text-sm">Term</span>
+              <div className="rounded-lg bg-purple-50 p-2 sm:p-3">
+                <div className="flex items-center gap-1 sm:gap-2 text-purple-700 mb-1">
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="text-xs sm:text-sm font-medium">Term</span>
                 </div>
                 <p className="text-base sm:text-lg font-bold text-purple-900">{investment.term}</p>
               </div>
               
-              <div className="rounded-lg bg-green-50 p-3">
-                <div className="flex items-center gap-2 text-green-700 mb-1">
-                  <DollarSign className="h-4 w-4" />
-                  <span className="font-medium text-sm">Min. Amount</span>
+              <div className="rounded-lg bg-green-50 p-2 sm:p-3">
+                <div className="flex items-center gap-1 sm:gap-2 text-green-700 mb-1">
+                  <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="text-xs sm:text-sm font-medium">Min. Amount</span>
                 </div>
                 <p className="text-base sm:text-lg font-bold text-green-900">${investment.minAmount}</p>
               </div>
@@ -478,11 +478,11 @@ function InvestmentDetailsContent() {
           <Separator />
           
           {/* Risk Analysis */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Risk Analysis</h3>
-            <div className="w-full bg-gray-100 rounded-full h-4">
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-base sm:text-lg font-medium">Risk Analysis</h3>
+            <div className="w-full bg-gray-100 rounded-full h-3 sm:h-4">
               <div 
-                className={`h-4 rounded-full ${
+                className={`h-3 sm:h-4 rounded-full ${
                   getRiskScore(investment.risk) === 1 
                     ? "bg-green-500 w-1/3" 
                     : getRiskScore(investment.risk) === 2 
@@ -502,34 +502,34 @@ function InvestmentDetailsContent() {
           {investment.historicalPerformance && (
             <>
               <Separator />
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2 text-indigo-600" />
+              <div className="space-y-3 sm:space-y-4">
+                <h3 className="text-base sm:text-lg font-medium flex items-center">
+                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-indigo-600" />
                   Historical Performance
                 </h3>
                 
                 <div className="grid grid-cols-3 gap-2">
                   <div className="text-center p-2 rounded-lg bg-gray-50">
-                    <div className="text-gray-500 text-xs sm:text-sm">1 Year</div>
-                    <div className="text-base sm:text-lg font-bold text-indigo-700">
+                    <div className="text-xs text-gray-500">1 Year</div>
+                    <div className="text-sm sm:text-lg font-bold text-indigo-700">
                       {investment.historicalPerformance["1y"]}
                     </div>
                   </div>
                   <div className="text-center p-2 rounded-lg bg-gray-50">
-                    <div className="text-gray-500 text-xs sm:text-sm">3 Years</div>
-                    <div className="text-base sm:text-lg font-bold text-indigo-700">
+                    <div className="text-xs text-gray-500">3 Years</div>
+                    <div className="text-sm sm:text-lg font-bold text-indigo-700">
                       {investment.historicalPerformance["3y"]}
                     </div>
                   </div>
                   <div className="text-center p-2 rounded-lg bg-gray-50">
-                    <div className="text-gray-500 text-xs sm:text-sm">5 Years</div>
-                    <div className="text-base sm:text-lg font-bold text-indigo-700">
+                    <div className="text-xs text-gray-500">5 Years</div>
+                    <div className="text-sm sm:text-lg font-bold text-indigo-700">
                       {investment.historicalPerformance["5y"]}
                     </div>
                   </div>
                 </div>
                 
-                <p className="text-xs sm:text-sm text-gray-500 italic">
+                <p className="text-xs text-gray-500 italic">
                   Past performance is not indicative of future results
                 </p>
               </div>
@@ -540,18 +540,18 @@ function InvestmentDetailsContent() {
           {(investment.benefits || investment.considerations) && (
             <>
               <Separator />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {investment.benefits && (
                   <div className="space-y-2">
-                    <h3 className="text-lg font-medium flex items-center">
-                      <ShieldCheck className="h-5 w-5 mr-2 text-green-600" />
+                    <h3 className="text-base sm:text-lg font-medium flex items-center">
+                      <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-green-600" />
                       Benefits
                     </h3>
                     <ul className="space-y-2">
                       {investment.benefits.map((benefit, index) => (
                         <li key={index} className="flex items-start">
-                          <span className="h-5 w-5 flex-shrink-0 text-green-500 mr-2">•</span>
-                          <span className="text-sm sm:text-base">{benefit}</span>
+                          <span className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-green-500 mr-1 sm:mr-2">•</span>
+                          <span className="text-xs sm:text-sm">{benefit}</span>
                         </li>
                       ))}
                     </ul>
@@ -560,15 +560,15 @@ function InvestmentDetailsContent() {
                 
                 {investment.considerations && (
                   <div className="space-y-2">
-                    <h3 className="text-lg font-medium flex items-center">
-                      <AlertCircle className="h-5 w-5 mr-2 text-amber-600" />
+                    <h3 className="text-base sm:text-lg font-medium flex items-center">
+                      <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-amber-600" />
                       Considerations
                     </h3>
                     <ul className="space-y-2">
                       {investment.considerations.map((consideration, index) => (
                         <li key={index} className="flex items-start">
-                          <span className="h-5 w-5 flex-shrink-0 text-amber-500 mr-2">•</span>
-                          <span className="text-sm sm:text-base">{consideration}</span>
+                          <span className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-amber-500 mr-1 sm:mr-2">•</span>
+                          <span className="text-xs sm:text-sm">{consideration}</span>
                         </li>
                       ))}
                     </ul>
@@ -581,19 +581,19 @@ function InvestmentDetailsContent() {
           <Separator />
           
           {/* Investment Form */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Invest Now</h3>
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-base sm:text-lg font-medium">Invest Now</h3>
             
-            <Alert className="bg-blue-50 text-blue-800 border-blue-200">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle className="text-sm sm:text-base">Investment Disclaimer</AlertTitle>
-              <AlertDescription className="text-xs sm:text-sm">
+            <Alert className="bg-blue-50 text-blue-800 border-blue-200 p-2 sm:p-3">
+              <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+              <AlertTitle className="text-xs sm:text-sm">Investment Disclaimer</AlertTitle>
+              <AlertDescription className="text-xs">
                 This is a demo investment. No actual funds will be transferred.
               </AlertDescription>
             </Alert>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <label className="text-xs sm:text-sm font-medium">
                 Investment Amount (Minimum ${investment.minAmount})
               </label>
               <div className="flex items-center">
@@ -629,8 +629,8 @@ function InvestmentDetailsContent() {
               </h4>
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div>
-                  <p className="text-xs text-gray-500">1 Year</p>
-                  <p className="text-sm sm:text-base font-bold text-green-600">
+                  <p className="text-[10px] sm:text-xs text-gray-500">1 Year</p>
+                  <p className="text-xs sm:text-sm font-bold text-green-600">
                     ${(() => {
                       const value = parseFloat(amount || "0");
                       return isNaN(value) ? 0 : (value * 1.05).toFixed(2);
@@ -638,8 +638,8 @@ function InvestmentDetailsContent() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">3 Years</p>
-                  <p className="text-sm sm:text-base font-bold text-green-600">
+                  <p className="text-[10px] sm:text-xs text-gray-500">3 Years</p>
+                  <p className="text-xs sm:text-sm font-bold text-green-600">
                     ${(() => {
                       const value = parseFloat(amount || "0");
                       return isNaN(value) ? 0 : Math.round(value * 1.15).toFixed(0);
@@ -647,8 +647,8 @@ function InvestmentDetailsContent() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">5 Years</p>
-                  <p className="text-sm sm:text-base font-bold text-green-600">
+                  <p className="text-[10px] sm:text-xs text-gray-500">5 Years</p>
+                  <p className="text-xs sm:text-sm font-bold text-green-600">
                     ${(() => {
                       const value = parseFloat(amount || "0");
                       return isNaN(value) ? 0 : Math.round(value * 1.28).toFixed(0);
@@ -656,7 +656,7 @@ function InvestmentDetailsContent() {
                   </p>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 italic mt-2">
+              <p className="text-[10px] sm:text-xs text-gray-500 italic mt-2">
                 *Based on average returns, not guaranteed
               </p>
             </div>
@@ -665,14 +665,14 @@ function InvestmentDetailsContent() {
         
         <CardFooter className="bg-gray-50 p-4 sm:p-6">
           <Button 
-            className="w-full" 
+            className="w-full text-sm sm:text-base" 
             size="lg"
             onClick={handleInvest}
             disabled={isLoading || !amount || isNaN(parseFloat(amount)) || parseFloat(amount) < investment.minAmount}
           >
             {isLoading ? (
               <div className="flex items-center gap-2">
-                <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent"></div>
+                <div className="animate-spin h-3 w-3 sm:h-4 sm:w-4 border-2 border-white rounded-full border-t-transparent"></div>
                 <span>Processing...</span>
               </div>
             ) : (
@@ -689,9 +689,9 @@ function InvestmentDetailsContent() {
 export default function InvestmentDetailsPage() {
   return (
     <Suspense fallback={
-      <div className="container mx-auto max-w-md p-8 text-center">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent mx-auto mb-4"></div>
-        <p>Loading investment options...</p>
+      <div className="container mx-auto max-w-md p-4 sm:p-8 text-center">
+        <div className="animate-spin h-6 w-6 sm:h-8 sm:w-8 border-4 border-blue-600 rounded-full border-t-transparent mx-auto mb-3 sm:mb-4"></div>
+        <p className="text-sm sm:text-base">Loading investment options...</p>
       </div>
     }>
       <InvestmentDetailsContent />
