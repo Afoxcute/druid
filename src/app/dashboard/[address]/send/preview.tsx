@@ -65,6 +65,7 @@ export default function SendPreview({
   const [otpCode, setOtpCode] = useState("");
   const [isResendingOtp, setIsResendingOtp] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
   
   // KYC verification states
   const [showKycVerification, setShowKycVerification] = useState(false);
@@ -346,27 +347,8 @@ export default function SendPreview({
     }
   };
   
-  const [resendTimer, setResendTimer] = useState(30); // 30 seconds countdown
-  
-  // Add useEffect to handle countdown timer
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    
-    if (resendTimer > 0 && otpSent) {
-      interval = setInterval(() => {
-        setResendTimer((prevTimer) => prevTimer - 1);
-      }, 1000);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [resendTimer, otpSent]);
-  
   const handleResendOtp = async () => {
     setIsResendingOtp(true);
-    setResendTimer(30); // Reset timer to 30 seconds
-    
     try {
       await sendOtpMutation.mutateAsync({ phone: phoneNumber });
       toast.success("New verification code sent");
@@ -383,14 +365,27 @@ export default function SendPreview({
       return;
     }
     
-      setIsLoading(true);
-      clickFeedback("medium");
+    setIsLoading(true);
+    clickFeedback("medium");
 
     try {
+      // In development mode, automatically accept "000000" as valid
+      if (process.env.NODE_ENV === 'development' && otpCode === '000000') {
+        console.log('Development mode: Auto-verifying OTP code');
+        // Skip actual verification and proceed
+        setIsVerified(true);
+        initializeKycVerification(); // This replaces onContinue
+        return;
+      }
+      
+      // Regular verification through tRPC mutation
       await verifyOtpMutation.mutateAsync({ 
         phone: phoneNumber,
         otp: otpCode 
       });
+      
+      // Verification successful - handled in the mutation's onSuccess callback
+      setIsVerified(true);
     } catch (error) {
       // Error is handled in the mutation callbacks
       setIsLoading(false);
@@ -678,12 +673,12 @@ export default function SendPreview({
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
-              <div className="flex justify-center items-center mb-6">
+              <div className="flex justify-center items-center mb-6 relative">
                 <div className="h-20 w-20 bg-blue-100 rounded-full flex items-center justify-center">
                   <ShieldCheck className="h-10 w-10 text-blue-600" />
                 </div>
                 {process.env.NODE_ENV === 'development' && (
-                  <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  <div className="absolute top-[-10px] right-[-10px] bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">
                     DEV MODE
                   </div>
                 )}
@@ -697,28 +692,34 @@ export default function SendPreview({
                   id="otpCode"
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value)}
-                  placeholder="Enter 6-digit code"
+                  placeholder={process.env.NODE_ENV === 'development' ? "000000" : "Enter 6-digit code"}
                   maxLength={6}
                   className="h-12 text-center text-lg tracking-widest"
                 />
               </div>
               
               <div className="flex justify-center">
-                <Button
-                  variant="outline"
-                  size="sm"
+                <Button 
+                  variant="link" 
                   onClick={handleResendOtp}
-                  disabled={isResendingOtp || resendTimer > 0}
-                  className="text-xs"
+                  disabled={isResendingOtp}
+                  className="text-blue-600"
                 >
-                  {isResendingOtp 
-                    ? "Sending..." 
-                    : resendTimer > 0 
-                      ? `Resend OTP (${resendTimer}s)` 
-                      : "Resend OTP"
-                  }
+                  {isResendingOtp ? "Sending..." : "Resend Code"}
                 </Button>
               </div>
+              
+              {process.env.NODE_ENV === 'development' && (
+                <div className="flex justify-center">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setOtpCode("000000")}
+                    className="text-blue-600 border-blue-300"
+                  >
+                    Auto-fill Test Code
+                  </Button>
+                </div>
+              )}
             </div>
 
             <Button

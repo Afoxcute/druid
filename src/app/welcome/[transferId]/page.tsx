@@ -179,6 +179,11 @@ export default function Component() {
           throw new Error("Recipient phone number is missing");
         }
         await newOtp.mutateAsync({ phone: transfer.data?.recipientPhone });
+        
+        // Auto-fill with default demo OTP code
+        setOtp(["0", "0", "0", "0", "0", "0"]);
+        console.log("Auto-filled with default demo OTP: 000000");
+        
         setAttempt((prev) => prev + 1);
         clickFeedback("success");
         toast.success("Verification code sent to your phone");
@@ -190,6 +195,11 @@ export default function Component() {
       if (phoneNumber.length >= 10) {
         setIsLoading(true);
         await newOtp.mutateAsync({ phone: phoneNumber });
+        
+        // Auto-fill with default demo OTP code
+        setOtp(["0", "0", "0", "0", "0", "0"]);
+        console.log("Auto-filled with default demo OTP: 000000");
+        
         setAttempt((prev) => prev + 1);
         clickFeedback("success");
         toast.success("Verification code sent to your phone");
@@ -258,7 +268,10 @@ export default function Component() {
       await newOtp.mutateAsync({ phone: phoneNumber });
       setIsLoading(false);
       setResendTimer(59); // Reset resend timer
-      setOtp(["", "", "", "", "", ""]);
+      
+      // Auto-fill with default demo OTP code instead of clearing it
+      setOtp(["0", "0", "0", "0", "0", "0"]);
+      console.log("Auto-filled with default demo OTP on resend: 000000");
     } catch (e) {
       setIsLoading(false);
     }
@@ -436,6 +449,11 @@ export default function Component() {
               <div className="space-y-2">
                 <Label htmlFor="otp-0">
                   Enter the 6-digit OTP sent to your phone
+                  {process.env.NODE_ENV === 'development' && (
+                    <span className="ml-2 text-blue-600 font-semibold text-sm">
+                      (Dev mode: Code is 000000)
+                    </span>
+                  )}
                 </Label>
                 <div className="flex justify-between">
                   {otp.map((digit, index) => (
@@ -501,6 +519,19 @@ export default function Component() {
                   )}
                 </Button>
               </div>
+              
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-4 flex justify-center">
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    onClick={() => setOtp(['0', '0', '0', '0', '0', '0'])}
+                    className="bg-blue-100 text-blue-600 border-blue-300 hover:bg-blue-200"
+                  >
+                    Auto-fill Test Code (000000)
+                  </Button>
+                </div>
+              )}
             </div>
           </form>
         );
