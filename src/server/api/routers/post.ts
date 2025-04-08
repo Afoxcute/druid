@@ -129,18 +129,11 @@ export const postRouter = createTRPCRouter({
           throw new Error("User not found. Please request a new verification code.");
         }
         
+        // In development, always allow "000000" as a valid OTP for testing
         const isDev = process.env.NODE_ENV === 'development';
-        
-        // In development mode, provide more helpful logging
-        if (isDev) {
-          console.log(`DEV MODE: Verifying OTP for user: ${user.id}, phone: ${input.phone}`);
-          console.log(`DEV MODE: Received OTP: ${input.otp}`);
-          
-          // Always accept "000000" as valid in development mode
-          if (input.otp === "000000") {
-            console.log("DEV MODE: Accepting default test OTP code (000000)");
-            return user;
-          }
+        if (isDev && input.otp === "000000") {
+          console.log("DEV MODE: Accepting test OTP code");
+          return user;
         }
         
         // Find verification record
@@ -155,59 +148,7 @@ export const postRouter = createTRPCRouter({
           },
         });
         
-        // Additional development mode fallback - if verification not found but in dev mode
         if (!verification) {
-          if (isDev) {
-            // In dev mode, let's check if there's any OTP for this user, even if expired
-            const anyOtp = await ctx.db.oTPVerification.findFirst({
-              where: {
-                userId: user.id,
-              },
-              orderBy: {
-                createdAt: 'desc',
-              },
-            });
-            
-            if (anyOtp) {
-              console.log(`DEV MODE: Found existing OTP record with code: ${anyOtp.otpCode}`);
-              
-              // If user entered the exact OTP that was stored (even if expired), accept it in dev mode
-              if (input.otp === anyOtp.otpCode) {
-                console.log("DEV MODE: Accepting matched OTP code even though it may be expired");
-                
-                // Mark it as verified anyway
-                await ctx.db.oTPVerification.update({
-                  where: {
-                    id: anyOtp.id,
-                  },
-                  data: {
-                    verified: true,
-                  },
-                });
-                
-                return user;
-              }
-            } else {
-              console.log("DEV MODE: No OTP records found for this user");
-            }
-            
-            // If we got here in dev mode but didn't match any OTP, accept it anyway
-            // but warn appropriately - this makes development easier
-            console.log("DEV MODE: Creating auto-verified OTP for development purposes");
-            // Create a verified OTP record for development purposes
-            await ctx.db.oTPVerification.create({
-              data: {
-                userId: user.id,
-                otpCode: input.otp,
-                verified: true,
-                expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-              },
-            });
-            
-            return user;
-          }
-          
-          // In production, enforce strict validation
           throw new Error("Invalid or expired verification code");
         }
         

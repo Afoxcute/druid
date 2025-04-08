@@ -346,8 +346,27 @@ export default function SendPreview({
     }
   };
   
+  const [resendTimer, setResendTimer] = useState(30); // 30 seconds countdown
+  
+  // Add useEffect to handle countdown timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (resendTimer > 0 && otpSent) {
+      interval = setInterval(() => {
+        setResendTimer((prevTimer) => prevTimer - 1);
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [resendTimer, otpSent]);
+  
   const handleResendOtp = async () => {
     setIsResendingOtp(true);
+    setResendTimer(30); // Reset timer to 30 seconds
+    
     try {
       await sendOtpMutation.mutateAsync({ phone: phoneNumber });
       toast.success("New verification code sent");
@@ -364,20 +383,10 @@ export default function SendPreview({
       return;
     }
     
-    setIsLoading(true);
-    clickFeedback("medium");
+      setIsLoading(true);
+      clickFeedback("medium");
 
     try {
-      // In development mode, add helpful logging
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`DEV MODE: Attempting to verify OTP: ${otpCode}`);
-        
-        // If user forgot to use 000000 in dev mode, but entered something, help them out
-        if (otpCode !== "000000") {
-          console.log("DEV MODE: Note - you can always use 000000 in development");
-        }
-      }
-      
       await verifyOtpMutation.mutateAsync({ 
         phone: phoneNumber,
         otp: otpCode 
@@ -385,12 +394,6 @@ export default function SendPreview({
     } catch (error) {
       // Error is handled in the mutation callbacks
       setIsLoading(false);
-      
-      // In development, provide a more helpful message if verification fails
-      if (process.env.NODE_ENV === 'development') {
-        console.error("DEV MODE: OTP verification failed. Try using 000000 as the code.");
-        toast.error("Development mode tip: Try using 000000 as the verification code");
-      }
     }
   };
 
@@ -689,43 +692,31 @@ export default function SendPreview({
               <div className="space-y-2">
                 <Label htmlFor="otpCode" className="text-sm text-gray-600">
                   Verification Code
-                  {process.env.NODE_ENV === 'development' && (
-                    <span className="ml-2 text-green-600 font-bold">
-                      (Use "000000" in dev mode)
-                    </span>
-                  )}
                 </Label>
                 <Input
                   id="otpCode"
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value)}
-                  placeholder={process.env.NODE_ENV === 'development' ? "000000 (dev mode)" : "Enter 6-digit code"}
+                  placeholder="Enter 6-digit code"
                   maxLength={6}
                   className="h-12 text-center text-lg tracking-widest"
                 />
-                {process.env.NODE_ENV === 'development' && (
-                  <div className="flex justify-center mt-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      type="button"
-                      onClick={() => setOtpCode("000000")}
-                      className="text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
-                    >
-                      Auto-fill dev code (000000)
-                    </Button>
-                  </div>
-                )}
               </div>
               
               <div className="flex justify-center">
-                <Button 
-                  variant="link" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleResendOtp}
-                  disabled={isResendingOtp}
-                  className="text-blue-600"
+                  disabled={isResendingOtp || resendTimer > 0}
+                  className="text-xs"
                 >
-                  {isResendingOtp ? "Sending..." : "Resend Code"}
+                  {isResendingOtp 
+                    ? "Sending..." 
+                    : resendTimer > 0 
+                      ? `Resend OTP (${resendTimer}s)` 
+                      : "Resend OTP"
+                  }
                 </Button>
               </div>
             </div>
