@@ -107,11 +107,15 @@ export default function SendPreview({
     onSuccess: (data) => {
       setOtpSent(true);
       
-      // In development, the server returns the actual OTP for easier testing
+      // In development, always set default code for easier testing
       const isDev = process.env.NODE_ENV === 'development';
-      if (isDev && typeof data === 'string' && data.length === 6) {
-        // Auto-fill the OTP in development mode for easier testing
-        console.log('DEV MODE: Auto-filling OTP:', data);
+      if (isDev) {
+        // Always set to "000000" in development mode
+        setOtpCode("000000");
+        console.log('DEV MODE: Using default OTP code: 000000');
+      }
+      // Only use server-returned OTP if it's provided and we're not in dev mode
+      else if (typeof data === 'string' && data.length === 6) {
         setOtpCode(data);
       }
       
@@ -326,6 +330,12 @@ export default function SendPreview({
       
       // Send OTP to the user's phone
       await sendOtpMutation.mutateAsync({ phone: phoneNumber });
+      
+      // In development mode, auto-fill with 000000 for easier testing
+      if (process.env.NODE_ENV === 'development') {
+        setOtpCode("000000");
+        console.log("DEV MODE: Auto-filled OTP with default code (000000)");
+      }
       
       // Show the OTP verification form
       setShowOtpVerification(true);
@@ -640,6 +650,11 @@ export default function SendPreview({
             </div>
             <CardDescription className="text-gray-600">
               We've sent a verification code to {phoneNumber}. Please enter it below to confirm your transfer.
+              {process.env.NODE_ENV === 'development' && (
+                <span className="block mt-2 text-blue-600 font-medium">
+                  Development mode: Use "000000" as the verification code.
+                </span>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -648,6 +663,11 @@ export default function SendPreview({
                 <div className="h-20 w-20 bg-blue-100 rounded-full flex items-center justify-center">
                   <ShieldCheck className="h-10 w-10 text-blue-600" />
                 </div>
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    DEV MODE
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">

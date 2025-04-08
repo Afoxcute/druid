@@ -210,18 +210,18 @@ export default function OnboardingMobile() {
             userId: Number(userId),
             pin: pin,
           });
-        } catch (err) {
+              } catch (err) {
           console.error("Failed to trigger PIN mutation:", err);
-          setIsLoading(false);
+              setIsLoading(false);
           setError("An unexpected error occurred. Please try again.");
+              setShake(true);
+              clickFeedback("error");
+            }
+        } else {
+        // PINs don't match
           setShake(true);
           clickFeedback("error");
-        }
-      } else {
-        // PINs don't match
-        setShake(true);
-        clickFeedback("error");
-        setConfirmPin("");
+          setConfirmPin("");
         setError("PINs don't match. Please try again.");
       }
     }
